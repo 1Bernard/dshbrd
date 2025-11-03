@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminSite</title>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+            color: #333;
+            /* Use flex to manage sidebar and main content */
+            display: flex;
+            min-height: 100vh; /* Use min-height instead of height to allow content to extend */
+            overflow-x: hidden; /* Prevent horizontal scroll for the entire body */
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 260px;
+            background: #fff;
+            position: fixed; /* Make sidebar fixed */
+            top: 0;
+            left: 0;
+            height: 100%; /* Full height */
+            overflow-y: auto; /* Enable scrolling for sidebar content */
+            overflow-x: hidden; /* Prevent horizontal scrolling within the sidebar */
+            z-index: 1000; /* Ensure sidebar is above other content */
+            transition: width .3s ease; /* Smooth transition for width changes */
+            display: flex;
+            flex-direction: column; /* Organize content vertically */
+        }
+
+        /* Scrollbar styling for Webkit browsers (Chrome, Safari) */
+        #sidebar::-webkit-scrollbar {
+            width: 8px; /* Always reserve space for scrollbar to prevent content shift */
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Light track */
+            border-radius: 4px;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: transparent; /* Hide thumb by default */
+            border-radius: 4px;
+        }
+
+        #sidebar:hover::-webkit-scrollbar-thumb {
+            background: #c0c0c0; /* Show thumb on hover */
+        }
+
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0; /* Slightly darker thumb on hover */
+        }
+
+        /* Scrollbar styling for Firefox */
+        #sidebar {
+            scrollbar-width: thin; /* Always reserve space for scrollbar */
+            scrollbar-color: transparent transparent; /* Hide thumb and track by default */
+        }
+
+        #sidebar:hover {
+            scrollbar-color: #c0c0c0 #f1f1f1; /* Show thumb and track on hover */
+        }
+
+        /* Collapsed sidebar state */
+        #sidebar.hide {
+            width: 60px; /* Reduced width when collapsed */
+        }
+
+        #sidebar .brand {
+            font-size: 24px;
+            font-weight: 700;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            color: #0a1e57;
+            position: sticky;
+            top: 0;
+            left: 0;
+            background: #fff;
+            z-index: 10;
+            padding: 0 16px;
+            white-space: nowrap;
+        }
+
+        #sidebar.hide .brand {
+            padding: 0 6px; /* Adjusted padding for left alignment */
+            overflow: hidden; /* Apply overflow hidden only when collapsed */
+        }
+
+        #sidebar.hide .brand .icon {
+            margin-right: 0; /* Remove margin when collapsed */
+        }
+
+        /* AdminSite logo text visibility */
+        #sidebar .brand span {
+            display: inline; /* Ensure the span is visible by default */
+            opacity: 1; /* Ensure full visibility */
+            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition for appearance/disappearance */
+        }
+
+        #sidebar.hide .brand span { /* Hide the "AdminSite" text when sidebar is hidden */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none; /* Prevent interaction when hidden */
+            display: none; /* Ensure it doesn't take up space */
+        }
+
+        #sidebar .brand .icon {
+            min-width: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 6px;
+        }
+
+        #sidebar .side-menu {
+            margin: 36px 0;
+            padding: 0 20px;
+            flex-grow: 1; /* Allow the main side-menu to grow and take space */
+        }
+
+        #sidebar.hide .side-menu {
+            padding: 36px 0; /* Adjust padding when collapsed */
+        }
+
+        #sidebar .side-menu li {
+            background: transparent;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            position: relative; /* Needed for dropdown line positioning */
+        }
+
+        #sidebar .side-menu li a {
+            color: #0a1e57;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            height: 48px; /* Keep height on the link for consistent clickable area */
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow-x: hidden; /* Hide text when collapsed */
+            padding: 0 16px;
+        }
+
+        /* Apply hover background directly to the anchor tag */
+        #sidebar .side-menu li a:hover {
+            background: #f0f0f0; /* Light grey background on hover */
+            color: #3c3cf1; /* Example: change text color on hover */
+        }
+
+
+        #sidebar.hide .side-menu li a {
+            width: 48px; /* Fixed width for the active background area */
+            height: 48px; /* Fixed height for the active background area */
+            margin-left: 6px; /* Padding from the left edge of the 60px sidebar */
+            margin-right: auto; /* Push it to the left */
+            padding: 0; /* No internal padding for the active area */
+            justify-content: center; /* Center the icon horizontally within its 48px area */
+            align-items: center; /* Center the icon vertically */
+        }
+
+        /* Menu item text visibility */
+        #sidebar .side-menu li a span {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #sidebar.hide .side-menu li a span { /* Hide the text within the link */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: none; /* Ensure it doesn't take up space */
+        }
+
+        #sidebar .side-menu li a .icon {
+            min-width: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 6px;
+        }
+
+        #sidebar.hide .side-menu li a .icon {
+            margin: 0; /* Remove margin when collapsed */
+        }
+
+
+        #sidebar .side-menu li a.active {
+            background: #3c3cf1;
+            color: #fff;
+            border-radius: 6px; /* Apply border-radius to active background */
+        }
+
+
+        #sidebar .side-menu li a.active .icon {
+            color: #fff;
+        }
+
+        #sidebar .side-menu li a .icon-right {
+            margin-left: auto;
+            transition: transform .3s ease;
+        }
+
+        /* Dropdown arrow visibility */
+        #sidebar.hide .side-menu li a .icon-right { /* Hide dropdown arrow when collapsed */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: none; /* Ensure it doesn't take up space */
+        }
+
+        #sidebar .side-menu li a.active .icon-right {
+            transform: rotate(90deg);
+        }
+
+        #sidebar .side-menu .side-dropdown {
+            max-height: 0;
+            overflow-y: hidden;
+            transition: max-height .4s ease-in-out; /* Increased duration for smoother animation */
+            position: relative; /* Needed for the vertical line */
+        }
+
+        /* Vertical line for dropdown */
+        #sidebar .side-menu .side-dropdown::before {
+            content: '';
+            position: absolute;
+            left: 40px; /* Aligned with the center of main icons */
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #e0e0e0; /* Light grey line */
+            z-index: 0; /* Ensure line is behind circles */
+        }
+
+        #sidebar.hide .side-menu .side-dropdown {
+            max-height: 0; /* Ensure dropdowns are closed when sidebar is hidden */
+            display: none; /* Explicitly hide dropdown when sidebar is hidden */
+        }
+
+        #sidebar .side-menu .side-dropdown.show {
+            max-height: 1000px; /* Arbitrary large value to show content */
+        }
+
+        #sidebar .side-menu .side-dropdown li {
+            position: relative; /* Needed for SVG pseudo-element */
+        }
+
+        #sidebar .side-menu .side-dropdown li a {
+            color: #666;
+            font-size: 13px;
+            padding: 4px 0 4px 50px; /* Decreased top/bottom padding for dropdown items */
+        }
+
+        #sidebar .side-menu .side-dropdown li a:hover {
+            color: #3c3cf1;
+        }
+
+        /* SVG icon for dropdown items */
+        #sidebar .side-menu .side-dropdown li::before {
+            content: '';
+            position: absolute;
+            /* Adjust left to center 13px SVG where 8px circle was */
+            left: 33.5px; /* Calculated: 40px (center of main icon) - 13px/2 */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 13px; /* SVG width */
+            height: 12px; /* SVG height */
+            border-radius: 0; /* No border-radius for SVG */
+            background-color: transparent; /* No background color */
+            /* Embedded SVG as background image */
+            background-image: url("data:image/svg+xml,%3Csvg width='13' height='12' viewBox='0 0 13 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.5 6C12.5 9.31371 9.81371 12 6.5 12C3.18629 12 0.5 9.31371 0.5 6C0.5 2.68629 3.18629 0 6.5 0C9.81371 0 12.5 2.68629 12.5 6ZM3.65774 6C3.65774 7.56974 4.93026 8.84226 6.5 8.84226C8.06974 8.84226 9.34226 7.56974 9.34226 6C9.34226 4.43026 8.06974 3.15774 6.6 3.15774C4.93026 3.15774 3.65774 4.43026 3.65774 6Z' fill='%238097A3'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain; /* Ensure SVG scales within its bounds */
+            z-index: 1;
+        }
+
+
+        #sidebar .side-menu .divider {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #aaa;
+            margin-bottom: 16px;
+            margin-top: 32px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            transition: opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease; /* Smooth transition for dividers */
+        }
+
+        /* Divider visibility */
+        #sidebar.hide .side-menu .divider {
+            opacity: 0;
+            max-height: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            overflow: hidden;
+            pointer-events: none;
+            display: none; /* Ensure it doesn't take up space */
+        }
+
+
+        /* Ads section */
+        #sidebar .ads {
+            padding: 20px;
+            text-align: center;
+            margin-top: auto; /* Push ads to the bottom of the main menu */
+            flex-shrink: 0; /* Prevent it from shrinking */
+            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition for ads */
+        }
+
+        /* Ads visibility */
+        #sidebar.hide .ads {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: none; /* Ensure it doesn't take up space */
+        }
+
+        #sidebar .ads .wrapper {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px 10px;
+        }
+
+        #sidebar .ads .wrapper .btn-upgrade {
+            background: #3c3cf1;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        #sidebar .ads .wrapper p {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        #sidebar .ads .wrapper p span {
+            font-weight: 700;
+            color: #3c3cf1;
+        }
+
+        /* Logout link at the bottom of the sidebar */
+        #sidebar .side-menu.bottom {
+            margin-top: 0; /* Remove top margin as it's at the bottom */
+            padding: 0 20px 20px; /* Add padding to the bottom */
+            flex-shrink: 0; /* Prevent it from shrinking */
+        }
+
+        #sidebar.hide .side-menu.bottom {
+            padding: 0; /* No padding when collapsed */
+        }
+
+        #sidebar .side-menu.bottom li a {
+            color: #dc3545; /* Logout specific color */
+        }
+
+        #sidebar .side-menu.bottom li a .icon {
+            color: #dc3545; /* Logout icon color */
+        }
+
+        /* Logout text visibility */
+        #sidebar.hide .side-menu.bottom li a span { /* Hide logout text when collapsed */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: none; /* Ensure it doesn't take up space */
+        }
+
+        #sidebar .side-menu.bottom li a:hover {
+            background: #f8d7da; /* Light red hover background */
+            color: #dc3545;
+        }
+
+
+        /* CONTENT (main content area) */
+        #content {
+            position: relative;
+            width: calc(100% - 260px); /* Initial width for content */
+            left: 260px; /* Pushed by sidebar width */
+            transition: all .3s ease; /* Smooth transition for content movement */
+        }
+
+        #sidebar.hide ~ #content {
+            width: calc(100% - 60px); /* Adjusted width when sidebar is collapsed */
+            left: 60px; /* Adjusted left position */
+        }
+
+
+        /* NAVBAR */
+        #content nav {
+            height: 56px;
+            background: #fff;
+            padding: 0 20px;
+            display: flex; /* Use flexbox for layout */
+            align-items: center;
+            gap: 20px; /* Flexbox gap */
+            position: fixed; /* Changed to fixed */
+            top: 0;
+            /* Dynamically set left and width based on sidebar state */
+            left: 260px; /* Initial left position */
+            width: calc(100% - 260px); /* Initial width */
+            z-index: 999;
+            transition: all .3s ease; /* Smooth transition for left and width */
+        }
+
+        /* Adjust navbar position and width when sidebar is hidden */
+        #sidebar.hide ~ #content nav {
+            left: 60px; /* Adjusted left for collapsed sidebar */
+            width: calc(100% - 60px); /* Adjusted width for collapsed sidebar */
+        }
+
+        #content nav .toggle-sidebar {
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        #content nav form {
+            max-width: 400px;
+            width: 100%;
+            margin-left: 0; /* Reset margin */
+        }
+
+        #content nav form .form-group {
+            position: relative;
+        }
+
+        #content nav form .form-group input {
+            width: 100%;
+            background: #f0f0f0;
+            border-radius: 6px;
+            border: none;
+            padding: 10px 30px 10px 15px;
+            outline: none;
+            font-size: 14px;
+            color: #333;
+        }
+
+        #content nav form .form-group .icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 15px;
+            color: #666;
+        }
+
+        #content nav .nav-link {
+            position: relative;
+        }
+
+        /* Push the first nav-link (bell) to the right */
+        #content nav .nav-link:first-of-type {
+            margin-left: auto; /* This will push the bell icon to the right, next to the profile */
+        }
+
+
+        #content nav .nav-link .icon {
+            font-size: 20px;
+            color: #666;
+        }
+
+        /* Bell notification dot styling */
+        #content nav .nav-link .badge {
+            position: absolute;
+            top: -2px; /* Adjusted position for a dot */
+            right: -2px; /* Adjusted position for a dot */
+            width: 8px; /* Smaller width for a dot */
+            height: 8px; /* Smaller height for a dot */
+            background: #3c3cf1; /* Active sidebar color */
+            border-radius: 50%;
+            display: block; /* Display as a block for a simple dot */
+        }
+
+        #content nav .profile {
+            position: relative;
+        }
+
+        #content nav .profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        #content nav .profile .profile-link {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: #fff;
+            box-shadow: 0 0 15px rgba(0,0,0,.05);
+            padding: 10px 0;
+            border-radius: 8px;
+            width: 160px;
+            display: none;
+        }
+
+        #content nav .profile .profile-link.show {
+            display: block;
+        }
+
+        #content nav .profile .profile-link li {
+            list-style: none;
+        }
+
+        #content nav .profile .profile-link li a {
+            padding: 10px 16px;
+            display: flex;
+            gap: 10px; /* Changed grid-gap to gap for flexbox */
+            font-size: 14px;
+            color: #333;
+            align-items: center;
+            transition: all .2s ease;
+            text-decoration: none;
+        }
+
+        #content nav .profile .profile-link li a:hover {
+            background: #f0f0f0;
+        }
+
+        #content nav .profile .profile-link li a .icon {
+            min-width: 20px;
+            font-size: 16px;
+        }
+
+        /* MAIN content area below the fixed topbar */
+        #content main {
+            width: 100%;
+            padding: 36px 20px 20px 20px; /* Add padding-top to account for fixed navbar height */
+            overflow-y: auto; /* Enable scrolling for main content */
+            height: calc(100vh - 56px); /* Adjust height to fit below navbar */
+        }
+
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            #sidebar {
+                width: 200px;
+                transform: translateX(-100%);
+            }
+            #sidebar.hide {
+                transform: translateX(0);
+            }
+            #content {
+                width: 100%;
+                left: 0;
+            }
+            #content nav .toggle-sidebar {
+                display: block;
+            }
+            #content nav form {
+                display: none; /* Hide search form on small screens */
+            }
+            #content nav .nav-link {
+                margin-left: auto; /* Push notifications to the right */
+            }
+            #content nav .profile {
+                display: none; /* Hide profile on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <section id="sidebar">
+        <a href="#" class="brand"><i class='bx bxs-smile icon'></i> <span>AdminSite</span></a>
+        <ul class="side-menu">
+            <li><a href="#" class="active"><i class='bx bxs-dashboard icon' ></i> <span>Dashboard</span></a></li>
+            <li class="divider" data-text="main">Main</li>
+            <li>
+                <a href="#"><i class='bx bxs-inbox icon' ></i> <span>Elements</span> <i class='bx bx-chevron-right icon-right' ></i></a>
+                <ul class="side-dropdown">
+                    <li><a href="#">Alert</a></li>
+                    <li><a href="#">Badges</a></li>
+                    <li><a href="#">Breadcrumbs</a></li>
+                    <li><a href="#">Button</a></li>
+                </ul>
+            </li>
+            <li><a href="#"><i class='bx bxs-chart icon' ></i> <span>Charts</span></a></li>
+            <li><a href="#"><i class='bx bxs-widget icon' ></i> <span>Widgets</span></a></li>
+            <li class="divider" data-text="table and forms">Table and forms</li>
+            <li><a href="#"><i class='bx bx-table icon' ></i> <span>Tables</span></a></li>
+            <li>
+                <a href="#"><i class='bx bxs-notepad icon' ></i> <span>Forms</span> <i class='bx bx-chevron-right icon-right' ></i></a>
+                <ul class="side-dropdown">
+                    <li><a href="#">Basic</a></li>
+                    <li><a href="#">Select</a></li>
+                    <li><a href="#">Checkbox</a></li>
+                    <li><a href="#">Radio</a></li>
+                </ul>
+            </li>
+        </ul>
+        <div class="ads">
+            <div class="wrapper">
+                <a href="#" class="btn-upgrade">
+                    Upgrade
+                </a>
+                <p>Become a <span>PRO</span> member and enjoy <span>All Features</span></p>
+            </div>
+        </div>
+        <ul class="side-menu bottom">
+            <li>
+                <a href="#" class="logout">
+                    <i class='bx bxs-log-out-circle icon' ></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </section>
+    <section id="content">
+        <nav>
+            <i class='bx bx-menu toggle-sidebar' ></i>
+            <form action="#">
+                <div class="form-group">
+                    <input type="text" placeholder="Search...">
+                    <i class='bx bx-search icon' ></i>
+                </div>
+            </form>
+            <a href="#" class="nav-link">
+                <i class='bx bxs-bell icon' ></i>
+                <span class="badge"></span>
+            </a>
+            <div class="profile">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8cGVvcGxlfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="">
+                <ul class="profile-link">
+                    <li><a href="#"><i class='bx bxs-user-circle icon' ></i> Profile</a></li>
+                    <li><a href="#"><i class='bx bxs-cog' ></i> Settings</a></li>
+                    <li><a href="#"><i class='bx bxs-log-out-circle' ></i> Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+        <main>
+            </main>
+        </section>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        // SIDEBAR DROPDOWN
+        const allDropdown = document.querySelectorAll('#sidebar .side-dropdown');
+        const sidebar = document.getElementById('sidebar');
+
+        allDropdown.forEach(item=> {
+            const a = item.parentElement.querySelector('a:first-child');
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                if(!this.classList.contains('active')) {
+                    allDropdown.forEach(i=> {
+                        const aLink = i.parentElement.querySelector('a:first-child');
+
+                        aLink.classList.remove('active');
+                        i.classList.remove('show');
+                    })
+                }
+
+                this.classList.toggle('active');
+                item.classList.toggle('show');
+            })
+        })
+
+
+        // SIDEBAR COLLAPSE
+        const toggleSidebar = document.querySelector('nav .toggle-sidebar');
+        const allSideDivider = document.querySelectorAll('#sidebar .divider');
+
+        // Function to update divider text based on sidebar state
+        function updateDividerText() {
+            if (sidebar.classList.contains('hide')) {
+                allSideDivider.forEach(item => {
+                    item.textContent = '-';
+                });
+            } else {
+                allSideDivider.forEach(item => {
+                    item.textContent = item.dataset.text;
+                });
+            }
+        }
+
+        // Initial check for sidebar state on page load
+        updateDividerText();
+
+        // Event listener for sidebar toggle button (click)
+        toggleSidebar.addEventListener('click', function () {
+            sidebar.classList.toggle('hide');
+            updateDividerText(); // Update dividers immediately
+            // Also, ensure dropdowns are closed when manually toggling sidebar
+            allDropdown.forEach(item => {
+                const a = item.parentElement.querySelector('a:first-child');
+                a.classList.remove('active');
+                item.classList.remove('show');
+            });
+        });
+
+        // Handle sidebar behavior on mouse enter (hover to open)
+        sidebar.addEventListener('mouseenter', function () {
+            if (sidebar.classList.contains('hide')) {
+                sidebar.classList.remove('hide');
+                sidebar.dataset.hoverOpen = 'true'; // Mark that it's opened by hover
+                updateDividerText(); // Update dividers
+            }
+        });
+
+        // Handle sidebar behavior on mouse leave (hover to close)
+        sidebar.addEventListener('mouseleave', function () {
+            if (sidebar.dataset.hoverOpen === 'true') { // Only close if opened by hover
+                sidebar.classList.add('hide');
+                delete sidebar.dataset.hoverOpen; // Remove the flag
+                updateDividerText(); // Update dividers
+                // Also, ensure dropdowns are closed when sidebar collapses on mouse leave
+                allDropdown.forEach(item => {
+                    const a = item.parentElement.querySelector('a:first-child');
+                    a.classList.remove('active');
+                    item.classList.remove('show');
+                });
+            }
+        });
+
+
+        // PROFILE DROPDOWN
+        const profile = document.querySelector('nav .profile');
+        const imgProfile = profile.querySelector('img');
+        const dropdownProfile = profile.querySelector('.profile-link');
+
+        imgProfile.addEventListener('click', function () {
+            dropdownProfile.classList.toggle('show');
+        })
+
+
+        // MENU (for general content data menus)
+        const allMenu = document.querySelectorAll('main .content-data .head .menu');
+
+        allMenu.forEach(item=> {
+            const icon = item.querySelector('.icon');
+            const menuLink = item.querySelector('.menu-link');
+
+            icon.addEventListener('click', function () {
+                menuLink.classList.toggle('show');
+            })
+        })
+
+        // Global click listener to close dropdowns when clicking outside
+        window.addEventListener('click', function (e) {
+            // Close profile dropdown
+            if(e.target !== imgProfile && !profile.contains(e.target)) { // Check if click is outside imgProfile and dropdownProfile
+                if(dropdownProfile.classList.contains('show')) {
+                    dropdownProfile.classList.remove('show');
+                }
+            }
+
+            // Close general content data menus
+            allMenu.forEach(item=> {
+                const icon = item.querySelector('.icon');
+                const menuLink = item.querySelector('.menu-link');
+
+                if(e.target !== icon && !item.contains(e.target)) { // Check if click is outside icon and menuLink container
+                    if (menuLink.classList.contains('show')) {
+                        menuLink.classList.remove('show')
+                    }
+                }
+            })
+        })
+
+
+        // PROGRESSBAR
+        const allProgress = document.querySelectorAll('main .card .progress');
+
+        allProgress.forEach(item=> {
+            // Set the CSS custom property --value for progress bar width
+            const progressBarFill = item.querySelector('div');
+            if (progressBarFill) {
+                progressBarFill.style.width = item.dataset.value + '%';
+            }
+        })
+
+
+        // APEXCHART
+        // Check if the chart element exists before initializing
+        var chartElement = document.querySelector("#chart");
+        if (chartElement) {
+            var options = {
+                series: [{
+                    name: 'series1',
+                    data: [31, 40, 28, 51, 42, 109, 100]
+                }, {
+                    name: 'series2',
+                    data: [11, 32, 45, 32, 34, 52, 41]
+                }],
+                chart: {
+                    height: 350,
+                    type: 'area',
+                    toolbar: {
+                        show: false // Hide toolbar for a cleaner look
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth'
+                },
+                xaxis: {
+                    type: 'datetime',
+                    categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00:000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
+                },
+                tooltip: {
+                    x: {
+                        format: 'dd/MM/yy HH:mm'
+                    },
+                },
+                colors: ['#3c3cf1', '#28a745'] // Custom colors for series
+            };
+
+            var chart = new ApexCharts(chartElement, options);
+            chart.render();
+        }
+    </script>
+</body>
+</html>

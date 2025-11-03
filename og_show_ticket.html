@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show Ticket Customizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Body Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: #1F2937;
+            margin: 0;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        /* Main container */
+        .main-container {
+            width: 100%;
+            max-width: 896px;
+            margin: auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin: 0;
+        }
+        h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+        p {
+            margin: 0;
+        }
+        .subtitle {
+            margin-top: 0.5rem;
+            color: #4B5563;
+        }
+        
+        /* Layout & Spacing */
+        .mt-8 { margin-top: 2rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .ml-4 { margin-left: 1rem; }
+        .ml-3 { margin-left: 0.75rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-1 { padding: 0.25rem; }
+        .pt-4 { padding-top: 1rem; }
+
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-x-2 > * + * { margin-left: 0.5rem; }
+
+        /* Flexbox & Grid */
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .gap-4 { gap: 1rem; }
+        
+
+        /* Buttons */
+        .custom-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #D1D5DB;
+            background-color: white;
+            color: #1F2937;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .custom-btn:hover {
+            background-color: #f9fafb;
+            border-color: #6D28D9;
+        }
+        .custom-btn.save-btn {
+            background-color: #6D28D9;
+            color: white;
+            border-color: #6D28D9;
+        }
+        .custom-btn.save-btn:hover {
+            background-color: #5B21B6;
+        }
+        .custom-btn.small-padding {
+            padding: 0.25rem 1rem;
+        }
+        .custom-btn.icon-padding {
+            padding: 0.5rem;
+        }
+        .w-full { width: 100%; }
+
+        /* Inputs & Forms */
+        .custom-input, select.custom-input {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background-color: white;
+        }
+        .custom-input:focus {
+            outline: none;
+            border-color: #6D28D9;
+        }
+        label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Show Block */
+        .show-block {
+            background-color: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+        }
+        .remove-show-btn {
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            cursor: pointer;
+            border-radius: 9999px;
+        }
+        .remove-show-btn:hover {
+            color: #DC2626;
+            background-color: #FEF2F2;
+        }
+        .initial-placeholder {
+             border: 1px dashed #D1D5DB;
+             border-radius: 0.5rem;
+        }
+        .placeholder-text {
+            color: #9CA3AF;
+        }
+        .placeholder-hint {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        .icon-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
+            background-color: #4F46E5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .border-t { border-top: 1px solid #E5E7EB; }
+
+        /* Ticket Group */
+        .ticket-group {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+        }
+        .display-item {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+        }
+        .display-item span {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        /* Ticket Form & Saved Ticket */
+        .ticket-form-container {
+            background-color: #F9FAFB;
+            border-radius: 0.5rem;
+            border: 1px solid #E5E7EB;
+        }
+        .saved-ticket-display {
+            background-color: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+        }
+        .saved-ticket-name {
+            font-weight: 600;
+            color: #1F2937;
+        }
+        .saved-badge {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #059669;
+            background-color: #D1FAE5;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+        }
+        .delete-ticket-btn {
+             background: none;
+            border: none;
+            color: #6B7280;
+            cursor: pointer;
+            border-radius: 9999px;
+        }
+         .delete-ticket-btn:hover {
+            color: #DC2626;
+            background-color: #FEF2F2;
+        }
+
+        /* Utility */
+        .hidden { display: none; }
+        
+        /* Animations */
+        .collapsible {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+        .collapsible.expanded {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+        .collapsible > div {
+            overflow: hidden;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        
+        /* Responsive Styles */
+        @media (min-width: 640px) {
+            body { padding: 2rem; }
+            .main-container { padding: 2rem; }
+            .w-sm-auto { width: auto; }
+            .grid-sm-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-sm-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>Customise your show tickets!</h1>
+        <p class="subtitle">Tickets are grouped by date and time. Create a group by selecting a specific date and time. Then, add the various tickets under that group.</p>
+
+        <div id="shows-container" class="shows-container mt-8 space-y-6">
+            <!-- Show templates will be inserted here -->
+        </div>
+
+        <div class="mt-8">
+            <button id="add-another-show-btn" class="custom-btn w-full w-sm-auto">
+                Add another show
+            </button>
+        </div>
+    </div>
+    
+    <!-- TEMPLATES (hidden) -->
+    <template id="show-template">
+        <div class="show-block p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2></h2>
+                <button class="remove-show-btn p-1">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.528M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5m3.5 0a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>
+                </button>
+            </div>
+            
+            <div class="initial-placeholder-container">
+                <div class="initial-placeholder p-3 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="icon-circle flex-shrink-0"></div>
+                        <p class="ml-4 placeholder-text">---/--/-- --:--</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="add-ticket-from-placeholder custom-btn small-padding">Add Ticket</button>
+                    </div>
+                </div>
+                 <p class="placeholder-hint mt-2">Click on "Add ticket"</p>
+            </div>
+            
+            <div class="ticket-groups-container space-y-4"></div>
+
+            <div class="initial-ticket-group-creator hidden mt-4 border-t pt-4">
+                <div class="grid grid-sm-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" style="color: #4F46E5;" viewBox="0 0 16 16"><path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+                            Date
+                        </label>
+                        <input type="date" class="custom-input date-input">
+                    </div>
+                    <div>
+                        <label class="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" style="color: #4F46E5;" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/></svg>
+                            Start time
+                        </label>
+                        <input type="time" class="custom-input time-input">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="mb-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" style="color: #4F46E5;" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>
+                        Venue
+                    </label>
+                    <select class="custom-input venue-input">
+                        <option>National Theatre of Ghana</option>
+                        <option>Accra International Conference Centre</option>
+                        <option>The Dome</option>
+                    </select>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button class="add-ticket-group-btn custom-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/></svg>
+                        Add ticket group
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="ticket-group-template">
+        <div class="ticket-group p-4">
+            <div class="display-item flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="icon-circle flex-shrink-0">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+                    </div>
+                    <span class="ml-3 date-time-display"></span>
+                </div>
+                <button class="close-ticket-group-btn custom-btn icon-padding">Close</button>
+            </div>
+            <div class="display-item flex justify-between items-center mt-2">
+                 <div class="flex items-center">
+                    <div class="icon-circle flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/></svg>
+                    </div>
+                    <span class="ml-3 venue-display"></span>
+                </div>
+            </div>
+            <div class="tickets-container mt-4 space-y-4">
+                <!-- Ticket forms or saved tickets go here -->
+            </div>
+            <div class="mt-4 border-t pt-4">
+                <button class="add-another-ticket-btn custom-btn w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
+                    Add another ticket
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="ticket-form-template">
+        <div class="ticket-form-wrapper collapsible">
+            <div class="ticket-form-container p-4">
+                <div class="grid grid-sm-cols-3 gap-4">
+                    <div>
+                        <label class="mb-1 block">Ticket name</label>
+                        <input type="text" placeholder="VVIP Reloaded" class="custom-input ticket-name">
+                    </div>
+                    <div>
+                        <label class="mb-1 block">Price</label>
+                        <input type="number" placeholder="1,923.00" class="custom-input ticket-price">
+                    </div>
+                    <div>
+                        <label class="mb-1 block">Quantity</label>
+                        <input type="number" placeholder="4,353,535" class="custom-input ticket-quantity">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="mb-1 block">Ticket description</label>
+                    <textarea class="custom-input ticket-description" rows="3" placeholder="The play explores themes of fate..."></textarea>
+                </div>
+                <div class="mt-4 flex justify-end space-x-2">
+                    <button class="custom-btn cancel-ticket-btn">Cancel</button>
+                    <button class="custom-btn save-btn save-ticket-btn">Save ticket</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="saved-ticket-template">
+        <div class="saved-ticket-wrapper collapsible">
+             <div class="saved-ticket-display p-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <span class="saved-ticket-name"></span>
+                    <span class="saved-badge ml-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="mr-1" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+                        Saved
+                    </span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button class="delete-ticket-btn p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.528M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5m3.5 0a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>
+                    </button>
+                    <button class="custom-btn small-padding view-ticket-btn">View</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const showsContainer = document.getElementById('shows-container');
+            const addShowBtn = document.getElementById('add-another-show-btn');
+
+            let showCount = 0;
+
+            const getOrdinal = (n) => {
+                const s = ["th", "st", "nd", "rd"];
+                const v = n % 100;
+                return n + (s[(v - 20) % 10] || s[v] || s[0]);
+            };
+            
+            const removeShow = (showBlock) => {
+                showBlock.classList.add('fade-out');
+                setTimeout(() => {
+                    showBlock.remove();
+                    // Renumber remaining shows
+                    const remainingShows = showsContainer.querySelectorAll('.show-block');
+                    showCount = 0;
+                    remainingShows.forEach(block => {
+                        showCount++;
+                        block.querySelector('h2').textContent = `${getOrdinal(showCount)} Show`;
+                    });
+                }, 500);
+            };
+
+            const addShow = () => {
+                showCount++;
+                const showTemplate = document.getElementById('show-template');
+                const newShow = showTemplate.content.cloneNode(true);
+                const showBlock = newShow.querySelector('.show-block');
+                
+                showBlock.querySelector('h2').textContent = `${getOrdinal(showCount)} Show`;
+                
+                if (showCount === 1) {
+                    const removeBtn = showBlock.querySelector('.remove-show-btn');
+                    if (removeBtn) removeBtn.classList.add('hidden');
+                }
+
+                showsContainer.appendChild(newShow);
+                showBlock.classList.add('fade-in');
+                addEventListenersToShow(showBlock);
+            };
+
+            const addEventListenersToShow = (showBlock) => {
+                const addTicketGroupBtn = showBlock.querySelector('.add-ticket-group-btn');
+                const removeShowBtn = showBlock.querySelector('.remove-show-btn');
+                const placeholder = showBlock.querySelector('.initial-placeholder-container');
+                const addTicketFromPlaceholderBtn = showBlock.querySelector('.add-ticket-from-placeholder');
+                const groupCreatorForm = showBlock.querySelector('.initial-ticket-group-creator');
+
+                removeShowBtn.addEventListener('click', () => removeShow(showBlock));
+
+                addTicketFromPlaceholderBtn.addEventListener('click', () => {
+                    placeholder.classList.add('hidden');
+                    groupCreatorForm.classList.remove('hidden');
+                    groupCreatorForm.classList.add('fade-in');
+                });
+
+                addTicketGroupBtn.addEventListener('click', () => {
+                    const dateInput = showBlock.querySelector('.date-input');
+                    const timeInput = showBlock.querySelector('.time-input');
+                    const venueInput = showBlock.querySelector('.venue-input');
+                    const date = dateInput.value;
+                    const time = timeInput.value;
+                    const venue = venueInput.value;
+                    
+                    let isValid = true;
+                    if (!date) {
+                        dateInput.style.borderColor = '#EF4444';
+                        isValid = false;
+                    }
+                    if (!time) {
+                        timeInput.style.borderColor = '#EF4444';
+                        isValid = false;
+                    }
+                    
+                    if(!isValid) {
+                         setTimeout(() => {
+                            dateInput.style.borderColor = '';
+                            timeInput.style.borderColor = '';
+                        }, 2000);
+                        return;
+                    }
+
+                    addTicketGroup(showBlock, date, time, venue);
+                    groupCreatorForm.classList.add('hidden');
+                    dateInput.value = '';
+                    timeInput.value = '';
+                    venueInput.selectedIndex = 0;
+                });
+            };
+            
+            const addTicketGroup = (showBlock, date, time, venue) => {
+                const ticketGroupTemplate = document.getElementById('ticket-group-template');
+                const newGroup = ticketGroupTemplate.content.cloneNode(true);
+                const ticketGroupEl = newGroup.querySelector('.ticket-group');
+                
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric'});
+                
+                let [hours, minutes] = time.split(':');
+                hours = parseInt(hours, 10);
+                const ampm = hours >= 12 ? 'pm' : 'am';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}${ampm}`;
+
+                ticketGroupEl.querySelector('.date-time-display').textContent = `${formattedDate} ${formattedTime}`;
+                ticketGroupEl.querySelector('.venue-display').textContent = venue;
+
+                showBlock.querySelector('.ticket-groups-container').appendChild(ticketGroupEl);
+                ticketGroupEl.classList.add('fade-in');
+                addTicketForm(ticketGroupEl.querySelector('.tickets-container'));
+                addEventListenersToTicketGroup(ticketGroupEl);
+            };
+            
+            const addEventListenersToTicketGroup = (ticketGroupEl) => {
+                 ticketGroupEl.querySelector('.add-another-ticket-btn').addEventListener('click', () => {
+                     addTicketForm(ticketGroupEl.querySelector('.tickets-container'));
+                 });
+
+                 const closeGroup = () => {
+                    const showBlock = ticketGroupEl.closest('.show-block');
+                     ticketGroupEl.classList.add('fade-out');
+                     setTimeout(() => {
+                         ticketGroupEl.remove();
+                         if (showBlock && !showBlock.querySelector('.ticket-group')) {
+                            const placeholder = showBlock.querySelector('.initial-placeholder-container');
+                            if (placeholder) placeholder.classList.remove('hidden');
+                         }
+                     }, 500);
+                 };
+
+                 ticketGroupEl.querySelector('.close-ticket-group-btn').addEventListener('click', closeGroup);
+            };
+
+            const addTicketForm = (container) => {
+                const ticketFormTemplate = document.getElementById('ticket-form-template');
+                const newForm = ticketFormTemplate.content.cloneNode(true);
+                const formWrapper = newForm.querySelector('.ticket-form-wrapper');
+
+                container.appendChild(formWrapper);
+                requestAnimationFrame(() => formWrapper.classList.add('expanded'));
+                addEventListenersToTicketForm(formWrapper);
+            };
+
+            const addEventListenersToTicketForm = (formWrapper) => {
+                const saveBtn = formWrapper.querySelector('.save-ticket-btn');
+                const cancelBtn = formWrapper.querySelector('.cancel-ticket-btn');
+                const nameInput = formWrapper.querySelector('.ticket-name');
+
+                const removeForm = () => {
+                    formWrapper.classList.remove('expanded');
+                    setTimeout(() => formWrapper.remove(), 500);
+                };
+                
+                saveBtn.addEventListener('click', () => {
+                    const name = nameInput.value;
+                    if (!name) {
+                        nameInput.style.borderColor = '#EF4444';
+                        nameInput.placeholder = "Ticket name is required";
+                         setTimeout(() => {
+                            nameInput.style.borderColor = '';
+                            nameInput.placeholder = "VVIP Reloaded";
+                        }, 2000);
+                        return;
+                    }
+                    const ticketData = {
+                        name: name,
+                        price: formWrapper.querySelector('.ticket-price').value,
+                        quantity: formWrapper.querySelector('.ticket-quantity').value,
+                        description: formWrapper.querySelector('.ticket-description').value,
+                    };
+                    removeForm();
+                    addSavedTicket(formWrapper.parentElement, ticketData);
+                });
+                cancelBtn.addEventListener('click', removeForm);
+            };
+            
+            const addSavedTicket = (container, data) => {
+                const savedTicketTemplate = document.getElementById('saved-ticket-template');
+                const newSaved = savedTicketTemplate.content.cloneNode(true);
+                const savedWrapper = newSaved.querySelector('.saved-ticket-wrapper');
+                savedWrapper.querySelector('.saved-ticket-name').textContent = data.name;
+                container.appendChild(savedWrapper);
+                requestAnimationFrame(() => savedWrapper.classList.add('expanded'));
+                addEventListenersToSavedTicket(savedWrapper, data);
+            };
+
+            const addEventListenersToSavedTicket = (savedWrapper, data) => {
+                const deleteBtn = savedWrapper.querySelector('.delete-ticket-btn');
+                const viewBtn = savedWrapper.querySelector('.view-ticket-btn');
+
+                const removeSaved = () => {
+                     savedWrapper.classList.remove('expanded');
+                    setTimeout(() => savedWrapper.remove(), 500);
+                }
+
+                deleteBtn.addEventListener('click', removeSaved);
+
+                viewBtn.addEventListener('click', () => {
+                    const container = savedWrapper.parentElement;
+                    removeSaved();
+                    setTimeout(() => {
+                        const ticketFormTemplate = document.getElementById('ticket-form-template');
+                        const newForm = ticketFormTemplate.content.cloneNode(true);
+                        const formWrapper = newForm.querySelector('.ticket-form-wrapper');
+
+                        formWrapper.querySelector('.ticket-name').value = data.name;
+                        formWrapper.querySelector('.ticket-price').value = data.price;
+                        formWrapper.querySelector('.ticket-quantity').value = data.quantity;
+                        formWrapper.querySelector('.ticket-description').value = data.description;
+
+                        container.appendChild(formWrapper);
+                        requestAnimationFrame(() => formWrapper.classList.add('expanded'));
+                        addEventListenersToTicketForm(formWrapper);
+                    }, 500);
+                });
+            };
+
+            addShowBtn.addEventListener('click', addShow);
+            addShow();
+        });
+    </script>
+</body>
+</html>

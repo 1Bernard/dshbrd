@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Tabs</title>
+    <style>
+        /* Import Google Font: Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        /* Basic Body Styles */
+        body {
+            background-color: #f4f7f9;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* Main Tabs Container */
+        .tabs-container {
+            width: 95%; /* Responsive width */
+            max-width: 600px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px R20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        /* Tab Buttons List */
+        .tabs-nav {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        /* Individual Tab Button */
+        .tab-button {
+            padding: 14px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+            transition: color 0.3s ease;
+            position: relative;
+            flex-grow: 1; /* Makes buttons share space equally */
+            text-align: center;
+        }
+
+        .tab-button:hover {
+            color: #007bff;
+        }
+        
+        /* Active State for the Tab Button */
+        .tab-button.active {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        /* The moving underline/indicator */
+        .tab-indicator {
+            position: absolute;
+            bottom: -1px; /* Sits on top of the border */
+            height: 1px; /* Made the indicator thinner */
+            background-color: #007bff;
+            /* Smooth transition for movement and resizing */
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Tab Content Panels Container */
+        .tabs-content {
+            padding: 25px;
+        }
+
+        /* Individual Tab Panel */
+        .tab-panel {
+            display: none; /* Hide all panels by default */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        /* Show only the active panel */
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Simple fade-in animation for content */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="tabs-container">
+    <!-- Tab Navigation Buttons -->
+    <div role="tablist" aria-label="Sample Tabs" class="tabs-nav">
+        <!-- This div is the moving underline -->
+        <div class="tab-indicator"></div>
+        <button role="tab" aria-selected="true" aria-controls="panel-1" id="tab-1" class="tab-button active">Profile</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-2" id="tab-2" class="tab-button">Settings</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-3" id="tab-3" class="tab-button">Notifications</button>
+    </div>
+
+    <!-- Tab Content Panels -->
+    <div class="tabs-content">
+        <div role="tabpanel" id="panel-1" aria-labelledby="tab-1" class="tab-panel active">
+            <h3>Profile Information 👤</h3>
+            <p>This is the profile panel. Here, users can view and edit their personal information, update their profile picture, and manage their bio.</p>
+        </div>
+        <div role="tabpanel" id="panel-2" aria-labelledby="tab-2" class="tab-panel">
+            <h3>Account Settings ⚙️</h3>
+            <p>This is the settings panel. Users can change their password, manage email preferences, and configure two-factor authentication for enhanced security.</p>
+        </div>
+        <div role="tabpanel" id="panel-3" aria-labelledby="tab-3" class="tab-panel">
+            <h3>Notifications 🔔</h3>
+            <p>This is the notifications panel. It displays recent activity, alerts, and messages. Users can customize which notifications they wish to receive.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabsContainer = document.querySelector('.tabs-container');
+        // Check if the container exists to avoid errors
+        if (!tabsContainer) return;
+
+        const tabButtons = tabsContainer.querySelectorAll('.tab-button');
+        const tabIndicator = tabsContainer.querySelector('.tab-indicator');
+        const tabPanels = tabsContainer.querySelectorAll('.tab-panel');
+
+        // Function to move the indicator to the active tab
+        function moveIndicator(element) {
+            if (!element) return;
+            tabIndicator.style.width = `${element.offsetWidth}px`;
+            tabIndicator.style.left = `${element.offsetLeft}px`;
+        }
+
+        // Set initial indicator position on page load
+        const initialActiveTab = tabsContainer.querySelector('.tab-button.active');
+        moveIndicator(initialActiveTab);
+
+        // Add click event listener to each tab button
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetPanelId = button.getAttribute('aria-controls');
+                
+                // Update button states for accessibility and styling
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
+                button.classList.add('active');
+                button.setAttribute('aria-selected', 'true');
+                
+                // Move the indicator to the newly clicked tab
+                moveIndicator(button);
+
+                // Update panel visibility
+                tabPanels.forEach(panel => {
+                    if (panel.id === targetPanelId) {
+                        panel.classList.add('active');
+                    } else {
+                        panel.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // Recalculate indicator position on window resize for responsiveness
+        window.addEventListener('resize', () => {
+            const activeTab = tabsContainer.querySelector('.tab-button.active');
+            moveIndicator(activeTab);
+        });
+    });
+</script>
+
+</body>
+</html>

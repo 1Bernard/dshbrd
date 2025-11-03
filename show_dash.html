@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Replica</title>
+    <!-- Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Vanilla CSS Styles -->
+    <style>
+        /* CSS Variables from Tailwind Config */
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --color-primary: #4F46E5;
+            --color-primary-light: #EEF2FF;
+            --color-primary-dark: #4338CA;
+            --color-portal-blue: #3A3BE4;
+            --color-portal-green: #1ABB95;
+            --color-text-main-2: #696969;
+            --color-status-success: #10B981;
+            --color-status-pending: #F59E0B;
+            --color-status-failed: #EF4444;
+            
+            --color-white: #ffffff;
+            --color-gray-50: #F9FAFB;
+            --color-gray-100: #F3F4F6;
+            --color-gray-200: #E5E7EB;
+            --color-gray-400: #9CA3AF;
+            --color-gray-500: #6B7280;
+            --color-gray-600: #4B5563;
+            --color-gray-700: #374151;
+            --color-gray-800: #1F2937;
+            --color-gray-900: #11182C;
+            --color-black: #000000;
+            
+            --radius-sm: 0.125rem; /* 2px */
+            --radius-md: 0.375rem; /* 6px */
+            --radius-lg: 0.5rem;  /* 8px */
+            --radius-xl: 0.75rem; /* 12px */
+            --radius-2xl: 24px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --ring-black-opacity-5: 0 0 0 1px rgb(0 0 0 / 0.05);
+        }
+
+        /* Base Styles */
+        body {
+            background-color: var(--color-gray-50);
+            font-family: var(--font-sans);
+            color: var(--color-gray-900);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Layout Container */
+        .container {
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+        }
+
+        /* Utility classes */
+        .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem; }
+        .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem; }
+        .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+        .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+        .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
+
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+
+        .flex { display: flex; }
+        .inline-flex { display: inline-flex; }
+        .grid { display: grid; }
+        .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .items-center { align-items: center; }
+
+        .hidden { display: none; }
+        .block { display: block; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .left-0 { left: 0; }
+        .top-0 { top: 0; }
+        .z-10 { z-index: 10; }
+        
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .w-5 { width: 1.25rem; }
+        .h-5 { height: 1.25rem; }
+        .w-4 { width: 1rem; }
+        .h-4 { height: 1rem; }
+        .w-9 { width: 2.25rem; }
+        .h-9 { height: 2.25rem; }
+        .w-56 { width: 14rem; }
+        .w-auto { width: auto; }
+        .h-3 { height: 0.75rem; }
+        .w-\[3px\] { width: 3px; } /* Custom width */
+        .h-\[3px\] { height: 3px; } /* Custom height */
+
+        .max-h-\[500px\] { max-height: 500px; }
+        .overflow-y-auto { overflow-y: auto; }
+        .overflow-x-auto { overflow-x: auto; }
+        .min-w-max { min-width: max-content; }
+        
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-2 { padding: 0.5rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .pt-1 { padding-top: 0.25rem; }
+        .pt-4 { padding-top: 1rem; }
+        .pr-2 { padding-right: 0.5rem; }
+        .pl-5 { padding-left: 1.25rem; }
+        
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .ml-1 { margin-left: 0.25rem; }
+        .mr-1 { margin-right: 0.25rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+        .-mr-1 { margin-right: -0.25rem; }
+
+        .rounded-lg { border-radius: var(--radius-lg); }
+        .rounded-md { border-radius: var(--radius-md); }
+        .rounded-2xl { border-radius: var(--radius-2xl); }
+        .rounded-l-md { border-top-left-radius: var(--radius-md); border-bottom-left-radius: var(--radius-md); }
+        .rounded-bl-md { border-bottom-left-radius: var(--radius-md); }
+        .rounded-full { border-radius: var(--radius-full); }
+        
+        .border { border-width: 1px; }
+        .border-t { border-top-width: 1px; }
+        .border-gray-100 { border-color: var(--color-gray-100); }
+        .border-gray-200 { border-color: var(--color-gray-200); }
+        
+        .bg-white { background-color: var(--color-white); }
+        .bg-gray-50 { background-color: var(--color-gray-50); }
+        .bg-gray-100 { background-color: var(--color-gray-100); }
+        .bg-primary-light { background-color: var(--color-primary-light); }
+        .bg-portal-blue { background-color: var(--color-portal-blue); }
+        .bg-portal-green { background-color: var(--color-portal-green); }
+        
+        .shadow-sm { box-shadow: var(--shadow-sm); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        
+        .ring-1 { box-shadow: var(--ring-black-opacity-5); }
+        .ring-inset { box-shadow: inset 0 0 0 1px var(--color-gray-200); } /* Simplified ring */
+
+        .text-gray-900 { color: var(--color-gray-900); }
+        .text-gray-500 { color: var(--color-gray-500); }
+        .text-gray-700 { color: var(--color-gray-700); }
+        .text-gray-400 { color: var(--color-gray-400); }
+        .text-gray-800 { color: var(--color-gray-800); }
+        .text-gray-600 { color: var(--color-gray-600); }
+        .text-white { color: var(--color-white); }
+        .text-primary { color: var(--color-primary); }
+        .text-primary-dark { color: var(--color-primary-dark); }
+        .text-text-main-2 { color: var(--color-text-main-2); }
+        .text-status-success { color: var(--color-status-success); }
+        .text-status-pending { color: var(--color-status-pending); }
+        .text-status-failed { color: var(--color-status-failed); }
+
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        .font-bold { font-weight: 700; }
+
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .uppercase { text-transform: uppercase; }
+        
+        .hover\:bg-gray-50:hover { background-color: var(--color-gray-50); }
+        .hover\:opacity-80:hover { opacity: 0.8; }
+        .hover\:text-primary-dark:hover { color: var(--color-primary-dark); }
+        
+        .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+
+        /* Specific Component Styles */
+
+        /* Status Dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .bg-status-success { background-color: var(--color-status-success); }
+        .bg-status-pending { background-color: var(--color-status-pending); }
+        .bg-status-failed { background-color: var(--color-status-failed); }
+
+        /* Main Card */
+        .main-card {
+            background-color: var(--color-white);
+            padding: 1.5rem;
+            border-radius: var(--radius-xl);
+        }
+        @media (min-width: 768px) {
+            .main-card {
+                padding: 2rem;
+            }
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+        }
+        .section-subtitle {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: var(--color-gray-500);
+            margin-bottom: 1rem;
+        }
+        
+        /* Filters */
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+        @media (min-width: 640px) { /* sm: */
+            .filter-container {
+                flex-direction: row;
+            }
+        }
+
+        .dropdown-wrapper {
+            position: relative;
+            display: inline-block;
+            text-align: left;
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .dropdown-wrapper {
+                width: auto;
+            }
+        }
+
+        .dropdown-button {
+            display: inline-flex;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 0.375rem; /* gap-x-1.5 */
+            border-radius: var(--radius-lg);
+            background-color: var(--color-white);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-gray-900);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-gray-200); /* ring-1 ring-inset ring-gray-200 */
+            cursor: pointer;
+        }
+        .dropdown-button:hover {
+            background-color: var(--color-gray-50);
+        }
+        .dropdown-button svg {
+            margin-right: -0.25rem;
+            height: 1.25rem;
+            width: 1.25rem;
+            color: var(--color-gray-400);
+        }
+        
+        @media (min-width: 640px) {
+            .dropdown-button {
+                width: auto;
+            }
+        }
+
+        .dropdown-panel {
+            position: absolute;
+            left: 0;
+            z-index: 10;
+            margin-top: 0.5rem;
+            width: 14rem;
+            transform-origin: top left;
+            border-radius: var(--radius-md);
+            background-color: var(--color-white);
+            box-shadow: var(--shadow-lg), var(--ring-black-opacity-5);
+        }
+        .dropdown-panel.hidden {
+            display: none;
+        }
+        .dropdown-menu {
+            padding: 0.25rem 0;
+        }
+        .dropdown-item {
+            color: var(--color-gray-700);
+            display: block;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            text-decoration: none;
+        }
+        .dropdown-item:hover {
+            background-color: var(--color-gray-50);
+        }
+        .dropdown-item.active {
+             background-color: var(--color-gray-100);
+        }
+
+        .custom-range-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-gray-700);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+        }
+        .custom-range-button:hover {
+            background-color: var(--color-gray-50);
+        }
+        .custom-range-button svg {
+            height: 1.25rem;
+            width: 1.25rem;
+            color: var(--color-gray-500);
+        }
+        @media (min-width: 640px) {
+            .custom-range-button {
+                width: auto;
+            }
+        }
+        
+        /* Stat Cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1024px) {
+            .stat-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .stat-card {
+            background-color: var(--color-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-gray-200);
+            box-shadow: var(--shadow-sm);
+            padding: 1rem;
+        }
+        .stat-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .stat-card-vbar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: var(--color-portal-blue);
+            border-top-left-radius: var(--radius-md);
+            border-bottom-left-radius: var(--radius-md);
+        }
+        .stat-card-content {
+            padding-left: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+        .stat-card-top {
+            display: flex;
+            flex-direction: column;
+            padding-top: 0.25rem;
+        }
+        .stat-card-top > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        
+        .stat-card-icon-wrapper {
+            padding: 0.5rem;
+            background-color: var(--color-primary-light);
+            border-radius: var(--radius-md);
+            width: 2.25rem;
+            height: 2.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-card-icon {
+            height: 1.25rem;
+            width: 1.25rem;
+            color: var(--color-primary);
+        }
+        .stat-card-title {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-gray-500);
+        }
+        .stat-card-value {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+        }
+        .stat-card-hbar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--color-portal-green);
+            border-bottom-left-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Show Details Section */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .details-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        
+        .details-main-card {
+            background-color: var(--color-white);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-gray-100);
+        }
+        .details-main-card > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+        
+        @media (min-width: 1024px) {
+            .lg-col-span-2 {
+                grid-column: span 2 / span 2;
+            }
+        }
+        
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .text-xs {
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+        .edit-show-button {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+        }
+        .edit-show-button:hover {
+            background-color: var(--color-primary-dark);
+        }
+        
+        .category-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.75rem; /* py-0.5 px-3 */
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            background-color: var(--color-portal-blue);
+            color: var(--color-white);
+        }
+        
+        /* Show Times Cards */
+        .show-times-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        .show-times-container > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+        
+        @media (min-width: 1024px) {
+            .lg-col-span-1 {
+                grid-column: span 1 / span 1;
+            }
+        }
+        
+        .show-time-card {
+            background-color: var(--color-gray-100);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+        }
+        .show-time-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .show-time-header svg {
+            height: 0.875rem; /* h-3.5 */
+            width: 0.875rem; /* w-3.5 */
+            margin: 0 0.5rem;
+            flex-shrink: 0;
+        }
+        .show-time-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-gray-200);
+        }
+        .show-time-details > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        
+        .view-more-button-container {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        .view-more-button {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-text-main-2);
+            display: flex;
+            align-items: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .view-more-button:hover {
+            opacity: 0.8;
+        }
+        .view-more-button svg {
+            height: 1rem;
+            width: 1rem;
+            margin-left: 0.25rem;
+        }
+        
+        /* Purchases Table */
+        .table-wrapper {
+            background-color: var(--color-white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        .purchases-table {
+            width: 100%;
+            min-width: max-content;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            text-align: left;
+            color: var(--color-gray-700);
+        }
+        .purchases-table thead {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            color: var(--color-gray-500);
+            text-transform: uppercase;
+            background-color: var(--color-gray-50);
+        }
+        .purchases-table th, .purchases-table td {
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+        }
+        .purchases-table th {
+            font-weight: 500;
+        }
+        .purchases-table tbody {
+            border-top: 1px solid var(--color-gray-100); /* Simulating divide-y */
+        }
+        .purchases-table tbody tr:not(:first-child) {
+             border-top: 1px solid var(--color-gray-100);
+        }
+        .purchases-table tbody tr:hover {
+            background-color: var(--color-gray-50);
+        }
+        
+        .account-cell {
+            display: flex;
+            align-items: center;
+        }
+        .account-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+        /* Icon Colors */
+        .bg-yellow-400 { background-color: #FACC15; }
+        .bg-red-500 { background-color: #EF4444; }
+        .bg-blue-700 { background-color: #1D4ED8; }
+        .bg-blue-900 { background-color: #1E3A8A; }
+        .bg-orange-500 { background-color: #F97316; }
+
+        .status-cell {
+            display: flex;
+            align-items: center;
+        }
+        .sms-status-icon {
+            font-weight: 700;
+            font-size: 1.125rem; /* lg */
+            margin-right: 0.25rem;
+        }
+        .view-link {
+            font-weight: 500;
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        .view-link:hover {
+            color: var(--color-primary-dark);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900">
+
+    <div class="container space-y-6">
+
+        <!-- Section: General Overview -->
+        <section class="main-card">
+            <h1 class="section-title">General Overview</h1>
+            <p class="section-subtitle">Recent show activities</p>
+
+            <!-- Filters -->
+            <div class="filter-container">
+                <!-- Dropdown Filter -->
+                <div class="dropdown-wrapper">
+                    <button type="button" class="dropdown-button" id="menu-button" aria-expanded="true" aria-haspopup="true" onclick="toggleDropdown('date-dropdown')">
+                        Date listed
+                        <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown Panel -->
+                    <div id="date-dropdown" class="dropdown-panel hidden" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                        <div class="dropdown-menu" role="none">
+                            <a href="#" class="dropdown-item active" role="menuitem" tabindex="-1" id="menu-item-0">Current Target</a>
+                            <a href="#" class="dropdown-item" role="menuitem" tabindex="-1" id="menu-item-1">Yesterday</a>
+                            <a href="#" class="dropdown-item" role="menuitem" tabindex="-1" id="menu-item-2">Last 7 Days</a>
+                            <a href="#" class="dropdown-item" role="menuitem" tabindex="-1" id="menu-item-3">Live Month</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Range Button -->
+                <button class="custom-range-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Custom Range
+                </button>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stat-grid">
+                
+                <!-- Card 1: Plays video -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <!-- Vertical Bar -->
+                        <div class="stat-card-vbar"></div>
+                        
+                        <!-- Card Content (with padding to clear vertical bar) -->
+                        <div class="stat-card-content">
+                            <!-- Top Content -->
+                            <div class="stat-card-top">
+                                <!-- Icon -->
+                                <div class="stat-card-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stat-card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <!-- Text -->
+                                <div>
+                                    <p class="stat-card-title">Plays video</p>
+                                    <p class="stat-card-value">1,500</p>
+                                </div>
+                            </div>
+                            <!-- Horizontal Bar (lifted "up a bit") -->
+                            <div class="stat-card-hbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Tickets sold -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <!-- Vertical Bar -->
+                        <div class="stat-card-vbar"></div>
+                        
+                        <!-- Card Content (with padding to clear vertical bar) -->
+                        <div class="stat-card-content">
+                            <!-- Top Content -->
+                            <div class="stat-card-top">
+                                <!-- Icon -->
+                                <div class="stat-card-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stat-card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 00-2-2H5z" />
+                                    </svg>
+                                </div>
+                                <!-- Text -->
+                                <div>
+                                    <p class="stat-card-title">Tickets sold</p>
+                                    <p class="stat-card-value">1,500</p>
+                                </div>
+                            </div>
+                            <!-- Horizontal Bar (lifted "up a bit") -->
+                            <div class="stat-card-hbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Revenue -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <!-- Vertical Bar -->
+                        <div class="stat-card-vbar"></div>
+                        
+                        <!-- Card Content (with padding to clear vertical bar) -->
+                        <div class="stat-card-content">
+                            <!-- Top Content -->
+                            <div class="stat-card-top">
+                                <!-- Icon -->
+                                <div class="stat-card-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stat-card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <!-- Text -->
+                                <div>
+                                    <p class="stat-card-title">Revenue</p>
+                                    <p class="stat-card-value">GHC 3,221.45</p>
+                                </div>
+                            </div>
+                            <!-- Horizontal Bar (lifted "up a bit") -->
+                            <div class="stat-card-hbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section: Show Details -->
+        <section class="main-card">
+            <h1 class="section-title">Show Details</h1>
+            <p class="section-subtitle">Breakdown of event details</p>
+
+            <div class="details-grid">
+                <!-- Main Details Card -->
+                <div class="details-main-card lg-col-span-2">
+                    <div class="details-header">
+                        <div>
+                            <p class="text-xs text-gray-500">Show Title</p>
+                            <h2 class="text-lg font-semibold text-gray-900">The Marriage of Anansewaa</h2>
+                        </div>
+                        <button class="edit-show-button">
+                            Edit show
+                        </button>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 mb-1">Description</p>
+                        <p class="text-sm text-gray-700">
+                            The play explores themes of fate, identity, and the limitations of human control over destiny. It also explores the role of the gods and fate in human suffering, suggesting that sometimes our choices, rather than divine forces, shape our lives.
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 mb-1">Cast</p>
+                        <p class="text-sm text-gray-700">
+                            Agyemang Prempeh, Akora Quincy, Frank Artus, Bill Quartey, Jacop Apj, etc
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 mb-2">Categories</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="category-tag">
+                                Theatre
+                            </span>
+                            <span class="category-tag">
+                                Drama
+                            </span>
+                             <span class="category-tag">
+                                Show
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Show Times Cards -->
+                <div class="lg-col-span-1 show-times-container">
+                    <!-- 1st Show -->
+                    <div class="show-time-card">
+                        <div class="show-time-header">
+                            <div>
+                                <h3 class="text-base font-semibold">1st Show</h3>
+                                <p class="text-sm text-gray-500">22 July 2022, 09:30am</p>
+                            </div>
+                            <!-- Separator Arrow -->
+                            <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.95789 3.02371L9.86114 5.60496C10.4036 6.08796 10.6749 6.32946 10.7746 6.61296C10.8621 6.86321 10.8621 7.13621 10.7746 7.38646C10.6749 7.67171 10.4036 7.91321 9.86114 8.39446L6.95789 10.9757C6.71114 11.1945 6.58864 11.3047 6.48364 11.3082C6.39264 11.3117 6.30514 11.2732 6.24739 11.2015C6.18089 11.121 6.18089 10.9565 6.18089 10.6257V8.99821C4.76514 8.99821 3.26889 9.45321 2.17689 10.26C1.60814 10.68 1.32464 10.89 1.21614 10.883C1.11114 10.8742 1.04289 10.834 0.98864 10.743C0.93264 10.6502 0.98164 10.3597 1.08139 9.77871C1.72539 6.00746 4.32239 4.99771 6.18264 4.99771V3.37021C6.18264 3.04121 6.18264 2.87496 6.24914 2.79446C6.30689 2.72446 6.39439 2.68421 6.48539 2.68771C6.58864 2.69471 6.71114 2.80496 6.95789 3.02371Z" fill="#1C274C"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8.5085 2.32715C8.673 2.1504 8.9495 2.1399 9.12625 2.3044L12.1695 5.13065C12.7225 5.6434 13.0357 6.36265 13.0357 7.1169C13.0357 7.9114 12.6875 8.66565 12.082 9.1819L9.11225 11.7071C8.9285 11.8629 8.652 11.8419 8.49625 11.6581C8.3405 11.4744 8.3615 11.1979 8.54525 11.0421L11.515 8.5134C11.9245 8.16515 12.1607 7.65415 12.1607 7.11515C12.1607 6.60415 11.949 6.11765 11.5745 5.7694L8.53125 2.9449C8.3545 2.7804 8.344 2.5039 8.5085 2.32715Z" fill="#8E93A6"/>
+                            </svg>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-sm font-medium text-gray-800">475</p>
+                                <p class="text-xs text-gray-500">tickets sold</p>
+                            </div>
+                        </div>
+                        <!-- Collapsible Details -->
+                        <div id="show-1-details" class="show-time-details hidden">
+                            <p class="text-sm text-gray-600"><strong>Venue:</strong> Main Auditorium</p>
+                            <p class="text-sm text-gray-600"><strong>Remaining:</strong> 25 tickets</p>
+                        </div>
+                        <div class="view-more-button-container">
+                            <button onclick="toggleShowDetails('show-1-details', this)" class="view-more-button">
+                                <span class="view-text">View More</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 2nd Show -->
+                    <div class="show-time-card">
+                        <div class="show-time-header">
+                            <div>
+                                <h3 class="text-base font-semibold">2nd Show</h3>
+                                <p class="text-sm text-gray-500">22 July 2022, 09:30am</p>
+                            </div>
+                            <!-- Separator Arrow -->
+                            <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.95789 3.02371L9.86114 5.60496C10.4036 6.08796 10.6749 6.32946 10.7746 6.61296C10.8621 6.86321 10.8621 7.13621 10.7746 7.38646C10.6749 7.67171 10.4036 7.91321 9.86114 8.39446L6.95789 10.9757C6.71114 11.1945 6.58864 11.3047 6.48364 11.3082C6.39264 11.3117 6.30514 11.2732 6.24739 11.2015C6.18089 11.121 6.18089 10.9565 6.18089 10.6257V8.99821C4.76514 8.99821 3.26889 9.45321 2.17689 10.26C1.60814 10.68 1.32464 10.89 1.21614 10.883C1.11114 10.8742 1.04289 10.834 0.98864 10.743C0.93264 10.6502 0.98164 10.3597 1.08139 9.77871C1.72539 6.00746 4.32239 4.99771 6.18264 4.99771V3.37021C6.18264 3.04121 6.18264 2.87496 6.24914 2.79446C6.30689 2.72446 6.39439 2.68421 6.48539 2.68771C6.58864 2.69471 6.71114 2.80496 6.95789 3.02371Z" fill="#1C274C"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8.5085 2.32715C8.673 2.1504 8.9495 2.1399 9.12625 2.3044L12.1695 5.13065C12.7225 5.6434 13.0357 6.36265 13.0357 7.1169C13.0357 7.9114 12.6875 8.66565 12.082 9.1819L9.11225 11.7071C8.9285 11.8629 8.652 11.8419 8.49625 11.6581C8.3405 11.4744 8.3615 11.1979 8.54525 11.0421L11.515 8.5134C11.9245 8.16515 12.1607 7.65415 12.1607 7.11515C12.1607 6.60415 11.949 6.11765 11.5745 5.7694L8.53125 2.9449C8.3545 2.7804 8.344 2.5039 8.5085 2.32715Z" fill="#8E93A6"/>
+                            </svg>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-sm font-medium text-gray-800">832</p>
+                                <p class="text-xs text-gray-500">tickets sold</p>
+                            </div>
+                        </div>
+                         <!-- Collapsible Details -->
+                        <div id="show-2-details" class="show-time-details hidden">
+                            <p class="text-sm text-gray-600"><strong>Venue:</strong> Conference Hall B</p>
+                            <p class="text-sm text-gray-600"><strong>Remaining:</strong> 168 tickets</p>
+                        </div>
+                        <div class="view-more-button-container">
+                             <button onclick="toggleShowDetails('show-2-details', this)" class="view-more-button">
+                                <span class="view-text">View More</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 3rd Show (Example for scrolling) -->
+                    <div class="show-time-card">
+                        <div class="show-time-header">
+                            <div>
+                                <h3 class="text-base font-semibold">3rd Show</h3>
+                                <p class="text-sm text-gray-500">23 July 2022, 11:30am</p>
+                            </div>
+                            <!-- Separator Arrow -->
+                            <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6.95789 3.02371L9.86114 5.60496C10.4036 6.08796 10.6749 6.32946 10.7746 6.61296C10.8621 6.86321 10.8621 7.13621 10.7746 7.38646C10.6749 7.67171 10.4036 7.91321 9.86114 8.39446L6.95789 10.9757C6.71114 11.1945 6.58864 11.3047 6.48364 11.3082C6.39264 11.3117 6.30514 11.2732 6.24739 11.2015C6.18089 11.121 6.18089 10.9565 6.18089 10.6257V8.99821C4.76514 8.99821 3.26889 9.45321 2.17689 10.26C1.60814 10.68 1.32464 10.89 1.21614 10.883C1.11114 10.8742 1.04289 10.834 0.98864 10.743C0.93264 10.6502 0.98164 10.3597 1.08139 9.77871C1.72539 6.00746 4.32239 4.99771 6.18264 4.99771V3.37021C6.18264 3.04121 6.18264 2.87496 6.24914 2.79446C6.30689 2.72446 6.39439 2.68421 6.48539 2.68771C6.58864 2.69471 6.71114 2.80496 6.95789 3.02371Z" fill="#1C274C"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8.5085 2.32715C8.673 2.1504 8.9495 2.1399 9.12625 2.3044L12.1695 5.13065C12.7225 5.6434 13.0357 6.36265 13.0357 7.1169C13.0357 7.9114 12.6875 8.66565 12.082 9.1819L9.11225 11.7071C8.9285 11.8629 8.652 11.8419 8.49625 11.6581C8.3405 11.4744 8.3615 11.1979 8.54525 11.0421L11.515 8.5134C11.9245 8.16515 12.1607 7.65415 12.1607 7.11515C12.1607 6.60415 11.949 6.11765 11.5745 5.7694L8.53125 2.9449C8.3545 2.7804 8.344 2.5039 8.5085 2.32715Z" fill="#8E93A6"/>
+                            </svg>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-sm font-medium text-gray-800">104</p>
+                                <p class="text-xs text-gray-500">tickets sold</p>
+                            </div>
+                        </div>
+                         <!-- Collapsible Details -->
+                        <div id="show-3-details" class="show-time-details hidden">
+                            <p class="text-sm text-gray-600"><strong>Venue:</strong> Open Air Theatre</p>
+                            <p class="text-sm text-gray-600"><strong>Remaining:</strong> 396 tickets</p>
+                        </div>
+                        <div class="view-more-button-container">
+                             <button onclick="toggleShowDetails('show-3-details', this)" class="view-more-button">
+                                <span class="view-text">View More</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Purchases -->
+        <section class="main-card">
+            <h1 class="section-title mb-4">Purchases</h1>
+
+            <!-- Purchases Table -->
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table class="purchases-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Transaction ID</th>
+                                <th>Medium</th>
+                                <th>Account number</th>
+                                <th>Status</th>
+                                <th>SMS Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Row 1 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>9</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-yellow-400">M</div>
+                                        024 681120
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="status-dot bg-status-success"></span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 2 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>10</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-red-500">T</div>
+                                        0507262860
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-pending">
+                                        <span class="status-dot bg-status-pending"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 3 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>3</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-blue-700">A</div>
+                                        024 681120
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="status-dot bg-status-failed"></span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 4 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>14</td>
+                                <td>#4647482943</td>
+                                <td>Card</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-blue-900">V</div>
+                                        0216652...
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="status-dot bg-status-success"></span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 5 -->
+                            <tr>
+                                <td>12 May 2025<br><span class="text-xs text-gray-400">09:32:01</span></td>
+                                <td>9</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-red-500">T</div>
+                                        0507262860
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="status-dot bg-status-failed"></span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 6 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>8</td>
+                                <td>#4647482943</td>
+                                T<td>Card</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-orange-500">M</div>
+                                        0216652...
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-pending">
+                                        <span class="status-dot bg-status-pending"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 7 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>27</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-red-500">T</div>
+                                        0507262860
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="status-dot bg-status-success"></span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 8 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>4</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-yellow-400">M</div>
+                                        024 681120
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="status-dot bg-status-failed"></span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 9 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>15</td>
+                                <td>#4647482943</td>
+                                <td>Card</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-blue-700">A</div>
+                                        0216652...
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-pending">
+                                        <span class="status-dot bg-status-pending"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div> <!-- /container -->
+
+    <script>
+        // Simple dropdown toggle
+        function toggleDropdown(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        // Close dropdown if clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-button')) {
+                var dropdowns = document.getElementsByClassName("dropdown-panel");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (!openDropdown.classList.contains('hidden') && !openDropdown.contains(event.target) && !event.target.closest('.dropdown-button')) {
+                        openDropdown.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        // Toggle for show details
+        function toggleShowDetails(detailsId, buttonElement) {
+            const detailsDiv = document.getElementById(detailsId);
+            const buttonText = buttonElement.querySelector('.view-text');
+            
+            detailsDiv.classList.toggle('hidden');
+            
+            if (detailsDiv.classList.contains('hidden')) {
+                buttonText.textContent = 'View More';
+            } else {
+                buttonText.textContent = 'View Less';
+            }
+        }
+    </script>
+
+</body>
+</html>
+

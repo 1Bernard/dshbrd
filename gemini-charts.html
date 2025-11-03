@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlight Charts | A Reusable Framework-Free JavaScript Charting Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+        }
+        .chart-container:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-5px);
+        }
+        .prose h1, .prose h2, .prose h3 {
+            font-weight: 700;
+        }
+        .prose code {
+            background-color: #f3f4f6;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+        }
+        .prose pre {
+            background-color: #1f2937;
+            color: #d1d5db;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        .prose pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-900">Starlight Charts</h1>
+            <p class="text-lg text-gray-600">A modern, sleek, and powerful JavaScript charting library.</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="chart-container">
+                <h2 class="text-xl font-semibold mb-4 text-center">Bar Chart</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2 class="text-xl font-semibold mb-4 text-center">Line Chart</h2>
+                <canvas id="lineChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2 class="text-xl font-semibold mb-4 text-center">Pie Chart</h2>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2 class="text-xl font-semibold mb-4 text-center">Doughnut Chart</h2>
+                <canvas id="doughnutChart"></canvas>
+            </div>
+             <div class="chart-container">
+                <h2 class="text-xl font-semibold mb-4 text-center">Radar Chart</h2>
+                <canvas id="radarChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2 class="text-xl font-semibold mb-4 text-center">Polar Area Chart</h2>
+                <canvas id="polarAreaChart"></canvas>
+            </div>
+        </div>
+
+        <div class="mt-12 bg-white p-8 rounded-lg shadow-lg prose max-w-none">
+            <h2 class="text-2xl font-bold mb-4">Documentation</h2>
+
+            <h3 class="text-xl font-semibold mt-6 mb-2">Introduction</h3>
+            <p>Starlight Charts is a lightweight, dependency-free JavaScript library for creating beautiful, responsive, and interactive charts. It uses the HTML5 Canvas API for rendering, ensuring high performance even with large datasets. The library is designed to be easy to use, with a simple and intuitive API that allows you to create a wide variety of charts with just a few lines of code.</p>
+
+            <h3 class="text-xl font-semibold mt-6 mb-2">Getting Started</h3>
+            <p>To use Starlight Charts, you need to include the library in your project. You can either download the `starlight-charts.js` file and include it in your HTML, or you can use a package manager like npm or yarn.</p>
+            <p>Once you have the library included, you can create a chart by creating a new instance of the `StarlightChart` class and passing it a canvas element and a configuration object.</p>
+            <pre><code class="language-html">&lt;!-- Include the library --&gt;
+&lt;script src="starlight-charts.js"&gt;&lt;/script&gt;
+
+&lt;!-- Create a canvas element for the chart --&gt;
+&lt;canvas id="myChart"&gt;&lt;/canvas&gt;
+
+&lt;!-- Create the chart --&gt;
+&lt;script&gt;
+    const ctx = document.getElementById('myChart');
+    new StarlightChart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+&lt;/script&gt;
+</code></pre>
+
+            <h3 class="text-xl font-semibold mt-6 mb-2">Integration with Ruby on Rails</h3>
+            <p>Integrating Starlight Charts into a modern Ruby on Rails application is straightforward, especially with the use of import maps (the default in Rails 7+).</p>
+            <ol>
+                <li><strong>Add the library to your project:</strong> Place the `starlight-charts.js` file in your `app/javascript` directory.</li>
+                <li><strong>Pin the library in `config/importmap.rb`:</strong>
+                    <pre><code class="language-ruby"># config/importmap.rb
+pin "application", preload: true
+pin "starlight-charts", to: "starlight-charts.js"</code></pre>
+                </li>
+                <li><strong>Import and use the library in your JavaScript controller:</strong>
+                    <pre><code class="language-javascript">// app/javascript/controllers/chart_controller.js
+import { Controller } from "@hotwired/stimulus"
+import StarlightChart from "starlight-charts"
+
+export default class extends Controller {
+  connect() {
+    const ctx = this.element
+    new StarlightChart(ctx, {
+        // Your chart configuration here
+    })
+  }
+}
+</code></pre>
+                </li>
+                 <li><strong>Use the controller in your view:</strong>
+                    <pre><code class="language-html">&lt;!-- app/views/your_view/index.html.erb --&gt;
+&lt;div data-controller="chart"&gt;
+    &lt;canvas&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+</code></pre>
+                </li>
+            </ol>
+
+            <h3 class="text-xl font-semibold mt-6 mb-2">API Reference</h3>
+            <p>The `StarlightChart` class takes two arguments:</p>
+            <ul>
+                <li><code>context</code>: The canvas element or its 2D rendering context.</li>
+                <li><code>config</code>: A configuration object that defines the chart's type, data, and options.</li>
+            </ul>
+            <p>The configuration object has the following properties:</p>
+            <ul>
+                <li><code>type</code>: The type of chart to create (e.g., 'bar', 'line', 'pie').</li>
+                <li><code>data</code>: An object containing the data for the chart.</li>
+                <li><code>options</code>: An object containing options for customizing the chart.</li>
+            </ul>
+
+        </div>
+    </main>
+
+    <script>
+        // In a real application, this would be in a separate file.
+        class StarlightChart {
+            constructor(context, config) {
+                this.canvas = context.canvas ? context.canvas : context;
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Ensure responsive is enabled by default, letting Chart.js handle resizing.
+                if (config.options === undefined) config.options = {};
+                if (config.options.responsive === undefined) config.options.responsive = true;
+
+                this.config = config;
+
+                // The Chart.js library, when responsive, handles its own resizing.
+                // The previous custom ResizeObserver was causing the issue.
+                this.chart = new Chart(this.ctx, this.config);
+            }
+        }
+    </script>
+    
+    <!-- Using Chart.js for demonstration to provide a feature-rich experience -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Bar Chart
+        const barCtx = document.getElementById('barChart');
+        new StarlightChart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [120, 190, 300, 500, 200, 300],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                // By removing `maintainAspectRatio: false`, we allow Chart.js to
+                // calculate the height based on the width and its default aspect ratio.
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Line Chart
+        const lineCtx = document.getElementById('lineChart');
+        new StarlightChart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [65, 59, 80, 81, 56, 55],
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+             options: {
+                // No responsive options needed here, defaults are perfect.
+            }
+        });
+
+        // Pie Chart
+        const pieCtx = document.getElementById('pieChart');
+        new StarlightChart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow'],
+                datasets: [{
+                    label: 'My First Dataset',
+                    data: [300, 50, 100],
+                    backgroundColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 205, 86)'
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                // No responsive options needed here, defaults are perfect.
+            }
+        });
+
+        // Doughnut Chart
+        const doughnutCtx = document.getElementById('doughnutChart');
+        new StarlightChart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Desktop', 'Mobile', 'Tablet'],
+                datasets: [{
+                    label: 'Traffic Source',
+                    data: [55, 30, 15],
+                    backgroundColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 205, 86)'
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                // No responsive options needed here, defaults are perfect.
+            }
+        });
+
+        // Radar Chart
+        const radarCtx = document.getElementById('radarChart');
+        new StarlightChart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Eating', 'Drinking', 'Sleeping', 'Designing', 'Coding', 'Cycling', 'Running'],
+                datasets: [{
+                    label: 'My First Dataset',
+                    data: [65, 59, 90, 81, 56, 55, 40],
+                    fill: true,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    pointBackgroundColor: 'rgb(255, 99, 132)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(255, 99, 132)'
+                }, {
+                    label: 'My Second Dataset',
+                    data: [28, 48, 40, 19, 96, 27, 100],
+                    fill: true,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    pointBackgroundColor: 'rgb(54, 162, 235)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(54, 162, 235)'
+                }]
+            },
+            options: {
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                }
+            }
+        });
+
+        // Polar Area Chart
+        const polarAreaCtx = document.getElementById('polarAreaChart');
+        new StarlightChart(polarAreaCtx, {
+            type: 'polarArea',
+            data: {
+                labels: ['Red', 'Green', 'Yellow', 'Grey', 'Blue'],
+                datasets: [{
+                    label: 'My First Dataset',
+                    data: [11, 16, 7, 3, 14],
+                    backgroundColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(75, 192, 192)',
+                        'rgb(255, 205, 86)',
+                        'rgb(201, 203, 207)',
+                        'rgb(54, 162, 235)'
+                    ]
+                }]
+            },
+            options: {
+                // No responsive options needed here, defaults are perfect.
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard v2</title>
+    <!-- Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Vanilla CSS Styles -->
+    <style>
+        /* CSS Variables from Tailwind Config */
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --color-primary: #4F46E5;
+            --color-primary-light: #EEF2FF;
+            --color-primary-dark: #4338CA;
+            --color-portal-blue: #3A3BE4;
+            --color-portal-green: #1ABB95;
+            --color-text-main-2: #696969;
+            --color-status-success: #10B981;
+            --color-status-pending: #F59E0B;
+            --color-status-failed: #EF4444;
+            
+            --color-white: #ffffff;
+            --color-gray-50: #F9FAFB;
+            --color-gray-100: #F3F4F6;
+            --color-gray-200: #E5E7EB;
+            --color-gray-400: #9CA3AF;
+            --color-gray-500: #6B7280;
+            --color-gray-600: #4B5563;
+            --color-gray-700: #374151;
+            --color-gray-800: #1F2937;
+            --color-gray-900: #11182C;
+            --color-black: #000000;
+
+            /* New Variables for Chart/Balance Cards */
+            --color-chart-bg: #F8F9FC; /* Light background for balance card */
+            --color-chart-bar: #E8EBF1; /* Light bars */
+            --color-chart-bar-active: #3A3BE4; /* Dark blue bar */
+            --color-divider-green: #26D0A9; /* Green divider */
+            --color-list-bullet: #4F46E5; /* Blue bullet point */
+            
+            --radius-sm: 0.125rem; /* 2px */
+            --radius-md: 0.375rem; /* 6px */
+            --radius-lg: 0.5rem;  /* 8px */
+            --radius-xl: 0.75rem; /* 12px */
+            --radius-2xl: 24px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --ring-black-opacity-5: 0 0 0 1px rgb(0 0 0 / 0.05);
+        }
+
+        /* Base Styles */
+        body {
+            background-color: var(--color-gray-50);
+            font-family: var(--font-sans);
+            color: var(--color-gray-900);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* Layout Container */
+        .container {
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+        }
+
+        /* Utility classes */
+        .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem; }
+        .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem; }
+        .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+        .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+        .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
+
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+
+        .flex { display: flex; }
+        .inline-flex { display: inline-flex; }
+        .grid { display: grid; }
+        .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .flex-1 { flex: 1 1 0%; }
+        .flex-auto { flex: 1 1 auto; }
+        .flex-grow { flex-grow: 1; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .items-center { align-items: center; }
+        .items-end { align-items: flex-end; }
+        .items-start { align-items: flex-start; }
+        .items-baseline { align-items: baseline; }
+        
+        .hidden { display: none; }
+        .block { display: block; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .left-0 { left: 0; }
+        .right-0 { right: 0; }
+        .bottom-0 { bottom: 0; }
+        .top-0 { top: 0; }
+        .z-10 { z-index: 10; }
+        
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .w-5 { width: 1.25rem; }
+        .h-5 { height: 1.25rem; }
+        .w-4 { width: 1rem; }
+        .h-4 { height: 1rem; }
+        .w-9 { width: 2.25rem; }
+        .h-9 { height: 2.25rem; }
+        .w-12 { width: 3rem; }
+        .h-12 { height: 3rem; }
+        .w-56 { width: 14rem; }
+        .w-auto { width: auto; }
+        .h-3 { height: 0.75rem; }
+        .w-\[3px\] { width: 3px; } /* Custom width */
+        .h-\[3px\] { height: 3px; } /* Custom height */
+
+        .h-6 { height: 1.5rem; }
+        .w-6 { width: 1.5rem; }
+        .w-1\.5 { width: 0.375rem; }
+        .h-1\.5 { height: 0.375rem; }
+        .w-10 { width: 2.5rem; }
+        .h-10 { height: 2.5rem; }
+        .h-64 { height: 16rem; }
+        .h-px { height: 1px; }
+
+        .max-h-\[500px\] { max-height: 500px; }
+        .overflow-y-auto { overflow-y: auto; }
+        .overflow-x-auto { overflow-x: auto; }
+        .overflow-hidden { overflow: hidden; }
+        .min-w-max { min-width: max-content; }
+        
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-2 { padding: 0.5rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .pt-1 { padding-top: 0.25rem; }
+        .pt-4 { padding-top: 1rem; }
+        .pr-2 { padding-right: 0.5rem; }
+        .pl-5 { padding-left: 1.25rem; }
+        .pb-0 { padding-bottom: 0; }
+        .pl-2 { padding-left: 0.5rem; }
+        
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mb-5 { margin-bottom: 1.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .ml-1 { margin-left: 0.25rem; }
+        .mr-1 { margin-right: 0.25rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mr-4 { margin-right: 1rem; }
+        .mr-auto { margin-right: auto; }
+        .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+        .-mr-1 { margin-right: -0.25rem; }
+
+        .rounded-lg { border-radius: var(--radius-lg); }
+        .rounded-md { border-radius: var(--radius-md); }
+        .rounded-xl { border-radius: var(--radius-xl); }
+        .rounded-2xl { border-radius: var(--radius-2xl); }
+        .rounded-l-md { border-top-left-radius: var(--radius-md); border-bottom-left-radius: var(--radius-md); }
+        .rounded-bl-md { border-bottom-left-radius: var(--radius-md); }
+        .rounded-t-md { border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); }
+        .rounded-full { border-radius: var(--radius-full); }
+        
+        .border { border-width: 1px; }
+        .border-t { border-top-width: 1px; }
+        .border-b { border-bottom-width: 1px; }
+        .border-gray-100 { border-color: var(--color-gray-100); }
+        .border-gray-200 { border-color: var(--color-gray-200); }
+        .border-transparent { border-color: transparent; }
+        
+        .bg-white { background-color: var(--color-white); }
+        .bg-gray-50 { background-color: var(--color-gray-50); }
+        .bg-gray-100 { background-color: var(--color-gray-100); }
+        .bg-primary-light { background-color: var(--color-primary-light); }
+        .bg-portal-blue { background-color: var(--color-portal-blue); }
+        .bg-portal-green { background-color: var(--color-portal-green); }
+        .bg-chart-bg { background-color: var(--color-chart-bg); }
+        .bg-chart-bar { background-color: var(--color-chart-bar); }
+        .bg-chart-bar-active { background-color: var(--color-chart-bar-active); }
+        .bg-divider-green { background-color: var(--color-divider-green); }
+        .bg-list-bullet { background-color: var(--color-list-bullet); }
+
+        .shadow-sm { box-shadow: var(--shadow-sm); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        
+        .ring-1 { box-shadow: var(--ring-black-opacity-5); }
+        .ring-inset { box-shadow: inset 0 0 0 1px var(--color-gray-200); } /* Simplified ring */
+
+        .text-gray-900 { color: var(--color-gray-900); }
+        .text-gray-500 { color: var(--color-gray-500); }
+        .text-gray-700 { color: var(--color-gray-700); }
+        .text-gray-400 { color: var(--color-gray-400); }
+        .text-gray-800 { color: var(--color-gray-800); }
+        .text-gray-600 { color: var(--color-gray-600); }
+        .text-white { color: var(--color-white); }
+        .text-primary { color: var(--color-primary); }
+        .text-primary-dark { color: var(--color-primary-dark); }
+        .text-text-main-2 { color: var(--color-text-main-2); }
+        .text-status-success { color: var(--color-status-success); }
+        .text-status-pending { color: var(--color-status-pending); }
+        .text-status-failed { color: var(--color-status-failed); }
+
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        .font-bold { font-weight: 700; }
+
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .uppercase { text-transform: uppercase; }
+        
+        .hover\:bg-gray-50:hover { background-color: var(--color-gray-50); }
+        .hover\:opacity-80:hover { opacity: 0.8; }
+        .hover\:text-primary-dark:hover { color: var(--color-primary-dark); }
+        
+        .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+
+        /* Specific Component Styles */
+
+        /* Status Dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .bg-status-success { background-color: var(--color-status-success); }
+        .bg-status-pending { background-color: var(--color-status-pending); }
+        .bg-status-failed { background-color: var(--color-status-failed); }
+
+        /* Main Card */
+        .main-card {
+            background-color: var(--color-white);
+            padding: 1.5rem;
+            border-radius: var(--radius-xl);
+        }
+        @media (min-width: 768px) {
+            .main-card {
+                padding: 2rem;
+            }
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+        }
+        .section-subtitle {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: var(--color-gray-500);
+            margin-bottom: 1rem;
+        }
+        
+        /* Filters */
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+        @media (min-width: 640px) { /* sm: */
+            .filter-container {
+                flex-direction: row;
+            }
+        }
+
+        .dropdown-wrapper {
+            position: relative;
+            display: inline-block;
+            text-align: left;
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .dropdown-wrapper {
+                width: auto;
+            }
+        }
+
+        .dropdown-button {
+            display: inline-flex;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 0.375rem; /* gap-x-1.5 */
+            border-radius: var(--radius-lg);
+            background-color: var(--color-white);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-gray-900);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-gray-200); /* ring-1 ring-inset ring-gray-200 */
+            cursor: pointer;
+        }
+        .dropdown-button:hover {
+            background-color: var(--color-gray-50);
+        }
+        .dropdown-button svg {
+            margin-right: -0.25rem;
+            height: 1.25rem;
+            width: 1.25rem;
+            color: var(--color-gray-400);
+        }
+        
+        @media (min-width: 640px) {
+            .dropdown-button {
+                width: auto;
+            }
+        }
+
+        .dropdown-panel {
+            position: absolute;
+            left: 0;
+            z-index: 10;
+            margin-top: 0.5rem;
+            width: 14rem;
+            transform-origin: top left;
+            border-radius: var(--radius-md);
+            background-color: var(--color-white);
+            box-shadow: var(--shadow-lg), var(--ring-black-opacity-5);
+        }
+        .dropdown-panel.hidden {
+            display: none;
+        }
+        .dropdown-menu {
+            padding: 0.25rem 0;
+        }
+        .dropdown-item {
+            color: var(--color-gray-700);
+            display: block;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            text-decoration: none;
+        }
+        .dropdown-item:hover {
+            background-color: var(--color-gray-50);
+        }
+        .dropdown-item.active {
+             background-color: var(--color-gray-100);
+        }
+
+        .custom-range-button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-gray-700);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+        }
+        .custom-range-button:hover {
+            background-color: var(--color-gray-50);
+        }
+        .custom-range-button svg {
+            height: 1.25rem;
+            width: 1.25rem;
+            color: var(--color-gray-500);
+        }
+        @media (min-width: 640px) {
+            .custom-range-button {
+                width: auto;
+            }
+        }
+        
+        /* Stat Cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (min-width: 1024px) {
+            .stat-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .stat-card {
+            background-color: var(--color-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-gray-200);
+            box-shadow: var(--shadow-sm);
+            padding: 1rem;
+        }
+        .stat-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .stat-card-vbar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: var(--color-portal-blue);
+            border-top-left-radius: var(--radius-md);
+            border-bottom-left-radius: var(--radius-md);
+        }
+        .stat-card-content {
+            padding-left: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+        .stat-card-top {
+            display: flex;
+            flex-direction: column;
+            padding-top: 0.25rem;
+        }
+        .stat-card-top > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        
+        .stat-card-icon-wrapper {
+            padding: 0.5rem;
+            background-color: var(--color-primary-light);
+            border-radius: var(--radius-md);
+            width: 2.25rem;
+            height: 2.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-card-icon {
+            height: 1.25rem;
+            width: 1.25rem;
+            color: var(--color-primary);
+        }
+        .stat-card-title {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-gray-500);
+        }
+        .stat-card-value {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+        }
+        .stat-card-hbar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--color-portal-green);
+            border-bottom-left-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Show Details Section - NEW LAYOUT */
+        .details-grid-v2 {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .details-grid-v2 {
+                /* 60% / 40% split */
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        .chart-card {
+            background-color: var(--color-white);
+            padding: 1.5rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-gray-100);
+        }
+        @media (min-width: 1024px) {
+            .lg-col-span-3 {
+                grid-column: span 3 / span 3;
+            }
+        }
+        
+        .chart-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        @media (min-width: 640px) {
+            .chart-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+        
+        .chart-tab {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: var(--color-portal-blue);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--radius-lg);
+            background-color: var(--color-white);
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .view-finances-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: var(--color-portal-blue);
+            color: var(--color-white);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            padding: 0.625rem 1rem; /* py-2.5 */
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+        }
+        .view-finances-btn:hover {
+            background-color: var(--color-primary-dark);
+        }
+        .view-finances-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .chart-body {
+            display: flex;
+            height: 16rem; /* h-64 */
+            margin-top: 2rem;
+        }
+        .y-axis {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: right;
+            font-size: 0.75rem;
+            line-height: 1rem;
+            color: var(--color-gray-500);
+            padding-right: 0.5rem;
+        }
+        .chart-grid-container {
+            flex-grow: 1;
+            position: relative;
+        }
+        .chart-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .chart-grid-line {
+            width: 100%;
+            height: 1px;
+            background-color: var(--color-gray-200);
+        }
+        .chart-bars {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 0.5rem; /* px-2 */
+        }
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 6%;
+            flex-shrink: 0;
+            gap: 0.5rem;
+        }
+        .bar-bg {
+            width: 100%;
+            background-color: var(--color-chart-bar);
+            border-radius: var(--radius-md);
+        }
+        .bar-fill {
+            width: 100%;
+            background-color: var(--color-chart-bar-active);
+            border-radius: var(--radius-md);
+        }
+        .bar-label {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            color: var(--color-gray-500);
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background-color: var(--color-chart-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius-2xl); /* From image, looks more rounded */
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        @media (min-width: 1024px) {
+            .lg-col-span-2 {
+                grid-column: span 2 / span 2;
+            }
+        }
+        
+        .balance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .settlements-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: var(--color-portal-blue);
+            color: var(--color-white);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 600;
+            padding: 0.625rem 1rem; /* py-2.5 */
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+        }
+        .settlements-btn:hover {
+            background-color: var(--color-primary-dark);
+        }
+        .settlements-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .balance-divider {
+            height: 3px;
+            width: 100%;
+            background-color: var(--color-divider-green);
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: var(--radius-full);
+        }
+        
+        .top-shows-list {
+            position: relative;
+            padding-right: 3.5rem; /* Space for the icon */
+        }
+        .top-shows-list > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+        
+        .show-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .show-item-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            font-weight: 500;
+            color: var(--color-gray-800);
+        }
+        .show-bullet {
+            width: 0.375rem;
+            height: 0.375rem;
+            background-color: var(--color-list-bullet);
+            border-radius: var(--radius-full);
+        }
+        .show-sold {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: var(--color-gray-500);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .show-sold svg {
+            width: 0.875rem;
+            height: 0.875rem;
+            color: var(--color-divider-green);
+        }
+        
+        .show-graph-icon {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 4.5rem; /* w-18 */
+            height: 4.5rem; /* h-18 */
+            opacity: 0.2;
+        }
+        
+        /* Purchases Table */
+        .table-wrapper {
+            background-color: var(--color-white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        .purchases-table {
+            width: 100%;
+            min-width: max-content;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            text-align: left;
+            color: var(--color-gray-700);
+        }
+        .purchases-table thead {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            color: var(--color-gray-500);
+            text-transform: uppercase;
+            background-color: var(--color-gray-50);
+        }
+        .purchases-table th, .purchases-table td {
+            padding: 0.75rem 1.5rem; /* py-3 px-6 */
+        }
+        .purchases-table th {
+            font-weight: 500;
+        }
+        .purchases-table tbody {
+            border-top: 1px solid var(--color-gray-100); /* Simulating divide-y */
+        }
+        .purchases-table tbody tr:not(:first-child) {
+             border-top: 1px solid var(--color-gray-100);
+        }
+        .purchases-table tbody tr:hover {
+            background-color: var(--color-gray-50);
+        }
+        
+        .account-cell {
+            display: flex;
+            align-items: center;
+        }
+        .account-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+        /* Icon Colors */
+        .bg-yellow-400 { background-color: #FACC15; }
+        .bg-red-500 { background-color: #EF4444; }
+        .bg-blue-700 { background-color: #1D4ED8; }
+        .bg-blue-900 { background-color: #1E3A8A; }
+        .bg-orange-500 { background-color: #F97316; }
+
+        .status-cell {
+            display: flex;
+            align-items: center;
+        }
+        .sms-status-icon {
+            font-weight: 700;
+            font-size: 1.125rem; /* lg */
+            margin-right: 0.25rem;
+        }
+        .view-link {
+            font-weight: 500;
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        .view-link:hover {
+            color: var(--color-primary-dark);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900">
+
+    <div class="container space-y-6">
+
+        <!-- Section: General Overview -->
+        <section class="main-card">
+            <h1 class="section-title">General Overview</h1>
+            <p class="section-subtitle">Recent show activities</p>
+
+            <!-- Filters -->
+            <div class="filter-container">
+                <!-- Dropdown Filter -->
+                <div class="dropdown-wrapper">
+                    <button type="button" class="dropdown-button" id="menu-button" aria-expanded="true" aria-haspopup="true" onclick="toggleDropdown('date-dropdown')">
+                        Date listed
+                        <svg class="-mr-1 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown Panel -->
+                    <div id="date-dropdown" class="dropdown-panel hidden" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                        <div class="dropdown-menu" role="none">
+                            <a href="#" class="dropdown-item active" role="menuitem" tabindex="-1" id="menu-item-0">Current Target</a>
+                            <a href="#" class="dropdown-item" role="menuitem" tabindex="-1" id="menu-item-1">Yesterday</a>
+                            <a href="#" class="dropdown-item" role="menuitem" tabindex="-1" id="menu-item-2">Last 7 Days</a>
+                            <a href="#" class="dropdown-item" role="menuitem" tabindex="-1" id="menu-item-3">Live Month</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Range Button -->
+                <button class="custom-range-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Custom Range
+                </button>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stat-grid">
+                
+                <!-- Card 1: Plays video -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <!-- Vertical Bar -->
+                        <div class="stat-card-vbar"></div>
+                        
+                        <!-- Card Content (with padding to clear vertical bar) -->
+                        <div class="stat-card-content">
+                            <!-- Top Content -->
+                            <div class="stat-card-top">
+                                <!-- Icon -->
+                                <div class="stat-card-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stat-card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <!-- Text -->
+                                <div>
+                                    <p class="stat-card-title">Plays video</p>
+                                    <p class="stat-card-value">1,500</p>
+                                </div>
+                            </div>
+                            <!-- Horizontal Bar (lifted "up a bit") -->
+                            <div class="stat-card-hbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Tickets sold -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <!-- Vertical Bar -->
+                        <div class="stat-card-vbar"></div>
+                        
+                        <!-- Card Content (with padding to clear vertical bar) -->
+                        <div class="stat-card-content">
+                            <!-- Top Content -->
+                            <div class="stat-card-top">
+                                <!-- Icon -->
+                                <div class="stat-card-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stat-card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 00-2-2H5z" />
+                                    </svg>
+                                </div>
+                                <!-- Text -->
+                                <div>
+                                    <p class="stat-card-title">Tickets sold</p>
+                                    <p class="stat-card-value">1,500</p>
+                                </div>
+                            </div>
+                            <!-- Horizontal Bar (lifted "up a bit") -->
+                            <div class="stat-card-hbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Revenue -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <!-- Vertical Bar -->
+                        <div class="stat-card-vbar"></div>
+                        
+                        <!-- Card Content (with padding to clear vertical bar) -->
+                        <div class="stat-card-content">
+                            <!-- Top Content -->
+                            <div class="stat-card-top">
+                                <!-- Icon -->
+                                <div class="stat-card-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="stat-card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <!-- Text -->
+                                <div>
+                                    <p class="stat-card-title">Revenue</p>
+                                    <p class="stat-card-value">GHC 3,221.45</p>
+                                </div>
+                            </div>
+                            <!-- Horizontal Bar (lifted "up a bit") -->
+                            <div class="stat-card-hbar"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section: Show Details (NEW LAYOUT) -->
+        <section class="main-card">
+            <!-- This grid splits the chart and the balance card -->
+            <div class="details-grid-v2">
+                
+                <!-- Left Column: Bar Chart -->
+                <div class="chart-card lg-col-span-3">
+                    <div>
+                        <h1 class="section-title">Revenue & Sales Outlook</h1>
+                        <p class="section-subtitle">See what your numbers look like</p>
+                    </div>
+
+                    <div class="chart-header">
+                        <span class="chart-tab">Sales Chart</span>
+                        <button class="view-finances-btn">
+                            View Finances
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Chart Body -->
+                    <div class="chart-body">
+                        <!-- Y-Axis Labels -->
+                        <div class="y-axis">
+                            <span>8k</span><span>7k</span><span>6k</span><span>5k</span><span>4k</span><span>3k</span><span>2k</span>
+                        </div>
+                        
+                        <!-- Chart Grid and Bars -->
+                        <div class="chart-grid-container">
+                            <!-- Grid Lines -->
+                            <div class="chart-grid">
+                                <div class="chart-grid-line"></div>
+                                <div class="chart-grid-line"></div>
+                                <div class="chart-grid-line"></div>
+                                <div class="chart-grid-line"></div>
+                                <div class="chart-grid-line"></div>
+                                <div class="chart-grid-line"></div>
+                                <div class="chart-grid-line"></div>
+                            </div>
+                            <!-- Bars -->
+                            <div class="chart-bars">
+                                <!-- Jan -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 40%;"></div>
+                                    <span class="bar-label">Jan</span>
+                                </div>
+                                <!-- Feb -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 50%;"></div>
+                                    <span class="bar-label">Feb</span>
+                                </div>
+                                <!-- Mar -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 40%;"></div>
+                                    <span class="bar-label">Mar</span>
+                                </div>
+                                <!-- Apr -->
+                                <div class="bar-item">
+                                    <div class="bar-fill" style="height: 70%;"></div>
+                                    <span class="bar-label">Apr</span>
+                                </div>
+                                <!-- May -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 50%;"></div>
+                                    <span class="bar-label">May</span>
+                                </div>
+                                <!-- Jun -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 40%;"></div>
+                                    <span class="bar-label">Jun</span>
+                                </div>
+                                <!-- Jul -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 50%;"></div>
+                                    <span class="bar-label">Jul</span>
+                                </div>
+                                <!-- Aug -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 40%;"></div>
+                                    <span class="bar-label">Aug</span>
+                                </div>
+                                <!-- Sep -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 25%;"></div>
+                                    <span class="bar-label">Sep</span>
+                                </div>
+                                <!-- Oct -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 50%;"></div>
+                                    <span class="bar-label">Oct</span>
+                                </div>
+                                <!-- Nov -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 40%;"></div>
+                                    <span class="bar-label">Nov</span>
+                                </div>
+                                <!-- Dec -->
+                                <div class="bar-item">
+                                    <div class="bar-bg" style="height: 25%;"></div>
+                                    <span class="bar-label">Dec</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Available Balance -->
+                <div class="balance-card lg-col-span-2">
+                    <div class="balance-header">
+                        <div>
+                            <h2 class="section-title">Available Balance</h2>
+                            <p class="text-lg font-semibold text-gray-700">GHC 35,000.00</p>
+                        </div>
+                        <button class="settlements-btn">
+                            Settlements
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="balance-divider"></div>
+
+                    <div class="top-shows-list">
+                        <h3 class="section-title">Your top selling shows!</h3>
+                        <p class="section-subtitle" style="margin-bottom: 1.5rem;">Ranking your fastest selling current shows</p>
+                        
+                        <div class="space-y-4">
+                            <div class="show-item">
+                                <span class="show-item-name">
+                                    <span class="show-bullet"></span>
+                                    Marriage of Anansewaa
+                                </span>
+                                <span class="show-sold">
+                                    1300/2000 sold
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v5.5c0 .414.336.75.75.75h3.5a.75.75 0 000-1.5h-2.75v-4.5z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="show-item">
+                                <span class="show-item-name">
+                                    <span class="show-bullet"></span>
+                                    Marriage of Asantewaa
+                                </span>
+                                <span class="show-sold">
+                                    1300/2000 sold
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v5.5c0 .414.336.75.75.75h3.5a.75.75 0 000-1.5h-2.75v-4.5z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="show-item">
+                                <span class="show-item-name">
+                                    <span class="show-bullet"></span>
+                                    Marriage of Antwiwaa
+                                </span>
+                                <span class="show-sold">
+                                    1300/2000 sold
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v5.5c0 .414.336.75.75.75h3.5a.75.75 0 000-1.5h-2.75v-4.5z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Faded Graph Icon -->
+                        <svg class="show-graph-icon" viewBox="0 0 49 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M41.7224 2.11523H35.435C34.3305 2.11523 33.435 3.01072 33.435 4.11523V38.1152C33.435 39.2197 34.3305 40.1152 35.435 40.1152H41.7224C42.827 40.1152 43.7224 39.2197 43.7224 38.1152V4.11523C43.7224 3.01072 42.827 2.11523 41.7224 2.11523Z" fill="#26D0A9"/>
+                            <path d="M26.8479 14.1152H20.5605C19.456 14.1152 18.5605 15.0107 18.5605 16.1152V38.1152C18.5605 39.2197 19.456 40.1152 20.5605 40.1152H26.8479C27.9524 40.1152 28.8479 39.2197 28.8479 38.1152V16.1152C28.8479 15.0107 27.9524 14.1152 26.8479 14.1152Z" fill="#26D0A9"/>
+                            <path d="M11.9734 22.1152H5.68591C4.5814 22.1152 3.68591 23.0107 3.68591 24.1152V38.1152C3.68591 39.2197 4.5814 40.1152 5.68591 40.1152H11.9734C13.0779 40.1152 13.9734 39.2197 13.9734 38.1152V24.1152C13.9734 23.0107 13.0779 22.1152 11.9734 22.1152Z" fill="#26D0A9"/>
+                            <path d="M45.0298 12.029L33.9189 0.918121C33.3917 0.390913 32.4831 0.501533 32.1152 1.11523L27.4243 9.42398C27.0564 10.0377 27.2779 10.8909 27.9243 11.29L31.9243 13.79C32.3243 14.04 32.8743 14.04 33.2743 13.79L45.5298 6.529C46.1762 6.129 46.3977 5.27575 46.0298 4.66205L45.0298 3.029C44.6619 2.41523 43.7437 2.08381 43.1098 2.41523" fill="#26D0A9" stroke="#26D0A9" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- Section: Purchases -->
+        <section class="main-card">
+            <h1 class="section-title mb-4">Purchases</h1>
+
+            <!-- Purchases Table -->
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table class="purchases-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Transaction ID</th>
+                                <th>Medium</th>
+                                <th>Account number</th>
+                                <th>Status</th>
+                                <th>SMS Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Row 1 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>9</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-yellow-400">M</div>
+                                        024 681120
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="status-dot bg-status-success"></span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 2 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>10</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-red-500">T</div>
+                                        0507262860
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-pending">
+                                        <span class="status-dot bg-status-pending"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 3 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>3</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-blue-700">A</div>
+                                        024 681120
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="status-dot bg-status-failed"></span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 4 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>14</td>
+                                <td>#4647482943</td>
+                                <td>Card</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-blue-900">V</div>
+                                        0216652...
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="status-dot bg-status-success"></span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 5 -->
+                            <tr>
+                                <td>12 May 2025<br><span class="text-xs text-gray-400">09:32:01</span></td>
+                                <td>9</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-red-500">T</div>
+                                        0507262860
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="status-dot bg-status-failed"></span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 6 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>8</td>
+                                <td>#4647482943</td>
+                                <td>Card</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-orange-500">M</div>
+                                        0216652...
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-pending">
+                                        <span class="status-dot bg-status-pending"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 7 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>27</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-red-500">T</div>
+                                        0507262860
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="status-dot bg-status-success"></span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-success">
+                                        <span class="sms-status-icon">✓</span>
+                                        Success
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                            <!-- Row 8 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>4</td>
+                                <td>#4647482943</td>
+                                <td>MoMo</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-yellow-400">M</div>
+                                        024 681120
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="status-dot bg-status-failed"></span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                             <!-- Row 9 -->
+                            <tr>
+                                <td>12 May 2025</td>
+                                <td>15</td>
+                                <td>#4647482943</td>
+                                <td>Card</td>
+                                <td>
+                                    <div class="account-cell">
+                                        <div class="account-icon bg-blue-700">A</div>
+                                        0216652...
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-pending">
+                                        <span class="status-dot bg-status-pending"></span>
+                                        Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-cell text-status-failed">
+                                        <span class="sms-status-icon">×</span>
+                                        Failed
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="view-link">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div> <!-- /container -->
+
+    <script>
+        // Simple dropdown toggle
+        function toggleDropdown(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        // Close dropdown if clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-button') && !event.target.matches('.chart-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-panel");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (!openDropdown.classList.contains('hidden') && !openDropdown.contains(event.target) && !event.target.closest('.dropdown-button')) {
+                        openDropdown.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        // Toggle for show details (This function is no longer used by the new layout, but left in case)
+        function toggleShowDetails(detailsId, buttonElement) {
+            const detailsDiv = document.getElementById(detailsId);
+            const buttonText = buttonElement.querySelector('.view-text');
+            
+            detailsDiv.classList.toggle('hidden');
+            
+            if (detailsDiv.classList.contains('hidden')) {
+                buttonText.textContent = 'View More';
+            } else {
+                buttonText.textContent = 'View Less';
+            }
+        }
+    </script>
+
+</body>
+</html>
+

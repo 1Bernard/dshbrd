@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Drop Zone with Cropping</title>
+    <!-- Import Cropper.js for image cropping -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <style>
+        /* Basic Reset & Body Styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem; /* p-4 */
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        /* Drop Zone Container */
+        #dropZoneContainer {
+            width: 100%;
+            max-width: 36rem; 
+        }
+
+        /* Hidden File Input */
+        #fileInput {
+            display: none;
+        }
+
+        /* Drop Zone Area (Label) */
+        #dropZone {
+            width: 100%;
+            min-height: 16rem; 
+            border-width: 2px;
+            border-style: dashed;
+            border-color: #7dd3fc; /* sky-300 */
+            border-radius: 1rem; /* rounded-2xl */
+            cursor: pointer;
+            background-color: #ffffff; /* bg-white */
+            padding: 1rem; /* p-4 */
+            display: flex;
+            flex-direction: column;
+            transition-property: background-color, border-color;
+            transition-duration: 200ms;
+            transition-timing-function: ease-in-out;
+        }
+
+        #dropZone:hover {
+            background-color: #f0f9ff; /* hover:bg-sky-50 */
+        }
+
+        #dropZone.drop-zone-active {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+        
+        #dropZone.dropzone-prompt-visible {
+            align-items: center;
+            justify-content: center;
+        }
+
+        #dropZone.dropzone-previews-visible {
+            align-items: stretch;
+            justify-content: flex-start;
+        }
+
+        /* Initial Prompt Area */
+        #dropZonePrompt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #dropZonePrompt.hidden {
+            display: none;
+        }
+
+        #dropZonePrompt svg {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #0ea5e9; /* text-sky-500 */
+        }
+
+        #dropZonePrompt p {
+            margin: 0;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #475569; /* text-slate-600 */
+        }
+        #dropZonePrompt p:last-child {
+            margin-bottom: 0;
+        }
+
+        #dropZonePrompt .font-semibold {
+            font-weight: 600;
+        }
+
+        #dropZonePrompt .upload-link-style { 
+            color: #2563eb;
+            text-decoration: none;
+        }
+        #dropZonePrompt .upload-link-style:hover {
+            text-decoration: underline;
+        }
+        
+        #dropZonePrompt .text-xs {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            color: #64748b; /* text-slate-500 */
+        }
+
+        /* Inline Preview Area */
+        #inlinePreviewArea {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px; 
+            padding: 8px;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #inlinePreviewArea.hidden {
+            display: none;
+        }
+
+        /* Individual Preview Item Container */
+        .preview-container {
+            position: relative;
+            display: inline-block;
+            margin: 4px;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.375rem; /* rounded-md */
+            overflow: hidden;
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+
+        .preview-image {
+            display: block;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+        
+        .pdf-preview-item {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9; /* slate-100 */
+            padding: 0.25rem; /* p-1 */
+            text-align: center;
+        }
+        .pdf-preview-item svg {
+            width: 2rem;
+            height: 2rem;
+            color: #ef4444; /* text-red-500 */
+            margin-bottom: 0.25rem;
+        }
+        .pdf-preview-item p {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            word-break: break-all;
+            margin: 0;
+            color: #475569; /* text-slate-600 */
+        }
+
+        /* Action Buttons on Preview */
+        .preview-actions {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .action-button {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .action-button:hover {
+            opacity: 1;
+        }
+
+        /* Cropping Modal Styles */
+        #cropModal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #cropModal.active {
+            display: flex;
+        }
+        .crop-modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 0.5rem;
+        }
+        #imageToCrop {
+            display: block;
+            max-width: 100%;
+            max-height: 60vh;
+        }
+        .crop-modal-actions {
+            margin-top: 1rem;
+            text-align: right;
+        }
+        .crop-modal-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #confirmCropBtn {
+            background-color: #2563eb;
+            color: white;
+        }
+        #cancelCropBtn {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="dropZoneContainer">
+        <input type="file" id="fileInput" multiple accept="image/*,application/pdf">
+
+        <label for="fileInput" id="dropZone">
+            <div id="dropZonePrompt">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                </svg>
+                <p>
+                    <span class="font-semibold">Drag image(s) or PDF here</span> or
+                    <span class="upload-link-style">upload from your files</span>
+                </p>
+                <p class="text-xs">Supported: JPG, PNG, PDF (Max. 2MB)</p>
+            </div>
+
+            <div id="inlinePreviewArea" class="hidden">
+                <!-- Previews will be dynamically added here -->
+            </div>
+        </label>
+    </div>
+
+    <!-- Cropping Modal -->
+    <div id="cropModal">
+        <div class="crop-modal-content">
+            <div>
+                <img id="imageToCrop" src="" alt="Image to crop">
+            </div>
+            <div class="crop-modal-actions">
+                <button id="cancelCropBtn">Cancel</button>
+                <button id="confirmCropBtn">Confirm Crop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const dropZonePrompt = document.getElementById('dropZonePrompt');
+        const inlinePreviewArea = document.getElementById('inlinePreviewArea');
+        const fileInput = document.getElementById('fileInput');
+        const cropModal = document.getElementById('cropModal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const confirmCropBtn = document.getElementById('confirmCropBtn');
+        const cancelCropBtn = document.getElementById('cancelCropBtn');
+
+        let currentFiles = [];
+        let cropper;
+        let fileToCropIndex = -1;
+
+        // Setup drag and drop listeners
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-zone-active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-zone-active'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+
+        function handleDrop(e) {
+            processFiles(e.dataTransfer.files);
+        }
+
+        function processFiles(files) {
+            const newFiles = Array.from(files); 
+            
+            for (const file of newFiles) {
+                if (file.size > 2 * 1024 * 1024) { // Max 2MB
+                    showMessage(`File ${file.name} is too large (max 2MB).`);
+                    continue;
+                }
+                const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                if (!allowedTypes.includes(file.type)) {
+                    showMessage(`File type ${file.type} for ${file.name} is not supported.`);
+                    continue;
+                }
+                if (!currentFiles.some(f => f.file.name === file.name && f.file.size === file.size)) {
+                    // We store a wrapper object
+                    currentFiles.push({ file: file, id: Date.now() + Math.random(), src: URL.createObjectURL(file) });
+                }
+            }
+            renderPreviews();
+            fileInput.value = ''; // Reset file input
+        }
+
+        function renderPreviews() {
+            inlinePreviewArea.innerHTML = ''; // Clear existing previews
+
+            if (currentFiles.length === 0) {
+                dropZonePrompt.classList.remove('hidden');
+                inlinePreviewArea.classList.add('hidden');
+                dropZone.classList.add('dropzone-prompt-visible');
+                dropZone.classList.remove('dropzone-previews-visible');
+            } else {
+                dropZonePrompt.classList.add('hidden');
+                inlinePreviewArea.classList.remove('hidden');
+                dropZone.classList.remove('dropzone-prompt-visible');
+                dropZone.classList.add('dropzone-previews-visible');
+
+                currentFiles.forEach((fileWrapper, index) => {
+                    const file = fileWrapper.file;
+                    const previewContainer = document.createElement('div');
+                    previewContainer.classList.add('preview-container');
+
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = fileWrapper.src;
+                        img.classList.add('preview-image');
+                        img.alt = `Preview of ${file.name}`;
+                        previewContainer.appendChild(img);
+                    } else if (file.type === 'application/pdf') {
+                        const pdfIconContainer = document.createElement('div');
+                        pdfIconContainer.classList.add('pdf-preview-item');
+                        pdfIconContainer.innerHTML = `<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M19.5 2H8.25A2.25 2.25 0 0 0 6 4.25v15.5A2.25 2.25 0 0 0 8.25 22h11.25A2.25 2.25 0 0 0 22 19.75V11h-7V4H9V2h10.5zM8 4h2v7h7v2.25c0 .97-.78 1.75-1.75 1.75H8V4zm11 8.25V19.5h-9V15h7.25c.97 0 1.75-.78 1.75-1.75zM4.5 6A1.5 1.5 0 0 0 3 7.5v9A1.5 1.5 0 0 0 4.5 18h1.5V6H4.5z"/></svg>`;
+                        const fileNameText = document.createElement('p');
+                        fileNameText.textContent = file.name.length > 12 ? file.name.substring(0,10) + "..." : file.name;
+                        pdfIconContainer.appendChild(fileNameText);
+                        previewContainer.appendChild(pdfIconContainer);
+                    }
+
+                    const actionsContainer = document.createElement('div');
+                    actionsContainer.classList.add('preview-actions');
+
+                    // Add crop button for images
+                    if (file.type.startsWith('image/')) {
+                        const cropButton = document.createElement('button');
+                        cropButton.innerHTML = '&#9986;'; // Scissors icon
+                        cropButton.classList.add('action-button');
+                        cropButton.title = `Crop ${file.name}`;
+                        cropButton.onclick = (e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            openCropModal(index);
+                        };
+                        actionsContainer.appendChild(cropButton);
+                    }
+
+                    const cancelButton = document.createElement('button');
+                    cancelButton.innerHTML = '&times;'; // '×' character
+                    cancelButton.classList.add('action-button');
+                    cancelButton.title = `Remove ${file.name}`;
+                    cancelButton.onclick = (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        // Revoke the object URL to free up memory
+                        URL.revokeObjectURL(fileWrapper.src);
+                        currentFiles.splice(index, 1);
+                        renderPreviews();
+                    };
+                    actionsContainer.appendChild(cancelButton);
+                    previewContainer.appendChild(actionsContainer);
+                    inlinePreviewArea.appendChild(previewContainer);
+                });
+            }
+        }
+
+        function openCropModal(index) {
+            fileToCropIndex = index;
+            const fileWrapper = currentFiles[index];
+            imageToCrop.src = fileWrapper.src;
+            
+            cropModal.classList.add('active');
+
+            // We need to wait for the image to be loaded into the modal before initializing cropper
+            imageToCrop.onload = () => {
+                 if(cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                });
+            };
+            imageToCrop.onerror = () => {
+                showMessage("Failed to load image for cropping.");
+                closeCropModal();
+            }
+        }
+
+        function closeCropModal() {
+            cropModal.classList.remove('active');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            fileToCropIndex = -1;
+        }
+
+        cancelCropBtn.addEventListener('click', closeCropModal);
+
+        confirmCropBtn.addEventListener('click', () => {
+            if (cropper && fileToCropIndex > -1) {
+                const canvas = cropper.getCroppedCanvas({
+                    width: 512,
+                    height: 512,
+                    imageSmoothingQuality: 'high',
+                });
+
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        showMessage("Could not crop image.");
+                        return;
+                    }
+                    const originalFile = currentFiles[fileToCropIndex].file;
+                    const croppedFile = new File([blob], `cropped_${originalFile.name}`, {
+                        type: blob.type,
+                        lastModified: Date.now()
+                    });
+                    
+                    // Revoke the old object URL to prevent memory leaks
+                    URL.revokeObjectURL(currentFiles[fileToCropIndex].src);
+
+                    // Update the file in our array with the new cropped file and its URL
+                    currentFiles[fileToCropIndex].file = croppedFile;
+                    // **FIXED THE TYPO ON THE NEXT LINE**
+                    currentFiles[fileToCropIndex].src = URL.createObjectURL(croppedFile);
+
+                    closeCropModal();
+                    renderPreviews();
+                }, 'image/png');
+            }
+        });
+
+        function showMessage(message) {
+            const messageBoxId = 'custom-message-box';
+            let messageBox = document.getElementById(messageBoxId);
+            if (!messageBox) {
+                messageBox = document.createElement('div');
+                messageBox.id = messageBoxId;
+                Object.assign(messageBox.style, {
+                    position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px',
+                    borderRadius: '8px', zIndex: '1051', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    opacity: '0', transition: 'opacity 0.3s ease-in-out'
+                });
+                document.body.appendChild(messageBox);
+            }
+            
+            messageBox.textContent = message;
+            messageBox.style.opacity = '1';
+
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                 setTimeout(() => { if (messageBox.parentNode && messageBox.style.opacity === '0') messageBox.parentNode.removeChild(messageBox); }, 300);
+            }, 3000);
+        }
+        
+        // Initial setup
+        renderPreviews(); 
+    </script>
+</body>
+</html>

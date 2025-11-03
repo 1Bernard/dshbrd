@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Multi-Step Form</title>
+    <style>
+        /* Import Google Font: Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* Basic Body Styles */
+        body {
+            background-color: #f4f7f9;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* Main Container */
+        .form-container {
+            width: 95%;
+            max-width: 650px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        /* Stepper Navigation */
+        .stepper-nav {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        /* Individual Step Button */
+        .step-button {
+            padding: 16px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 15px;
+            font-weight: 500;
+            color: #888;
+            transition: all 0.4s ease;
+            position: relative;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .step-button:hover:not(.disabled) {
+            color: #007bff;
+        }
+        
+        /* Active State for the Step Button */
+        .step-button.active {
+            color: #007bff;
+            font-weight: 600;
+        }
+        
+        /* Completed State */
+        .step-button.completed {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .step-button.completed::before {
+            content: '✔';
+            margin-right: 8px;
+            font-weight: 700;
+        }
+
+        /* Disabled State */
+        .step-button.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* The moving underline/indicator */
+        .step-indicator {
+            position: absolute;
+            bottom: -1px;
+            height: 2px;
+            background-color: #007bff;
+            transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Form Content Panels */
+        .form-content {
+            padding: 30px;
+        }
+
+        .form-panel {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .form-panel.active {
+            display: block;
+        }
+
+        /* Form elements styling */
+        .form-panel h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            transition: border-color 0.3s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        /* Navigation Buttons */
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .nav-button:active {
+            transform: scale(0.98);
+        }
+        .prev-button {
+            background-color: #f0f0f0;
+            color: #555;
+        }
+        .prev-button:hover {
+            background-color: #e0e0e0;
+        }
+        .next-button {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .next-button:hover {
+            background-color: #0056b3;
+        }
+        .submit-button {
+             background-color: #28a745;
+             color: #fff;
+        }
+        .submit-button:hover {
+            background-color: #218838;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <!-- Stepper Navigation -->
+    <div role="tablist" aria-label="Multi-step form" class="stepper-nav">
+        <div class="step-indicator"></div>
+        <button role="tab" aria-selected="true" aria-controls="panel-1" id="step-1" class="step-button active">Contact</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-2" id="step-2" class="step-button disabled">Security</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-3" id="step-3" class="step-button disabled">Image</button>
+        <button role="tab" aria-selected="false" aria-controls="panel-4" id="step-4" class="step-button disabled">Details</button>
+    </div>
+
+    <!-- Form Content Panels -->
+    <div class="form-content">
+        <!-- Panel 1: Contact Info -->
+        <div role="tabpanel" id="panel-1" aria-labelledby="step-1" class="form-panel active">
+            <h3>Contact Information</h3>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g., John Doe">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="e.g., john.doe@example.com">
+            </div>
+            <div class="form-navigation">
+                <span></span> <!-- Empty span for spacing -->
+                <button class="nav-button next-button" data-next-step="2">Next</button>
+            </div>
+        </div>
+
+        <!-- Panel 2: Secret Keys -->
+        <div role="tabpanel" id="panel-2" aria-labelledby="step-2" class="form-panel">
+            <h3>Secret Keys</h3>
+            <div class="form-group">
+                <label for="api-key">API Key</label>
+                <input type="password" id="api-key" name="api-key" placeholder="Enter your API key">
+            </div>
+            <div class="form-group">
+                <label for="secret-token">Secret Token</label>
+                <input type="password" id="secret-token" name="secret-token" placeholder="Enter your secret token">
+            </div>
+            <div class="form-navigation">
+                <button class="nav-button prev-button" data-previous-step="1">Previous</button>
+                <button class="nav-button next-button" data-next-step="3">Next</button>
+            </div>
+        </div>
+
+        <!-- Panel 3: Image Upload -->
+        <div role="tabpanel" id="panel-3" aria-labelledby="step-3" class="form-panel">
+            <h3>Profile Image</h3>
+            <div class="form-group">
+                <label for="profile-image">Upload Image</label>
+                <input type="file" id="profile-image" name="profile-image" accept="image/*">
+            </div>
+            <div class="form-navigation">
+                <button class="nav-button prev-button" data-previous-step="2">Previous</button>
+                <button class="nav-button next-button" data-next-step="4">Next</button>
+            </div>
+        </div>
+        
+        <!-- Panel 4: Details -->
+        <div role="tabpanel" id="panel-4" aria-labelledby="step-4" class="form-panel">
+            <h3>Additional Details</h3>
+            <div class="form-group">
+                <label for="bio">Biography</label>
+                <textarea id="bio" name="bio" rows="4" placeholder="Tell us something about yourself..."></textarea>
+            </div>
+            <div class="form-navigation">
+                <button class="nav-button prev-button" data-previous-step="3">Previous</button>
+                <button class="nav-button submit-button">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const formContainer = document.querySelector('.form-container');
+        if (!formContainer) return;
+
+        const stepButtons = formContainer.querySelectorAll('.step-button');
+        const stepIndicator = formContainer.querySelector('.step-indicator');
+        const formPanels = formContainer.querySelectorAll('.form-panel');
+        const nextButtons = formContainer.querySelectorAll('.next-button');
+        const prevButtons = formContainer.querySelectorAll('.prev-button');
+
+        let currentStep = 1;
+
+        // Function to move the indicator
+        function moveIndicator(element) {
+            if (!element) return;
+            stepIndicator.style.width = `${element.offsetWidth}px`;
+            stepIndicator.style.left = `${element.offsetLeft}px`;
+        }
+
+        // Function to go to a specific step
+        function goToStep(stepNumber) {
+            currentStep = stepNumber;
+            
+            // Update step buttons
+            stepButtons.forEach((button, index) => {
+                const step = index + 1;
+                button.classList.remove('active');
+                button.setAttribute('aria-selected', 'false');
+
+                if (step === currentStep) {
+                    button.classList.add('active');
+                    button.setAttribute('aria-selected', 'true');
+                    moveIndicator(button);
+                }
+                
+                // Enable/disable steps based on progress
+                if (step > currentStep) {
+                    button.classList.add('disabled');
+                } else {
+                    button.classList.remove('disabled');
+                }
+            });
+
+            // Update panel visibility
+            formPanels.forEach((panel, index) => {
+                panel.classList.toggle('active', (index + 1) === currentStep);
+            });
+        }
+
+        // Initialize indicator
+        moveIndicator(stepButtons[0]);
+
+        // Event listeners for Next buttons
+        nextButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const currentButton = stepButtons[currentStep - 1];
+                currentButton.classList.add('completed');
+                
+                const nextStep = parseInt(button.getAttribute('data-next-step'));
+                goToStep(nextStep);
+            });
+        });
+
+        // Event listeners for Previous buttons
+        prevButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const previousStep = parseInt(button.getAttribute('data-previous-step'));
+                goToStep(previousStep);
+            });
+        });
+        
+        // Event listeners for clicking on step buttons (the stepper itself)
+        stepButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (!button.classList.contains('disabled')) {
+                    const step = parseInt(button.id.replace('step-', ''));
+                    goToStep(step);
+                }
+            });
+        });
+
+        // Recalculate indicator on resize
+        window.addEventListener('resize', () => {
+            const activeStepButton = formContainer.querySelector('.step-button.active');
+            moveIndicator(activeStepButton);
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show Ticket Customizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom animation for smooth height transitions */
+        .collapsible {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+        .collapsible.expanded {
+            grid-template-rows: 1fr;
+            opacity: 1;
+        }
+        .collapsible > div {
+            overflow: hidden;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        /* Custom styles for inputs to match the image */
+        .custom-input {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .custom-input:focus {
+            outline: none;
+            border-color: #6D28D9;
+        }
+        .custom-btn {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid #D1D5DB;
+        }
+        .custom-btn-primary {
+            background-color: white;
+            color: #1F2937;
+        }
+        .custom-btn-primary:hover {
+             background-color: #f9fafb;
+             border-color: #6D28D9;
+        }
+        .custom-btn-save {
+            background-color: #6D28D9;
+            color: white;
+            border-color: #6D28D9;
+        }
+        .custom-btn-save:hover {
+            background-color: #5B21B6;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8 flex items-center justify-center">
+
+    <div class="w-full max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800">Customise your show tickets!</h1>
+        <p class="mt-2 text-gray-600">Tickets are grouped by date and time. Create a group by selecting a specific date and time. Then, add the various tickets under that group.</p>
+
+        <div id="shows-container" class="mt-8 space-y-6">
+            <!-- Show templates will be inserted here -->
+        </div>
+
+        <div class="mt-8">
+            <button id="add-another-show-btn" class="custom-btn custom-btn-primary w-full sm:w-auto">
+                Add another show
+            </button>
+        </div>
+    </div>
+    
+    <!-- TEMPLATES (hidden) -->
+    <template id="show-template">
+        <div class="show-block bg-white border border-gray-200 rounded-xl p-6 transition-all duration-500">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-900"></h2>
+                <button class="remove-show-btn text-gray-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.528M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5m3.5 0a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>
+                </button>
+            </div>
+            
+            <div class="initial-placeholder">
+                <div class="bg-white border border-dashed border-gray-300 rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 flex-shrink-0"></div>
+                        <p class="ml-4 text-gray-400">---/--/-- --:--</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="add-ticket-from-placeholder custom-btn custom-btn-primary !py-1 !px-4">Add Ticket</button>
+                    </div>
+                </div>
+                 <p class="text-sm text-gray-500 mt-2">Click on "Add ticket"</p>
+            </div>
+            
+            <div class="ticket-groups-container space-y-4"></div>
+
+            <div class="initial-ticket-group-creator hidden mt-4 border-t pt-4">
+                <div class="grid sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="font-medium text-gray-700 text-sm flex items-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-event mr-2 text-indigo-600" viewBox="0 0 16 16"><path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+                            Date
+                        </label>
+                        <input type="date" class="custom-input date-input">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-700 text-sm flex items-center mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock mr-2 text-indigo-600" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/></svg>
+                            Start time
+                        </label>
+                        <input type="time" class="custom-input time-input">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="font-medium text-gray-700 text-sm flex items-center mb-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill mr-2 text-indigo-600" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>
+                        Venue
+                    </label>
+                    <select class="custom-input venue-input">
+                        <option>National Theatre of Ghana</option>
+                        <option>Accra International Conference Centre</option>
+                        <option>The Dome</option>
+                    </select>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button class="add-ticket-group-btn custom-btn custom-btn-primary flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill mr-2" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/></svg>
+                        Add ticket group
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="ticket-group-template">
+        <div class="ticket-group border border-gray-200 rounded-lg p-4">
+            <div class="date-time-display flex justify-between items-center p-2 rounded-md">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+                    </div>
+                    <span class="ml-3 font-medium text-gray-700"></span>
+                </div>
+                <button class="close-ticket-group-btn custom-btn custom-btn-primary !p-2">Close Ticket Group</button>
+            </div>
+            <div class="venue-display flex justify-between items-center p-2 rounded-md mt-2">
+                 <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16"><path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/></svg>
+                    </div>
+                    <span class="ml-3 font-medium text-gray-700"></span>
+                </div>
+            </div>
+            <div class="tickets-container mt-4 space-y-4">
+                <!-- Ticket forms or saved tickets go here -->
+            </div>
+            <div class="mt-4 border-t pt-4">
+                <button class="add-another-ticket-btn custom-btn custom-btn-primary w-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle mr-2" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
+                    Add another ticket
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="ticket-form-template">
+        <div class="ticket-form-wrapper collapsible">
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="grid sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="font-medium text-gray-700 text-sm mb-1 block">Ticket name</label>
+                        <input type="text" placeholder="VVIP Reloaded" class="custom-input ticket-name">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-700 text-sm mb-1 block">Price</label>
+                        <input type="number" placeholder="1,923.00" class="custom-input ticket-price">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-700 text-sm mb-1 block">Quantity</label>
+                        <input type="number" placeholder="4,353,535" class="custom-input ticket-quantity">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="font-medium text-gray-700 text-sm mb-1 block">Ticket description</label>
+                    <textarea class="custom-input ticket-description" rows="3" placeholder="The play explores themes of fate..."></textarea>
+                </div>
+                <div class="mt-4 flex justify-end space-x-2">
+                    <button class="custom-btn custom-btn-primary cancel-ticket-btn">Cancel</button>
+                    <button class="custom-btn custom-btn-save save-ticket-btn">Save ticket</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <template id="saved-ticket-template">
+        <div class="saved-ticket-wrapper collapsible">
+             <div class="bg-white border rounded-lg p-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <span class="font-semibold text-gray-800 ticket-name-display"></span>
+                    <span class="ml-3 text-sm font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-check-circle-fill mr-1" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+                        Saved
+                    </span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button class="text-gray-500 hover:text-red-600 delete-ticket-btn p-1 rounded-full hover:bg-red-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16"><path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.528M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5m3.5 0a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/></svg>
+                    </button>
+                    <button class="custom-btn custom-btn-primary !py-1 !px-4 view-ticket-btn">View</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const showsContainer = document.getElementById('shows-container');
+            const addShowBtn = document.getElementById('add-another-show-btn');
+
+            let showCount = 0;
+
+            const getOrdinal = (n) => {
+                const s = ["th", "st", "nd", "rd"];
+                const v = n % 100;
+                return n + (s[(v - 20) % 10] || s[v] || s[0]);
+            };
+            
+            const removeShow = (showBlock) => {
+                showBlock.classList.add('fade-out');
+                setTimeout(() => {
+                    showBlock.remove();
+                    // Renumber remaining shows
+                    const remainingShows = showsContainer.querySelectorAll('.show-block');
+                    showCount = 0;
+                    remainingShows.forEach(block => {
+                        showCount++;
+                        block.querySelector('h2').textContent = `${getOrdinal(showCount)} Show`;
+                    });
+
+                }, 500);
+            };
+
+            const addShow = () => {
+                showCount++;
+                const showTemplate = document.getElementById('show-template');
+                const newShow = showTemplate.content.cloneNode(true);
+                const showBlock = newShow.querySelector('.show-block');
+                
+                showBlock.querySelector('h2').textContent = `${getOrdinal(showCount)} Show`;
+                
+                // Hide the remove button for the first show
+                if (showCount === 1) {
+                    const removeBtn = showBlock.querySelector('.remove-show-btn');
+                    if (removeBtn) {
+                        removeBtn.classList.add('hidden');
+                    }
+                }
+
+                showsContainer.appendChild(newShow);
+                
+                // Add fade-in animation
+                showBlock.classList.add('fade-in');
+                
+                addEventListenersToShow(showBlock);
+            };
+
+            const addEventListenersToShow = (showBlock) => {
+                const addTicketGroupBtn = showBlock.querySelector('.add-ticket-group-btn');
+                const removeShowBtn = showBlock.querySelector('.remove-show-btn');
+                const initialPlaceholder = showBlock.querySelector('.initial-placeholder');
+                const addTicketFromPlaceholderBtn = showBlock.querySelector('.add-ticket-from-placeholder');
+                const groupCreatorForm = showBlock.querySelector('.initial-ticket-group-creator');
+
+                removeShowBtn.addEventListener('click', () => removeShow(showBlock));
+
+                addTicketFromPlaceholderBtn.addEventListener('click', () => {
+                    initialPlaceholder.classList.add('hidden');
+                    groupCreatorForm.classList.remove('hidden');
+                    groupCreatorForm.classList.add('fade-in');
+                });
+
+                addTicketGroupBtn.addEventListener('click', () => {
+                    const dateInput = showBlock.querySelector('.date-input');
+                    const timeInput = showBlock.querySelector('.time-input');
+                    const venueInput = showBlock.querySelector('.venue-input');
+
+                    const date = dateInput.value;
+                    const time = timeInput.value;
+                    const venue = venueInput.value;
+                    
+                    if (!date || !time) {
+                        // A non-blocking notification would be better in a real app
+                        console.warn('Please select a date and time.');
+                        // Simple validation feedback
+                        if(!date) dateInput.classList.add('border-red-500');
+                        if(!time) timeInput.classList.add('border-red-500');
+                        setTimeout(() => {
+                            dateInput.classList.remove('border-red-500');
+                            timeInput.classList.remove('border-red-500');
+                        }, 2000);
+                        return;
+                    }
+
+                    addTicketGroup(showBlock, date, time, venue);
+                    
+                    // Hide the form after adding a ticket group
+                    groupCreatorForm.classList.add('hidden');
+
+                    // Clear inputs for the next group
+                    dateInput.value = '';
+                    timeInput.value = '';
+                    venueInput.selectedIndex = 0;
+                });
+            };
+            
+            const addTicketGroup = (showBlock, date, time, venue) => {
+                const ticketGroupTemplate = document.getElementById('ticket-group-template');
+                const newGroup = ticketGroupTemplate.content.cloneNode(true);
+                const ticketGroupEl = newGroup.querySelector('.ticket-group');
+                
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric'});
+                
+                let [hours, minutes] = time.split(':');
+                hours = parseInt(hours, 10);
+                const ampm = hours >= 12 ? 'pm' : 'am';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}${ampm}`;
+
+                ticketGroupEl.querySelector('.date-time-display span').textContent = `${formattedDate} ${formattedTime}`;
+                ticketGroupEl.querySelector('.venue-display span').textContent = venue;
+
+                showBlock.querySelector('.ticket-groups-container').appendChild(ticketGroupEl);
+                ticketGroupEl.classList.add('fade-in');
+
+                // Add the first ticket form automatically
+                addTicketForm(ticketGroupEl.querySelector('.tickets-container'));
+                
+                addEventListenersToTicketGroup(ticketGroupEl);
+            };
+            
+            const addEventListenersToTicketGroup = (ticketGroupEl) => {
+                 ticketGroupEl.querySelector('.add-another-ticket-btn').addEventListener('click', () => {
+                     addTicketForm(ticketGroupEl.querySelector('.tickets-container'));
+                 });
+
+                 const closeGroup = () => {
+                     ticketGroupEl.classList.add('fade-out');
+                     setTimeout(() => {
+                         const showBlock = ticketGroupEl.closest('.show-block');
+                         ticketGroupEl.remove();
+                         // Check if this was the last group in the show, and if so, show placeholder
+                         if (showBlock && !showBlock.querySelector('.ticket-group')) {
+                            showBlock.querySelector('.initial-placeholder').classList.remove('hidden');
+                         }
+                     }, 500);
+                 };
+
+                 ticketGroupEl.querySelector('.close-ticket-group-btn').addEventListener('click', closeGroup);
+            };
+
+            const addTicketForm = (container) => {
+                const ticketFormTemplate = document.getElementById('ticket-form-template');
+                const newForm = ticketFormTemplate.content.cloneNode(true);
+                const formWrapper = newForm.querySelector('.ticket-form-wrapper');
+
+                container.appendChild(formWrapper);
+                
+                // Trigger expansion animation
+                requestAnimationFrame(() => {
+                    formWrapper.classList.add('expanded');
+                });
+                
+                addEventListenersToTicketForm(formWrapper);
+            };
+
+            const addEventListenersToTicketForm = (formWrapper) => {
+                const saveBtn = formWrapper.querySelector('.save-ticket-btn');
+                const cancelBtn = formWrapper.querySelector('.cancel-ticket-btn');
+                const nameInput = formWrapper.querySelector('.ticket-name');
+
+                saveBtn.addEventListener('click', () => {
+                    const name = nameInput.value;
+                    if (!name) {
+                        nameInput.classList.add('border-red-500');
+                        nameInput.placeholder = "Ticket name is required";
+                         setTimeout(() => {
+                            nameInput.classList.remove('border-red-500');
+                            nameInput.placeholder = "VVIP Reloaded";
+                        }, 2000);
+                        return;
+                    }
+                    const ticketData = {
+                        name: name,
+                        price: formWrapper.querySelector('.ticket-price').value,
+                        quantity: formWrapper.querySelector('.ticket-quantity').value,
+                        description: formWrapper.querySelector('.ticket-description').value,
+                    };
+                    
+                    formWrapper.classList.remove('expanded');
+                    setTimeout(() => {
+                        formWrapper.remove();
+                        addSavedTicket(formWrapper.parentElement, ticketData);
+                    }, 500);
+
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    formWrapper.classList.remove('expanded');
+                     setTimeout(() => {
+                         formWrapper.remove();
+                    }, 500);
+                });
+            };
+            
+            const addSavedTicket = (container, data) => {
+                const savedTicketTemplate = document.getElementById('saved-ticket-template');
+                const newSaved = savedTicketTemplate.content.cloneNode(true);
+                const savedWrapper = newSaved.querySelector('.saved-ticket-wrapper');
+                
+                savedWrapper.querySelector('.ticket-name-display').textContent = data.name;
+
+                container.appendChild(savedWrapper);
+                 requestAnimationFrame(() => {
+                     savedWrapper.classList.add('expanded');
+                });
+                
+                addEventListenersToSavedTicket(savedWrapper, data);
+            };
+
+            const addEventListenersToSavedTicket = (savedWrapper, data) => {
+                const deleteBtn = savedWrapper.querySelector('.delete-ticket-btn');
+                const viewBtn = savedWrapper.querySelector('.view-ticket-btn');
+
+                deleteBtn.addEventListener('click', () => {
+                    savedWrapper.classList.remove('expanded');
+                    setTimeout(() => {
+                        savedWrapper.remove();
+                    }, 500);
+                });
+
+                viewBtn.addEventListener('click', () => {
+                    const container = savedWrapper.parentElement;
+                    savedWrapper.classList.remove('expanded');
+                    setTimeout(() => {
+                        savedWrapper.remove();
+                        
+                        const ticketFormTemplate = document.getElementById('ticket-form-template');
+                        const newForm = ticketFormTemplate.content.cloneNode(true);
+                        const formWrapper = newForm.querySelector('.ticket-form-wrapper');
+
+                        formWrapper.querySelector('.ticket-name').value = data.name;
+                        formWrapper.querySelector('.ticket-price').value = data.price;
+                        formWrapper.querySelector('.ticket-quantity').value = data.quantity;
+                        formWrapper.querySelector('.ticket-description').value = data.description;
+
+                        container.appendChild(formWrapper);
+                        requestAnimationFrame(() => {
+                             formWrapper.classList.add('expanded');
+                        });
+                        addEventListenersToTicketForm(formWrapper);
+
+                    }, 500);
+                });
+            };
+
+            // Initial setup
+            addShowBtn.addEventListener('click', addShow);
+            addShow(); // Start with the 1st show
+        });
+    </script>
+</body>
+</html>
+

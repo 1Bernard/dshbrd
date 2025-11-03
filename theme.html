@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminSite</title>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Define CSS Variables for theming */
+        :root {
+            /* Light theme variables from user input */
+            --color-primary: #3A3BE4; /* Updated to #3A3BE4 */
+            --color-danger: #ff7782;
+            --color-success: #4abe97db;
+            --color-warning: #ffbb55;
+            --color-white: #fff;
+            --color-info-dark: #7d8da1;
+            --color-info-light: #dce1eb;
+            --color-dark: #363949;
+            --color-light: rgba(132, 139, 200, 0.18);
+            --color-primary-variant: #111e88;
+            --color-dark-variant: #677483;
+            --color-background: #F5F7FA;
+            --color-lighter: #F7FAFF;
+            --color-trans-border: #a3bdcc9c;
+
+            --card-border-radius: 2rem;
+            --border-radius-1: 0.4rem;
+            --border-radius-2: 0.8rem;
+            --border-radius-3: 1.2rem;
+
+            --card-padding: 1.8rem;
+            --padding-1: 1.2rem;
+
+            --box-shadow: 0 2rem 3rem var(--color-light);
+
+            /* Input field custom variables for transparent design (light mode) */
+            --input-bg: transparent;
+            --input-border: rgba(220, 225, 235, 0.941);
+            --input-placeholder: rgba(54, 57, 73, 0.6);
+            --input-focus-border: var(--color-primary);
+
+            --scroll-track: #f1f1f1;
+            --scroll-thumb: #c1c1c1;
+
+            /* Existing specific variables, adjusted to new root where applicable or kept */
+            --color-sidebar-bg: var(--color-white); /* Uses --color-white */
+            --color-text: var(--color-dark); /* Uses --color-dark */
+            --color-brand-text: #0a1e57; /* Specific, not in user's root */
+            --color-divider-text: var(--color-info-dark); /* Uses --color-info-dark */
+            --color-dropdown-item-text: var(--color-dark-variant); /* Uses --color-dark-variant */
+            --color-dropdown-line: var(--color-info-light); /* Uses --color-info-light */
+            --color-nav-bg: var(--color-white); /* Uses --color-white */
+            --color-nav-icon: var(--color-info-dark); /* Uses --color-info-dark */
+            --color-profile-link-bg: var(--color-white); /* Uses --color-white */
+            --color-profile-link-hover-bg: var(--color-background); /* Uses --color-background */
+            --color-logout-text: var(--color-danger); /* Uses --color-danger */
+            --color-logout-hover-bg: rgba(255, 119, 130, 0.2); /* Derived from --color-danger */
+            --color-ads-gradient-start: var(--color-primary); /* Uses --color-primary */
+            --color-ads-gradient-end: var(--color-primary-variant); /* Uses --color-primary-variant */
+            --color-ads-text: var(--color-white); /* Uses --color-white */
+        }
+
+        /* Dark theme variables from user input */
+        body.dark-theme-variables {
+            --color-background: #181a1e; /* Changed back to dark background */
+            --color-white: #202528;
+            --color-dark: #edeffd;
+            --color-dark-variant: #a3bdcc;
+            --color-light: rgba(0, 0, 0, 0.4);
+            --color-lighter: #21212180;
+            --box-shadow: 0 2rem 3rem var(--color-light);
+
+            /* Input field custom variables for transparent design (dark mode) */
+            --input-bg: rgba(32, 37, 40, 0.2);
+            --input-border: rgba(253, 253, 253, 0.2);
+            --input-placeholder: var(--color-dark-variant);
+            --input-focus-border: var(--color-primary);
+
+            --scroll-track: #222;
+            --scroll-thumb: #555;
+
+            /* Adjust existing specific variables for dark mode */
+            --color-primary: #3A3BE4; /* Updated to #3A3BE4 */
+            --color-sidebar-bg: var(--color-white);
+            --color-text: var(--color-dark-variant); /* Adjusted for better readability in dark mode */
+            --color-brand-text: var(--color-dark); /* Brand text should be light in dark mode */
+            --color-divider-text: var(--color-dark-variant);
+            --color-dropdown-item-text: var(--color-dark-variant);
+            --color-dropdown-line: #4e5667; /* Specific dark line */
+            --color-nav-bg: var(--color-white);
+            --color-nav-icon: var(--color-dark-variant);
+            --color-profile-link-bg: var(--color-white);
+            --color-profile-link-hover-bg: var(--color-dark); /* Darker hover for dark mode */
+            --color-logout-hover-bg: rgba(255, 119, 130, 0.2); /* Keep consistent or adjust */
+            --color-ads-gradient-start: var(--color-primary-variant);
+            --color-ads-gradient-end: var(--color-primary);
+        }
+
+
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--color-background);
+            line-height: 1.6;
+            color: var(--color-text);
+            /* Use flex to manage sidebar and main content */
+            display: flex;
+            min-height: 100vh; /* Use min-height instead of height to allow content to extend */
+            overflow-x: hidden; /* Prevent horizontal scroll for the entire body */
+        }
+
+        /* SIDEBAR */
+        #sidebar {
+            width: 260px;
+            background: var(--color-sidebar-bg);
+            position: fixed; /* Make sidebar fixed */
+            top: 0;
+            left: 0;
+            height: 100%; /* Full height */
+            overflow-y: auto; /* Enable scrolling for sidebar content */
+            overflow-x: hidden; /* Prevent horizontal scrolling within the sidebar */
+            z-index: 1000; /* Ensure sidebar is above other content */
+            transition: width .3s ease, transform .3s ease; /* Smooth transition for width and transform changes */
+            display: flex;
+            flex-direction: column; /* Organize content vertically */
+            box-shadow: var(--box-shadow); /* Apply box-shadow */
+        }
+
+        /* Scrollbar styling for Webkit browsers (Chrome, Safari) */
+        #sidebar::-webkit-scrollbar {
+            width: 8px; /* Always reserve space for scrollbar to prevent content shift */
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: var(--scroll-track); /* Light track */
+            border-radius: var(--border-radius-1);
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: transparent; /* Hide thumb by default */
+            border-radius: var(--border-radius-1);
+        }
+
+        #sidebar:hover::-webkit-scrollbar-thumb {
+            background: var(--scroll-thumb); /* Show thumb on hover */
+        }
+
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--color-info-dark); /* Slightly darker thumb on hover */
+        }
+
+        /* Scrollbar styling for Firefox */
+        #sidebar {
+            scrollbar-width: thin; /* Always reserve space for scrollbar */
+            scrollbar-color: transparent transparent; /* Hide thumb and track by default */
+        }
+
+        #sidebar:hover {
+            scrollbar-color: var(--scroll-thumb) var(--scroll-track); /* Show thumb and track on hover */
+        }
+
+
+        #sidebar .brand {
+            font-size: 24px;
+            font-weight: 700;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            color: var(--color-brand-text);
+            position: sticky; /* Sticky to stay at top during scroll */
+            top: 0;
+            left: 0;
+            background: var(--color-sidebar-bg);
+            z-index: 10;
+            padding: 0 16px;
+            white-space: nowrap;
+        }
+
+        /* AdminSite logo text visibility */
+        #sidebar .brand span {
+            display: inline;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.1s ease, visibility 0.1s ease; /* Faster transition for hiding */
+        }
+
+
+        #sidebar .brand .icon {
+            min-width: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 6px;
+        }
+
+        /* Close button for sidebar (mobile/tablet) */
+        #sidebar .close-sidebar-btn {
+            font-size: 24px;
+            color: var(--color-nav-icon);
+            cursor: pointer;
+            display: none; /* Hidden by default, shown by media query */
+            z-index: 1001; /* Ensure it's above sidebar content */
+            margin-left: auto; /* Pushes the icon to the right within the flex container */
+        }
+
+        #sidebar .side-menu {
+            margin: 36px 0;
+            padding: 0 20px;
+            flex-grow: 1; /* Allow the main side-menu to grow and take space */
+        }
+
+        #sidebar .side-menu li {
+            background: transparent;
+            border-radius: var(--border-radius-1);
+            position: relative; /* Needed for dropdown line positioning */
+        }
+
+        #sidebar .side-menu li a {
+            color: var(--color-brand-text);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            height: 48px; /* Keep height on the link for consistent clickable area */
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow-x: hidden; /* Hide text when collapsed */
+            padding: 0 16px;
+        }
+
+        /* Menu item text visibility */
+        #sidebar .side-menu li a span {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #sidebar .side-menu li a .icon {
+            min-width: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 6px; /* Keep margin for expanded state */
+        }
+
+        #sidebar .side-menu li a.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-radius: var(--border-radius-1);
+        }
+
+        #sidebar .side-menu li a.active .icon {
+            color: var(--color-white);
+        }
+
+        #sidebar .side-menu li a .icon-right {
+            margin-left: auto;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: transform .3s ease, opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+
+        #sidebar .side-menu li a.active .icon-right {
+            transform: rotate(90deg);
+        }
+
+        #sidebar .side-menu .side-dropdown {
+            max-height: 0;
+            opacity: 0; /* Add opacity for transition */
+            visibility: hidden; /* Add visibility for transition */
+            overflow-y: hidden;
+            transition: max-height .4s ease-in-out, opacity .4s ease, visibility .4s ease; /* Smooth transition for all */
+            position: relative; /* Needed for the vertical line */
+        }
+
+        #sidebar .side-menu .side-dropdown.show {
+            max-height: 1000px; /* Arbitrary large value to show content */
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Vertical line for dropdown */
+        #sidebar .side-menu .side-dropdown::before {
+            content: '';
+            position: absolute;
+            left: 40px; /* Aligned with the center of main icons */
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--color-dropdown-line); /* Light grey line */
+            z-index: 0; /* Ensure line is behind circles */
+        }
+
+        #sidebar .side-menu .side-dropdown li {
+            position: relative; /* Needed for SVG pseudo-element */
+        }
+
+        #sidebar .side-menu .side-dropdown li a {
+            color: var(--color-dropdown-item-text);
+            font-size: 13px;
+            padding: 1px 0 1px 50px; /* Decreased top/bottom padding for dropdown items */
+        }
+
+        #sidebar .side-menu .side-dropdown li a:hover {
+            color: var(--color-primary);
+        }
+
+        /* SVG icon for dropdown items */
+        #sidebar .side-menu .side-dropdown li::before {
+            content: '';
+            position: absolute;
+            left: 33.5px; /* Calculated: 40px (center of main icon) - 13px/2 */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 13px; /* SVG width */
+            height: 12px; /* SVG height */
+            border-radius: 0; /* No border-radius for SVG */
+            background-color: transparent; /* No background color */
+            /* Embedded SVG as background image */
+            background-image: url("data:image/svg+xml,%3Csvg width='13' height='12' viewBox='0 0 13 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.5 6C12.5 9.31371 9.81371 12 6.5 12C3.18629 12 0.5 9.31371 0.5 6C0.5 2.68629 3.18629 0 6.5 0C9.81371 0 12.5 2.68629 12.5 6ZM3.65774 6C3.65774 7.56974 4.93026 8.84226 6.5 8.84226C8.06974 8.84226 9.34226 7.56974 9.34226 6C9.34226 4.43026 8.06974 3.15774 6.6 3.15774C4.93026 3.15774 3.65774 4.43026 3.65774 6Z' fill='%238097A3'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain; /* Ensure SVG scales within its bounds */
+            z-index: 1;
+        }
+
+
+        #sidebar .side-menu .divider {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--color-divider-text);
+            margin-bottom: 16px;
+            margin-top: 32px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            opacity: 1;
+            max-height: 50px; /* Sufficient height to show text */
+            pointer-events: auto;
+            visibility: visible; /* Ensure it's visible by default */
+            transition: opacity 0.3s ease, max-height 0.3s ease, margin 0.3s ease, visibility 0.3s ease; /* Smooth transition for dividers */
+        }
+
+
+        /* Ads section */
+        #sidebar .ads {
+            padding: 20px;
+            text-align: center;
+            margin-top: auto; /* Push ads to the bottom of the main menu */
+            flex-shrink: 0; /* Prevent it from shrinking */
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition for ads */
+        }
+
+        #sidebar .ads .wrapper {
+            background: linear-gradient(to bottom, var(--color-ads-gradient-start), var(--color-ads-gradient-end)); /* Linear gradient */
+            border-radius: var(--border-radius-2);
+            padding: 20px 10px;
+            color: var(--color-ads-text); /* Ensure text is white for contrast */
+        }
+
+        #sidebar .ads .wrapper p {
+            color: var(--color-ads-text); /* Ensure paragraph text is white */
+            margin-bottom: 5px; /* Add some spacing between lines */
+        }
+
+        #sidebar .ads .wrapper .btn-contact {
+            background: var(--color-primary); /* Active sidebar color */
+            color: var(--color-white);
+            padding: 8px 12px;
+            border-radius: var(--border-radius-1);
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-top: 10px; /* Add some space above it */
+        }
+
+        /* Logout link at the bottom of the sidebar */
+        #sidebar .side-menu.bottom {
+            margin-top: 0; /* Remove top margin as it's at the bottom */
+            padding: 0 20px 20px; /* Add padding to the bottom */
+            flex-shrink: 0; /* Prevent it from shrinking */
+        }
+
+
+        #sidebar .side-menu.bottom li a {
+            color: var(--color-logout-text); /* Logout specific color */
+        }
+
+        #sidebar .side-menu.bottom li a .icon {
+            color: var(--color-logout-text); /* Logout icon color */
+        }
+
+        #sidebar .side-menu.bottom li a:hover {
+            background: var(--color-logout-hover-bg); /* Light red hover background */
+            color: var(--color-logout-text);
+        }
+
+
+        /* CONTENT (main content area) */
+        #content {
+            position: relative;
+            width: calc(100% - 260px); /* Initial width for content */
+            left: 260px; /* Pushed by sidebar width */
+            transition: all .3s ease; /* Smooth transition for content movement */
+        }
+
+        /* NAVBAR */
+        #content nav {
+            height: 56px;
+            background: var(--color-nav-bg);
+            padding: 0 20px;
+            display: flex; /* Use flexbox for layout */
+            align-items: center;
+            gap: 20px; /* Flexbox gap */
+            position: fixed; /* Changed to fixed */
+            top: 0;
+            left: 260px; /* Initial left position */
+            width: calc(100% - 260px); /* Initial width */
+            z-index: 999;
+            transition: all .3s ease; /* Smooth transition for left and width */
+        }
+
+
+        #content nav .toggle-sidebar {
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--color-nav-icon);
+            display: block; /* Default for desktop */
+        }
+
+        #content nav .date-display {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-left: 10px; /* Space from hamburger icon */
+            display: block; /* Ensure it's always displayed */
+        }
+
+        #content nav form {
+            max-width: 400px;
+            width: 100%;
+            margin-left: 0; /* Reset margin */
+            display: block; /* Default for desktop */
+        }
+
+        #content nav form .form-group {
+            position: relative;
+        }
+
+        #content nav form .form-group input {
+            width: 100%;
+            background: var(--input-bg);
+            border-radius: var(--border-radius-1);
+            border: 1px solid var(--input-border); /* Use new input border variable */
+            padding: 10px 30px 10px 15px;
+            outline: none;
+            font-size: 14px;
+            color: var(--color-text);
+        }
+        #content nav form .form-group input::placeholder {
+            color: var(--input-placeholder); /* Use new placeholder color */
+        }
+        #content nav form .form-group input:focus {
+            border-color: var(--input-focus-border); /* Use new focus border color */
+        }
+
+
+        #content nav form .form-group .icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 15px;
+            color: var(--color-nav-icon);
+        }
+
+        #content nav .nav-link {
+            position: relative;
+        }
+
+        /* Push the theme toggler to the right, and subsequent elements will follow */
+        #content nav .theme-toggler {
+            margin-left: auto;
+        }
+
+
+        #content nav .nav-link .icon {
+            font-size: 20px;
+            color: var(--color-nav-icon);
+        }
+
+        /* Bell notification dot styling */
+        #content nav .nav-link .badge {
+            position: absolute;
+            top: -2px; /* Adjusted position for a dot */
+            right: -2px; /* Adjusted position for a dot */
+            width: 8px; /* Smaller width for a dot */
+            height: 8px; /* Smaller height for a dot */
+            background: var(--color-primary); /* Active sidebar color */
+            border-radius: 50%;
+            display: block; /* Display as a block for a simple dot */
+        }
+
+        /* Theme Toggler Styles */
+        .theme-toggler {
+            background: var(--color-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 1.6rem;
+            width: 4.2rem;
+            cursor: pointer;
+            border-radius: var(--border-radius-1);
+            padding: 0.2rem;
+            margin-right: 1rem; /* Space between toggler and bell */
+        }
+
+        .theme-toggler span {
+            font-size: 1.2rem;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-dark); /* Default color for icons */
+        }
+
+        .theme-toggler span.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-radius: var(--border-radius-1);
+        }
+
+        #content nav .profile {
+            position: relative;
+            display: flex; /* Default for all screen sizes */
+        }
+
+        #content nav .profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        #content nav .profile .profile-link {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--color-profile-link-bg);
+            box-shadow: var(--box-shadow);
+            padding: 10px 0;
+            border-radius: var(--border-radius-2);
+            width: 160px;
+            display: none;
+        }
+
+        #content nav .profile .profile-link.show {
+            display: block;
+        }
+
+        #content nav .profile .profile-link li {
+            list-style: none;
+        }
+
+        #content nav .profile .profile-link li a {
+            padding: 10px 16px;
+            display: flex;
+            gap: 10px; /* Changed grid-gap to gap for flexbox */
+            font-size: 14px;
+            color: var(--color-text);
+            align-items: center;
+            transition: all .2s ease;
+            text-decoration: none;
+        }
+
+        #content nav .profile .profile-link li a:hover {
+            background: var(--color-profile-link-hover-bg);
+        }
+
+        #content nav .profile .profile-link li a .icon {
+            min-width: 20px;
+            font-size: 16px;
+        }
+
+        /* MAIN content area below the fixed topbar */
+        #content main {
+            width: 100%;
+            padding: 36px 20px 20px 20px; /* Add padding-top to account for fixed navbar height */
+            overflow-y: auto; /* Enable scrolling for main content */
+            height: 100vh; /* Adjust height to fit below navbar */
+            background-color: var(--color-background); /* Added background color */
+        }
+
+        /* Scrollbar styling for Webkit browsers (Chrome, Safari) for main content */
+        #content main::-webkit-scrollbar {
+            width: 8px; /* Always reserve space for scrollbar to prevent content shift */
+        }
+
+        #content main::-webkit-scrollbar-track {
+            background: var(--scroll-track); /* Light track */
+            border-radius: var(--border-radius-1);
+        }
+
+        #content main::-webkit-scrollbar-thumb {
+            background: transparent; /* Hide thumb by default */
+            border-radius: var(--border-radius-1);
+        }
+
+        #content main:hover::-webkit-scrollbar-thumb {
+            background: var(--scroll-thumb); /* Show thumb on hover */
+        }
+
+        #content main::-webkit-scrollbar-thumb:hover {
+            background: var(--color-info-dark); /* Slightly darker thumb on hover */
+        }
+
+        /* Scrollbar styling for Firefox for main content */
+        #content main {
+            scrollbar-width: thin; /* Always reserve space for scrollbar */
+            scrollbar-color: transparent transparent; /* Hide thumb and track by default */
+        }
+
+        #content main:hover {
+            scrollbar-color: var(--scroll-thumb) var(--scroll-track); /* Show thumb and track on hover */
+        }
+
+        /* Overlay for drawable sidebar (mobile only) */
+        #sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.1); /* Less deep overlay */
+            z-index: 990; /* Below sidebar (1000) but above content */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .3s ease, visibility .3s ease;
+        }
+
+        #sidebar-overlay.show-overlay {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- MEDIA QUERIES --- */
+
+        /* Mobile (max-width: 768px) - Drawable Sidebar */
+        @media screen and (max-width: 768px) {
+            #sidebar {
+                transform: translateX(-100%); /* Default hidden off-screen */
+                width: 200px; /* Width when opened */
+            }
+            #sidebar:not(.hide) { /* When 'hide' class is removed by JS (i.e., opened) */
+                transform: translateX(0); /* Slide into view */
+            }
+            #sidebar .brand span { display: inline; } /* Always show brand text on mobile when open */
+            #sidebar.hide .brand span { display: none; } /* Hide brand text only when off-screen to prevent flash */
+
+            #sidebar .side-menu li a span { display: inline; } /* Always show menu item text when open */
+            #sidebar.hide .side-menu li a span { display: none; } /* Hide text when off-screen */
+
+            #sidebar .side-menu li a .icon-right { display: inline; } /* Always show dropdown arrow when open */
+            #sidebar.hide .side-menu li a .icon-right { display: none; } /* Hide when off-screen */
+
+            #sidebar .side-menu .divider { display: block; } /* Always show divider when open */
+            #sidebar.hide .side-menu .divider { display: none; } /* Hide when off-screen */
+
+            #sidebar .ads { display: block; } /* Always show ads when open */
+            #sidebar.hide .ads { display: none; } /* Hide when off-screen */
+
+            #sidebar .side-menu.bottom li a span { display: inline; } /* Always show logout text when open */
+            #sidebar.hide .side-menu.bottom li a span { display: none; } /* Hide when off-screen */
+
+            #sidebar-overlay.show-overlay { display: block; } /* Show overlay when sidebar is open */
+            #sidebar-overlay:not(.show-overlay) { display: none; } /* Hide overlay when sidebar is closed */
+            #sidebar:not(.hide) .close-sidebar-btn { display: block; } /* Show close button when open */
+
+            #sidebar .brand { font-size: 19px; }
+            #sidebar .close-sidebar-btn { margin-left: 13px; margin-top: 6px; }
+
+            #content { left: 0; width: 100%; } /* Content always full width */
+            #sidebar.hide ~ #content { width: 100%; left: 0; } /* Content unaffected by sidebar state */
+
+            #content nav { left: 0; width: 100%; transition: none; } /* Navbar always full width */
+            #sidebar.hide ~ #content nav { left: 0; width: 100%; }
+
+            #content nav .toggle-sidebar { display: block; } /* Hamburger always visible */
+            #content nav form { display: none; } /* Hide search on mobile */
+            /* #content nav .profile { display: none; } */ /* Removed this line to show avatar on mobile */
+        }
+
+        /* Tablet (min-width: 769px and max-width: 1024px) - Collapsed Sidebar */
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            #sidebar {
+                width: 260px; /* Default open width for tablet */
+                transform: translateX(0); /* Always visible */
+            }
+            #sidebar.hide { /* When 'hide' class is applied on tablet */
+                width: 60px; /* Collapse width */
+            }
+
+            /* Elements that should be hidden when sidebar is collapsed on tablet */
+            #sidebar.hide .brand span,
+            #sidebar.hide .side-menu li a span,
+            #sidebar.hide .side-menu li a .icon-right,
+            #sidebar.hide .side-menu .divider,
+            #sidebar.hide .ads,
+            #sidebar.hide .side-menu.bottom li a span {
+                display: none;
+            }
+
+            /* Adjust padding/margins for collapsed state on tablet */
+            #sidebar.hide .brand {
+                padding: 0 6px;
+                justify-content: center;
+                font-size: 19px;
+            }
+            #sidebar.hide .brand .icon { margin-right: 0; }
+            #sidebar.hide .side-menu { padding: 36px 0; }
+            #sidebar.hide .side-menu li a {
+                width: 48px; height: 48px; margin-left: 6px; padding: 0;
+                justify-content: center; align-items: center; overflow: hidden;
+            }
+            #sidebar.hide .side-menu li a .icon { margin: 0; }
+
+            /* Overlay and close button are not needed for collapsed sidebar on tablet */
+            #sidebar-overlay { display: none !important; }
+            #sidebar .close-sidebar-btn { display: none !important; }
+
+            #content { width: calc(100% - 260px); left: 260px; } /* Content shifts for open sidebar */
+            #sidebar.hide ~ #content { width: calc(100% - 60px); left: 60px; } /* Content shifts for collapsed sidebar */
+
+            #content nav { left: 260px; width: calc(100% - 260px); }
+            #sidebar.hide ~ #content nav { left: 60px; width: calc(100% - 60px); }
+
+            #content nav .toggle-sidebar { display: block; } /* Hamburger always visible */
+            #content nav form { display: block; } /* Show search on tablet */
+            #content nav .profile { display: flex; } /* Show profile on tablet */
+        }
+
+        /* Desktop (min-width: 1025px) - Collapsible Sidebar */
+        @media screen and (min-width: 1025px) {
+            #sidebar {
+                transform: translateX(0); /* Default visible */
+                width: 260px; /* Default open width */
+            }
+            #sidebar.hide { /* Collapsed state for desktop */
+                width: 60px;
+            }
+            #sidebar.hide .brand {
+                padding: 0 6px;
+                justify-content: center;
+            }
+            #sidebar.hide .brand .icon { margin-right: 0; }
+            #sidebar.hide .brand span { display: none; } /* Hide brand text */
+
+            #sidebar.hide .side-menu { padding: 36px 0; }
+            #sidebar.hide .side-menu li a {
+                width: 48px; height: 48px; margin-left: 6px; padding: 0;
+                justify-content: center; align-items: center; overflow: hidden;
+            }
+            #sidebar.hide .side-menu li a span { display: none; } /* Hide menu item text */
+            #sidebar.hide .side-menu li a .icon { margin: 0; }
+            #sidebar.hide .side-menu li a .icon-right { display: none; } /* Hide dropdown arrow */
+
+            #sidebar.hide .side-menu .divider { display: none; } /* Hide dividers */
+            #sidebar.hide .ads { display: none; } /* Hide ads section */
+            #sidebar.hide .side-menu.bottom { padding: 0; }
+            #sidebar.hide .side-menu.bottom li a span { display: none; } /* Hide logout text */
+
+
+            #sidebar-overlay { display: none !important; } /* No overlay on desktop */
+            #sidebar .close-sidebar-btn { display: none !important; } /* No close button on desktop */
+            #content { width: calc(100% - 260px); left: 260px; } /* Content shifts */
+            #sidebar.hide ~ #content { width: calc(100% - 60px); left: 60px; } /* Content shifts when collapsed */
+            #content nav { left: 260px; width: calc(100% - 260px); }
+            #sidebar.hide ~ #content nav { left: 60px; width: calc(100% - 60px); }
+        }
+    </style>
+</head>
+<body>
+
+    <section id="sidebar">
+        <a href="#" class="brand"><i class='bx bxs-smile icon'></i> <span>AdminSite</span><i class='bx bx-x close-sidebar-btn' ></i></a>
+        <ul class="side-menu">
+            <li><a href="#" class="active"><i class='bx bxs-dashboard icon' ></i> <span>Dashboard</span></a></li>
+            <li class="divider" data-text="main">Main</li>
+            <li>
+                <a href="#"><i class='bx bxs-inbox icon' ></i> <span>Elements</span> <i class='bx bx-chevron-right icon-right' ></i></a>
+                <ul class="side-dropdown">
+                    <li><a href="#">Alert</a></li>
+                    <li><a href="#">Badges</a></li>
+                    <li><a href="#">Breadcrumbs</a></li>
+                    <li><a href="#">Button</a></li>
+                </ul>
+            </li>
+            <li><a href="#"><i class='bx bxs-chart icon' ></i> <span>Charts</span></a></li>
+            <li><a href="#"><i class='bx bxs-widget icon' ></i> <span>Widgets</span></a></li>
+            <li class="divider" data-text="table and forms">Table and forms</li>
+            <li><a href="#"><i class='bx bx-table icon' ></i> <span>Tables</span></a></li>
+            <li>
+                <a href="#"><i sanded class='bx bxs-notepad icon' ></i> <span>Forms</span> <i class='bx bx-chevron-right icon-right' ></i></a>
+                <ul class="side-dropdown">
+                    <li><a href="#">Basic</a></li>
+                    <li><a href="#">Select</a></li>
+                    <li><a href="#">Checkbox</a></li>
+                    <li><a href="#">Radio</a></li>
+                </ul>
+            </li>
+        </ul>
+        <div class="ads">
+            <div class="wrapper">
+                <p>Do you need our help?</p>
+                <p>Send a request via email</p>
+                <a href="#" class="btn-contact">Contact Us</a>
+            </div>
+        </div>
+        <ul class="side-menu bottom">
+            <li>
+                <a href="#" class="logout">
+                    <i class='bx bxs-log-out-circle icon' ></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </section>
+    <div id="sidebar-overlay"></div>
+    <section id="content">
+        <nav>
+            <i class='bx bx-menu toggle-sidebar' ></i>
+            <div id="current-date" class="date-display"></div>
+            <div class="flex items-center ml-auto">
+                <div class="theme-toggler">
+                    <span class="material-icons-sharp active">light_mode</span>
+                    <span class="material-icons-sharp">dark_mode</span>
+                </div>
+                <a href="#" class="nav-link">
+                    <i class='bx bxs-bell icon' ></i>
+                    <span class="badge"></span>
+                </a>
+            </div>
+            <div class="profile">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8cGVvcGxlfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="">
+                <ul class="profile-link">
+                    <li><a href="#"><i class='bx bxs-user-circle icon' ></i> Profile</a></li>
+                    <li><a href="#"><i class='bx bxs-cog' ></i> Settings</li>
+                    <li><a href="#"><i class='bx bxs-log-out-circle' ></i> Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+        <main>
+            <h1>Welcome to the Admin Dashboard!</h1>
+            <p>This is a placeholder for your main content. You can add various widgets, charts, tables, and forms here to manage your application data.</p>
+            <p>Feel free to customize this section with your specific dashboard components. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Here are some ideas for what you can include:</p>
+            <ul>
+                <li>Overview statistics and key performance indicators (KPIs)</li>
+                <li>Recent activity logs</li>
+                <li>Quick access to frequently used features</li>
+                <li>Customizable charts and graphs to visualize data</li>
+                <li>User management tables</li>
+                <li>Content editing forms</li>
+            </ul>
+            <p>Start building your amazing admin interface!</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </main>
+        </section>
+    <script>
+        // SIDEBAR DROPDOWN
+        const allDropdown = document.querySelectorAll('#sidebar .side-dropdown');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay'); // Get the overlay element
+        const allSideDivider = document.querySelectorAll('#sidebar .divider'); // Get all dividers
+
+        allDropdown.forEach(item=> {
+            const a = item.parentElement.querySelector('a:first-child');
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Check sidebar state before attempting to expand
+                const isSidebarHiddenOnTablet = window.innerWidth > 768 && window.innerWidth <= 1024 && sidebar.classList.contains('hide');
+                console.log(`[Dropdown Click] Current width: ${window.innerWidth}. Sidebar has 'hide' class: ${sidebar.classList.contains('hide')}. Condition to expand: ${isSidebarHiddenOnTablet}`);
+
+
+                // If on tablet and sidebar is collapsed, expand it first
+                if (isSidebarHiddenOnTablet) {
+                    sidebar.classList.remove('hide'); // Expand the sidebar
+                    console.log('[Dropdown Click] Sidebar was hidden on tablet, now removing "hide" class.');
+                    updateDividerText(); // Update divider text to show full text
+                }
+
+                // Close other open dropdowns
+                if(!this.classList.contains('active')) {
+                    allDropdown.forEach(i=> {
+                        const aLink = i.parentElement.querySelector('a:first-child');
+                        aLink.classList.remove('active');
+                        i.classList.remove('show');
+                    })
+                }
+
+                // Toggle current dropdown
+                this.classList.toggle('active');
+                item.classList.toggle('show');
+            })
+        })
+
+        // Function to update divider text based on sidebar state (desktop/tablet collapsed)
+        function updateDividerText() {
+            // Only set '-' for desktop/tablet when sidebar is collapsed
+            if (window.innerWidth > 768 && sidebar.classList.contains('hide')) {
+                allSideDivider.forEach(item => {
+                    item.textContent = '-'; // Show '-' for collapsed/hidden state
+                });
+            } else { // For mobile (always full text when visible), and desktop/tablet when open
+                allSideDivider.forEach(item => {
+                    item.textContent = item.dataset.text; // Show full text
+                });
+            }
+        }
+
+
+        // SIDEBAR COLLAPSE / DRAWABLE
+        const toggleSidebar = document.querySelector('nav .toggle-sidebar');
+        const closeSidebarBtn = document.querySelector('#sidebar .close-sidebar-btn'); // Get the new close button
+
+
+        // Initial check for sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 768) { // For mobile (drawable)
+                sidebar.classList.add('hide'); // Sidebar starts off-screen (translateX(-100%))
+                sidebarOverlay.classList.remove('show-overlay'); // Ensure overlay is hidden
+            } else if (window.innerWidth > 768 && window.innerWidth <= 1024) { // For tablet (collapsed)
+                sidebar.classList.add('hide'); // Sidebar starts collapsed (width: 60px)
+                sidebarOverlay.classList.remove('show-overlay'); // Ensure overlay is hidden
+            } else { // For large desktop (open)
+                sidebar.classList.remove('hide'); // Sidebar starts open (width: 260px)
+                sidebarOverlay.classList.remove('show-overlay'); // Ensure overlay is hidden
+            }
+            updateDividerText(); // Set initial divider text based on initial state
+        });
+
+
+        // Event listener for sidebar toggle button (click)
+        toggleSidebar.addEventListener('click', function () {
+            if (window.innerWidth <= 768) { // Mobile: Drawable sidebar
+                if (sidebar.classList.contains('hide')) { // If currently off-screen
+                    sidebar.classList.remove('hide'); // Slide in
+                    sidebarOverlay.classList.add('show-overlay'); // Show overlay
+                } else { // If currently on-screen
+                    sidebar.classList.add('hide'); // Slide out
+                    sidebarOverlay.classList.remove('show-overlay'); // Hide overlay
+                }
+            } else { // Tablet and Desktop: Collapsible sidebar
+                sidebar.classList.toggle('hide');
+                updateDividerText();
+            }
+            // Close any open dropdowns when toggling sidebar
+            allDropdown.forEach(item => {
+                const a = item.parentElement.querySelector('a:first-child');
+                a.classList.remove('active');
+                item.classList.remove('show');
+            });
+        });
+
+        // Event listener for overlay click (to close drawable sidebar on mobile)
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+                // Only close if sidebar is currently visible (not .hide) and on mobile
+                if (!sidebar.classList.contains('hide') && window.innerWidth <= 768) {
+                    sidebar.classList.add('hide'); // Slide out
+                    sidebarOverlay.classList.remove('show-overlay'); // Hide overlay
+                    // Close dropdowns
+                    allDropdown.forEach(item => {
+                        const a = item.parentElement.querySelector('a:first-child');
+                        a.classList.remove('active');
+                        item.classList.remove('show');
+                    });
+                }
+            });
+        }
+
+        // Event listener for new close button click (to close drawable sidebar on mobile)
+        if (closeSidebarBtn) {
+            closeSidebarBtn.addEventListener('click', function() {
+                 if (window.innerWidth <= 768) { // Only applies to mobile
+                    sidebar.classList.add('hide'); // Slide out
+                    sidebarOverlay.classList.remove('show-overlay'); // Hide overlay
+                    // Close dropdowns
+                    allDropdown.forEach(item => {
+                        const a = item.parentElement.querySelector('a:first-child');
+                        a.classList.remove('active');
+                        item.classList.remove('show');
+                    });
+                }
+            });
+        }
+
+        // Adjust sidebar and overlay visibility on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) { // Mobile
+                sidebar.classList.add('hide'); // Ensure it's off-screen (translateX(-100%))
+                sidebarOverlay.classList.remove('show-overlay'); // Always hide overlay on resize
+            } else if (window.innerWidth > 768 && window.innerWidth <= 1024) { // Tablet
+                sidebar.classList.add('hide'); // Ensure it's collapsed (width: 60px)
+                sidebarOverlay.classList.remove('show-overlay'); // Always hide overlay on resize
+            } else { // Large desktop
+                sidebar.classList.remove('hide'); // Ensure it's open (260px width)
+                sidebarOverlay.classList.remove('show-overlay');
+                delete sidebar.dataset.hoverOpen; // Clear hover flag
+            }
+            updateDividerText(); // Adjust divider text for new screen size
+            // Close dropdowns on resize for cleaner state
+            allDropdown.forEach(item => {
+                const a = item.parentElement.querySelector('a:first-child');
+                a.classList.remove('active');
+                item.classList.remove('show');
+            });
+        });
+
+        // Handle sidebar behavior on mouse enter (hover to open) - Desktop/Tablet only
+        sidebar.addEventListener('mouseenter', function () {
+            // Only apply hover effect on screens wider than 768px (desktop/tablet) when it's collapsed (has hide class)
+            if (window.innerWidth > 768 && sidebar.classList.contains('hide')) {
+                sidebar.classList.remove('hide'); // Open it (260px)
+                sidebar.dataset.hoverOpen = 'true'; // Mark that it's opened by hover
+                updateDividerText(); // Show full divider text on hover open
+            }
+        });
+
+        // Handle sidebar behavior on mouse leave (hover to close) - Desktop/Tablet only
+        sidebar.addEventListener('mouseleave', function () {
+            // Only apply hover effect on screens wider than 768px (desktop/tablet) if it was opened by hover
+            if (window.innerWidth > 768 && sidebar.dataset.hoverOpen === 'true') {
+                sidebar.classList.add('hide'); // Collapse it (60px)
+                delete sidebar.dataset.hoverOpen; // Remove the flag
+                updateDividerText(); // Show collapsed divider text on hover close
+            }
+        });
+
+
+        // PROFILE DROPDOWN
+        const profile = document.querySelector('nav .profile');
+        const imgProfile = profile.querySelector('img');
+        const dropdownProfile = profile.querySelector('.profile-link');
+
+        imgProfile.addEventListener('click', function (e) {
+            e.stopPropagation(); // Prevent global click from closing it immediately
+            dropdownProfile.classList.toggle('show');
+        })
+
+
+        // MENU (for general content data menus)
+        const allMenu = document.querySelectorAll('main .content-data .head .menu');
+
+        allMenu.forEach(item=> {
+            const icon = item.querySelector('.icon');
+            const menuLink = item.querySelector('.menu-link');
+
+            icon.addEventListener('click', function () {
+                menuLink.classList.toggle('show');
+            })
+        })
+
+        // Global click listener to close dropdowns when clicking outside
+        window.addEventListener('click', function (e) {
+            // Close profile dropdown
+            if(e.target !== imgProfile && !profile.contains(e.target)) { // Check if click is outside imgProfile and dropdownProfile
+                if(dropdownProfile.classList.contains('show')) {
+                    dropdownProfile.classList.remove('show');
+                }
+            }
+
+            // Close general content data menus
+            allMenu.forEach(item=> {
+                const icon = item.querySelector('.icon');
+                const menuLink = item.querySelector('.menu-link');
+
+                if(e.target !== icon && !item.contains(e.target)) { // Check if click is outside icon and menuLink container
+                    if (menuLink.classList.contains('show')) {
+                        menuLink.classList.remove('show')
+                    }
+                }
+            })
+        })
+
+        // Theme Toggler Logic
+        const themeToggler = document.querySelector('.theme-toggler');
+        const lightModeIcon = themeToggler.querySelector('span:nth-child(1)');
+        const darkModeIcon = themeToggler.querySelector('span:nth-child(2)');
+
+        themeToggler.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme-variables');
+
+            lightModeIcon.classList.toggle('active');
+            darkModeIcon.classList.toggle('active');
+        });
+
+
+        // Set today's date in the navbar
+        const today = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = today.toLocaleDateString('en-US', dateOptions);
+        document.getElementById('current-date').textContent = formattedDate;
+    </script>
+</body>
+</html>

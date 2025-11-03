@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdminSite</title>
+  <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <section id="sidebar">
+    <a href="#" class="brand"><i class='bx bxs-smile icon'></i> <span>AdminSite</span><i
+        class='bx bx-x close-sidebar-btn'></i></a>
+    <ul class="side-menu">
+      <li><a href="#" class="active"><i class='bx bxs-dashboard icon'></i> <span>Dashboard</span></a></li>
+      <li class="divider" data-text="main">Main</li>
+      <li>
+        <a href="#"><i class='bx bxs-inbox icon'></i> <span>Elements</span> <i
+            class='bx bx-chevron-right icon-right'></i></a>
+        <ul class="side-dropdown">
+          <li><a href="#">Alert</a></li>
+          <li><a href="#">Badges</a></li>
+          <li><a href="#">Breadcrumbs</a></li>
+          <li><a href="#">Button</a></li>
+        </ul>
+      </li>
+      <li><a href="#"><i class='bx bxs-chart icon'></i> <span>Charts</span></a></li>
+      <li><a href="#"><i class='bx bxs-widget icon'></i> <span>Widgets</span></a></li>
+      <li class="divider" data-text="table and forms">Table and forms</li>
+      <li><a href="#"><i class='bx bx-table icon'></i> <span>Tables</span></a></li>
+      <li>
+        <a href="#"><i class='bx bxs-notepad icon'></i> <span>Forms</span> <i
+            class='bx bx-chevron-right icon-right'></i></a>
+        <ul class="side-dropdown">
+          <li><a href="#">Basic</a></li>
+          <li><a href="#">Select</a></li>
+          <li><a href="#">Checkbox</a></li>
+          <li><a href="#">Radio</a></li>
+        </ul>
+      </li>
+    </ul>
+    <div class="ads">
+      <div class="wrapper">
+        <p>Do you need our help?</p>
+        <p>Send a request via email</p>
+        <a href="#" class="btn-contact">Contact Us</a>
+      </div>
+    </div>
+    <ul class="side-menu bottom">
+      <li>
+        <a href="#" class="logout">
+          <i class='bx bxs-log-out-circle icon'></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+  <div id="sidebar-overlay"></div>
+  <section id="content">
+    <nav>
+      <i class='bx bx-menu toggle-sidebar'></i>
+      <div id="current-date" class="date-display"></div>
+      <div class="flex items-center ml-auto">
+        <div class="theme-toggler">
+          <span class="material-icons-sharp active">light_mode</span>
+          <span class="material-icons-sharp">dark_mode</span>
+        </div>
+        <a href="#" class="nav-link">
+          <i class='bx bxs-bell icon'></i>
+          <span class="badge"></span>
+        </a>
+      </div>
+      <div class="profile">
+        <img
+          src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8cGVvcGxlfGVufDB8fDB8fA%3D%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+          alt="">
+        <ul class="profile-link">
+          <li><a href="#"><i class='bx bxs-user-circle icon'></i> Profile</a></li>
+          <li><a href="#"><i class='bx bxs-cog'></i> Settings</li>
+          <li><a href="#"><i class='bx bxs-log-out-circle'></i> Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+    <main>
+      <h1>Welcome to the Admin Dashboard!</h1>
+      <p>This is a placeholder for your main content. You can add various widgets, charts, tables, and forms here to
+        manage your application data.</p>
+      <p>Feel free to customize this section with your specific dashboard components. Lorem ipsum dolor sit amet,
+        consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+        in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      <p>Here are some ideas for what you can include:</p>
+      <ul>
+        <li>Overview statistics and key performance indicators (KPIs)</li>
+        <li>Recent activity logs</li>
+        <li>Quick access to frequently used features</li>
+        <li>Customizable charts and graphs to visualize data</li>
+        <li>User management tables</li>
+        <li>Content editing forms</li>
+      </ul>
+      <p>Start building your amazing admin interface!</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt dolor sit amet,
+        consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+        in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor   incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt dolor sit amet,
+        consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+        in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.
+      </p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.
+      </p>
+    </main>
+  </section>
+  <script src="script.js"></script>
+</body>
+
+</html>

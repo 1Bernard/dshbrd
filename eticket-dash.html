@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+
+    <!-- External Stylesheets & Icons -->
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS RESET & FONT */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        li {
+            list-style: none;
+        }
+
+        /* THEME VARIABLES */
+        :root {
+            --color-primary: #3c91e6;
+            --color-primary-light: #8ec3f2;
+            --color-danger: #ff7782;
+            --color-success: #4ade80;
+            --color-warning: #facc15;
+            --color-white: #fff;
+            --color-info-dark: #7d8da1;
+            --color-info-light: #dce1eb;
+            --color-dark: #363949;
+            --color-light: rgba(132, 139, 200, 0.18);
+            --color-dark-variant: #677483;
+            --color-background: #f6f6f9;
+            --color-sidebar-bg: #fff;
+            --color-nav-bg: #fff;
+            --color-nav-icon: #363949;
+            --color-brand-text: #363949;
+            --color-divider-text: #a0a7c0;
+            --color-dropdown-line: #e0e0e0;
+            --color-dropdown-item-text: #677483;
+            --color-ads-gradient-start: #3c91e6;
+            --color-ads-gradient-end: #5e43f3;
+            --color-ads-text: #fff;
+            --color-logout-text: #ff7782;
+            --color-logout-hover-bg: rgba(255, 119, 130, 0.1);
+            --color-profile-link-bg: #fff;
+            --color-profile-link-hover-bg: #f0f0f0;
+
+            --scroll-track: #f0f0f0;
+            --scroll-thumb: #c4c4c4;
+
+            --border-radius-1: 0.4rem;
+            --border-radius-2: 0.8rem;
+
+            --card-padding: 1.8rem;
+
+            --box-shadow: 0 2rem 3rem var(--color-light);
+            --font-size-2: 1rem;
+            --font-weight-2: 500;
+        }
+
+        body {
+            background: var(--color-background);
+            color: var(--color-dark);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* SIDEBAR STYLES */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--color-sidebar-bg);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: var(--border-radius-1);
+        }
+
+        #sidebar:hover::-webkit-scrollbar-thumb {
+            background: var(--scroll-thumb);
+        }
+
+        #sidebar .brand {
+            font-size: 24px;
+            font-weight: 700;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            color: var(--color-brand-text);
+            position: sticky;
+            top: 0;
+            left: 0;
+            background: var(--color-sidebar-bg);
+            z-index: 10;
+            padding: 0 16px;
+            white-space: nowrap;
+        }
+        
+        #sidebar .brand .icon {
+            min-width: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 6px;
+        }
+
+        #sidebar .close-sidebar-btn {
+            font-size: 24px;
+            color: var(--color-nav-icon);
+            cursor: pointer;
+            display: none;
+            z-index: 1001;
+            margin-left: auto;
+        }
+
+        #sidebar .side-menu {
+            margin: 36px 0;
+            padding: 0 8px;
+            flex-grow: 1;
+            transition: padding 0.3s ease;
+        }
+
+        #sidebar .side-menu li {
+            background: transparent;
+            border-radius: var(--border-radius-1);
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        #sidebar .side-menu li a {
+            color: var(--color-brand-text);
+            font-size: 14px;
+            text-decoration: none;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow-x: hidden;
+            border-radius: var(--border-radius-1);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        #sidebar .side-menu li a .icon {
+            min-width: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            transition: 0.3s ease;
+        }
+
+        /* Default hover/active for sidebar */
+        #sidebar .side-menu li a:hover,
+        #sidebar .side-menu li a.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+        
+        #sidebar .side-menu li a:hover .icon,
+        #sidebar .side-menu li a.active .icon {
+            color: var(--color-white);
+        }
+
+        #sidebar .side-menu li a .icon-right {
+            margin-left: auto;
+            margin-right: 10px;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #sidebar .side-menu li a.active .icon-right {
+            transform: rotate(90deg);
+        }
+
+        #sidebar .side-menu .side-dropdown {
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            overflow-y: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease, visibility 0.4s ease;
+            position: relative;
+        }
+
+        #sidebar .side-menu .side-dropdown.show {
+            max-height: 1000px;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #sidebar .side-menu .side-dropdown::before {
+            content: "";
+            position: absolute;
+            left: 24px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--color-dropdown-line);
+            z-index: 0;
+        }
+
+        #sidebar .side-menu .side-dropdown li {
+            position: relative;
+        }
+
+        #sidebar .side-menu .side-dropdown li a {
+            color: var(--color-dropdown-item-text);
+            font-size: 13px;
+            padding: 8px 0 8px 50px;
+            height: auto;
+        }
+
+        #sidebar .side-menu .side-dropdown li a:hover {
+            color: var(--color-primary);
+            background: transparent;
+        }
+
+        #sidebar .side-menu .side-dropdown li::before {
+            content: "";
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 13px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--color-dropdown-line);
+            background-color: var(--color-sidebar-bg);
+            z-index: 1;
+        }
+        
+        #sidebar .side-menu .side-dropdown li a:hover::before {
+             border-color: var(--color-primary);
+        }
+
+        #sidebar .side-menu .divider {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--color-divider-text);
+            margin: 24px 0 12px 0;
+            padding: 0 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-align: left;
+            height: auto;
+            width: auto;
+            background: transparent;
+        }
+
+        #sidebar .ads {
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            flex-shrink: 0;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #sidebar .ads .wrapper {
+            background: linear-gradient(to bottom, var(--color-ads-gradient-start), var(--color-ads-gradient-end));
+            border-radius: var(--border-radius-2);
+            padding: 20px 10px;
+            color: var(--color-ads-text);
+        }
+
+        #sidebar .ads .wrapper p {
+            color: var(--color-ads-text);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        #sidebar .ads .wrapper .btn-contact {
+            background: var(--color-white);
+            color: var(--color-dark);
+            padding: 8px 16px;
+            border-radius: var(--border-radius-1);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        #sidebar .ads .wrapper .btn-contact:hover {
+            background: var(--color-info-light);
+        }
+
+        #sidebar .side-menu.bottom {
+            margin-top: 0;
+            padding: 0 8px 20px;
+            flex-shrink: 0;
+        }
+
+        #sidebar .side-menu.bottom li a.logout {
+            color: var(--color-logout-text);
+        }
+
+        #sidebar .side-menu.bottom li a.logout .icon {
+            color: var(--color-logout-text);
+        }
+
+        #sidebar .side-menu.bottom li a.logout:hover {
+            background: var(--color-logout-hover-bg);
+        }
+
+        /* CONTENT STYLES */
+        #content {
+            position: relative;
+            width: calc(100% - 260px);
+            left: 260px;
+            transition: all 0.3s ease;
+        }
+
+        /* TOP NAVBAR */
+        #content nav {
+            height: 56px;
+            background: var(--color-nav-bg);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 900;
+        }
+        
+        .toggle-sidebar-wrapper {
+            position: relative;
+        }
+
+        #content nav .toggle-sidebar {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--color-nav-icon);
+        }
+        
+        .toggle-sidebar-wrapper .tooltip {
+            position: absolute;
+            top: 50%;
+            left: calc(100% + 10px);
+            transform: translateY(-50%);
+            background: var(--color-dark);
+            color: var(--color-background);
+            padding: 4px 8px;
+            border-radius: var(--border-radius-1);
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        #content nav .date-display {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        #content nav .nav-link {
+            position: relative;
+            margin-left: auto;
+        }
+
+        #content nav .nav-link .icon {
+            font-size: 22px;
+            color: var(--color-nav-icon);
+        }
+
+        #content nav .nav-link .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: var(--color-danger);
+            border-radius: 50%;
+            border: 2px solid var(--color-nav-bg);
+        }
+
+        #content nav .profile {
+            position: relative;
+        }
+
+        #content nav .profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        #content nav .profile .profile-link {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--color-profile-link-bg);
+            box-shadow: var(--box-shadow);
+            padding: 10px 0;
+            border-radius: var(--border-radius-2);
+            width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            transform: translateY(10px);
+        }
+
+        #content nav .profile .profile-link.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        #content nav .profile .profile-link li a {
+            padding: 10px 16px;
+            display: flex;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--color-dark);
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        #content nav .profile .profile-link li a:hover {
+            background: var(--color-profile-link-hover-bg);
+        }
+        
+        /* MAIN CONTENT */
+        main {
+            width: 100%;
+            padding: 24px;
+        }
+        
+        main h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        main p {
+            line-height: 1.6;
+        }
+        
+        .placeholder-content {
+            background: var(--color-nav-bg);
+            padding: var(--card-padding);
+            border-radius: var(--border-radius-2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        /* RESPONSIVE DESIGN */
+
+        /* Desktop */
+        @media screen and (min-width: 1025px) {
+            #sidebar.hide {
+                width: 60px;
+            }
+            #sidebar.hide:hover {
+                width: 260px;
+            }
+            #sidebar.hide .brand span,
+            #sidebar.hide .side-menu li a span,
+            #sidebar.hide .ads {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition-delay: 0s;
+            }
+            #sidebar.hide:hover .brand span,
+            #sidebar.hide:hover .side-menu li a span,
+            #sidebar.hide:hover .ads {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+                transition-delay: 0.2s;
+            }
+            #sidebar.hide .side-menu li a .icon-right {
+               display: none;
+            }
+            #sidebar.hide:hover .side-menu li a .icon-right {
+               display: block;
+            }
+            #sidebar.hide:not(:hover) .side-menu li a .icon {
+                min-width: 100%;
+            }
+            #sidebar.hide:not(:hover) .side-menu .divider {
+                font-size: 0;
+                padding: 0;
+                height: 1px;
+                width: 75%;
+                background: var(--color-dropdown-line);
+                margin: 24px auto 12px auto;
+                transition-delay: 0s;
+            }
+            #sidebar.hide:hover .side-menu .divider {
+                font-size: 12px;
+                height: auto;
+                width: auto;
+                background: transparent;
+                margin: 24px 0 12px 0;
+                padding: 0 16px;
+                text-align: left;
+                transition-delay: 0.2s;
+            }
+            #sidebar.hide+#content {
+                width: calc(100% - 60px);
+                left: 60px;
+            }
+            .toggle-sidebar-wrapper:hover .tooltip {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        /* Tablet */
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            #sidebar {
+                width: 260px;
+            }
+            #sidebar.hide {
+                width: 60px;
+            }
+            #sidebar.hide:hover {
+                width: 260px;
+            }
+            #sidebar.hide .brand span,
+            #sidebar.hide .side-menu li a span,
+            #sidebar.hide .ads {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+            }
+            #sidebar.hide:hover .brand span,
+            #sidebar.hide:hover .side-menu li a span,
+            #sidebar.hide:hover .ads {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+                transition-delay: 0.2s;
+            }
+            #sidebar.hide .side-menu li a .icon-right {
+               display: none;
+            }
+             #sidebar.hide:hover .side-menu li a .icon-right {
+               display: block;
+            }
+            #sidebar.hide:not(:hover) .side-menu li a .icon {
+                min-width: 100%;
+            }
+            #sidebar.hide:not(:hover) .side-menu .divider {
+                font-size: 0;
+                padding: 0;
+                height: 1px;
+                width: 75%;
+                background: var(--color-dropdown-line);
+                margin: 24px auto 12px auto;
+            }
+            #sidebar.hide:hover .side-menu .divider {
+                font-size: 12px;
+                height: auto;
+                width: auto;
+                background: transparent;
+                margin: 24px 0 12px 0;
+                padding: 0 16px;
+                text-align: left;
+                transition-delay: 0.2s;
+            }
+            #content {
+                width: calc(100% - 260px);
+                left: 260px;
+            }
+            #sidebar.hide+#content {
+                width: calc(100% - 60px);
+                left: 60px;
+            }
+        }
+
+        /* Mobile */
+        @media screen and (max-width: 768px) {
+            #sidebar {
+                left: -260px; /* Hidden by default */
+            }
+            #sidebar.show {
+                left: 0;
+            }
+            #sidebar .close-sidebar-btn {
+                display: block;
+            }
+            #content {
+                width: 100%;
+                left: 0;
+            }
+            #content nav .date-display {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <section id="sidebar">
+        <a href="#" class="brand">
+            <i class='bx bxs-smile icon'></i> 
+            <span>LOGO</span>
+            <i class='bx bx-x close-sidebar-btn'></i>
+        </a>
+        <ul class="side-menu">
+            <li><a href="#" class="active"><i class='bx bxs-dashboard icon'></i> <span>Dashboard</span></a></li>
+            <li class="divider" data-text="main">Main</li>
+            <li>
+                <a href="#"><i class='bx bxs-inbox icon'></i> <span>Entity</span> <i class='bx bx-chevron-right icon-right'></i></a>
+                <ul class="side-dropdown">
+                    <li><a href="#">Alert</a></li>
+                    <li><a href="#">Badges</a></li>
+                    <li><a href="#">Breadcrumbs</a></li>
+                    <li><a href="#">Button</a></li>
+                </ul>
+            </li>
+            <li><a href="#"><i class='bx bxs-chart icon'></i> <span>Categories</span></a></li>
+            <li><a href="#"><i class='bx bxs-widget icon'></i> <span>Widgets</span></a></li>
+            <li class="divider" data-text="User settings">User settings</li>
+            <li><a href="#"><i class='bx bxs-user-detail icon'></i> <span>Roles</span></a></li>
+            <li><a href="#"><i class='bx bxs-user-account icon'></i> <span>Users</span></a></li>
+            <li>
+                <a href="#"><i class='bx bxs-notepad icon'></i> <span>Forms</span> <i class='bx bx-chevron-right icon-right'></i></a>
+                <ul class="side-dropdown">
+                    <li><a href="#">Basic</a></li>
+                    <li><a href="#">Select</a></li>
+                    <li><a href="#">Checkbox</a></li>
+                    <li><a href="#">Radio</a></li>
+                </ul>
+            </li>
+        </ul>
+        <div class="ads">
+            <div class="wrapper">
+                <p>Do you need our help?</p>
+                <p>Send a request via email</p>
+                <a href="#" class="btn-contact">Contact Us</a>
+            </div>
+        </div>
+        <ul class="side-menu bottom">
+             <li>
+                <a href="#" class="logout">
+                    <i class='bx bxs-log-out-circle icon'></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </section>
+    <!-- SIDEBAR -->
+
+    <!-- CONTENT -->
+    <section id="content">
+        <!-- NAVBAR -->
+        <nav>
+            <div class="toggle-sidebar-wrapper">
+                <i class='bx bx-menu toggle-sidebar'></i>
+                <span class="tooltip">Collapse menu</span>
+            </div>
+            <div id="current-date" class="date-display"></div>
+            <a href="#" class="nav-link">
+                <i class='bx bxs-bell icon'></i>
+                <span class="badge"></span>
+            </a>
+            <div class="profile">
+                <img src="https://placehold.co/36x36/E0E0E0/363949?text=A" alt="Admin">
+                <ul class="profile-link">
+                    <li><a href="#"><i class='bx bxs-user-circle icon'></i> Profile</a></li>
+                    <li><a href="#"><i class='bx bxs-cog'></i> Settings</a></li>
+                    <li><a href="#"><i class='bx bxs-log-out-circle'></i> Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+        <!-- NAVBAR -->
+
+        <!-- MAIN -->
+        <main>
+            <div class="placeholder-content">
+                <h1>Dashboard</h1>
+                <p>Welcome to your dashboard. This is a placeholder area for your main content. You can add charts, tables, widgets, and more here. The top navigation and sidebar are fully functional. Try toggling the theme or collapsing the sidebar!</p>
+            </div>
+        </main>
+        <!-- MAIN -->
+    </section>
+    <!-- CONTENT -->
+
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // =================================================================================
+        // ELEMENTS
+        // =================================================================================
+        const sidebar = document.getElementById("sidebar");
+        const toggleSidebar = document.querySelector("#content nav .toggle-sidebar");
+        const tooltip = document.querySelector('.toggle-sidebar-wrapper .tooltip');
+        const closeSidebarBtn = document.querySelector("#sidebar .close-sidebar-btn");
+        const allSideMenuLinks = document.querySelectorAll("#sidebar .side-menu a");
+        
+        // =================================================================================
+        // INITIAL SIDEBAR STATE
+        // =================================================================================
+        function setInitialSidebarState() {
+            if (window.innerWidth <= 768) { // Mobile
+                sidebar.classList.remove('show');
+                sidebar.classList.add('hide'); 
+            } else if (window.innerWidth <= 1024) { // Tablet
+                sidebar.classList.add('hide');
+                sidebar.classList.remove('show');
+            } else { // Desktop
+                sidebar.classList.remove('hide');
+                sidebar.classList.remove('show');
+            }
+            updateTooltip();
+        }
+
+        // =================================================================================
+        // TOOLTIP & SIDEBAR LOGIC
+        // =================================================================================
+
+        function updateTooltip() {
+            if (window.innerWidth > 1024) { // Only update tooltip on desktop
+                if (sidebar.classList.contains('hide')) {
+                    tooltip.textContent = 'Expand menu';
+                } else {
+                    tooltip.textContent = 'Collapse menu';
+                }
+            }
+        }
+        
+        function closeAllDropdowns() {
+            allSideMenuLinks.forEach(item => {
+                const dropdown = item.parentElement.querySelector('.side-dropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // --- Sidebar Toggle Button ---
+        if (toggleSidebar) {
+            toggleSidebar.addEventListener("click", function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.toggle("show");
+                } else {
+                    sidebar.classList.toggle("hide");
+                    updateTooltip();
+                }
+                if (sidebar.classList.contains('hide') && !sidebar.classList.contains('show')) {
+                    closeAllDropdowns();
+                }
+            });
+        }
+        
+        // --- Update tooltip on sidebar hover when collapsed (desktop only) ---
+        if (sidebar) {
+            sidebar.addEventListener('mouseenter', () => {
+                if (window.innerWidth > 1024 && sidebar.classList.contains('hide')) {
+                    tooltip.textContent = 'Keep menu expanded';
+                }
+            });
+            sidebar.addEventListener('mouseleave', () => {
+                if (window.innerWidth > 768 && sidebar.classList.contains('hide')) {
+                   closeAllDropdowns();
+                }
+                if (window.innerWidth > 1024 && sidebar.classList.contains('hide')) {
+                   updateTooltip();
+                }
+            });
+        }
+        
+        // --- Close button for mobile ---
+        if (closeSidebarBtn) {
+            closeSidebarBtn.addEventListener("click", function() {
+                sidebar.classList.remove("show");
+            });
+        }
+
+        // --- Sidebar Menu and Dropdown Logic ---
+        allSideMenuLinks.forEach(item => {
+            const li = item.parentElement;
+            const hasDropdown = li.querySelector('.side-dropdown');
+
+            item.addEventListener('click', function(e) {
+                if (hasDropdown) {
+                    e.preventDefault(); // Prevent navigation only for dropdown toggles
+                }
+
+                // Condition to allow dropdown toggle
+                const canToggle = !sidebar.classList.contains('hide') || sidebar.classList.contains('show') || (sidebar.classList.contains('hide') && sidebar.matches(':hover'));
+                
+                if (hasDropdown && canToggle) {
+                    const wasActive = this.classList.contains('active');
+
+                    // Close all other dropdowns
+                    allSideMenuLinks.forEach(otherItem => {
+                        if (otherItem !== this && otherItem.parentElement.querySelector('.side-dropdown')) {
+                            otherItem.classList.remove('active');
+                            otherItem.nextElementSibling.classList.remove('show');
+                        }
+                    });
+
+                    // Toggle the clicked dropdown
+                    if (!wasActive) {
+                        this.classList.add('active');
+                        this.nextElementSibling.classList.add('show');
+                    } else {
+                        this.classList.remove('active');
+                        this.nextElementSibling.classList.remove('show');
+                    }
+                } else if (!hasDropdown) {
+                    // Handle regular link clicks
+                    allSideMenuLinks.forEach(i => {
+                        i.classList.remove('active');
+                        const dropdown = i.parentElement.querySelector('.side-dropdown');
+                        if (dropdown) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // --- Adjust sidebar on resize ---
+        window.addEventListener("resize", setInitialSidebarState);
+
+        // --- Global Click Listener (to close menus/sidebar) ---
+        window.addEventListener('click', function(e) {
+            // Close sidebar on mobile if click is outside
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(e.target) && e.target !== toggleSidebar && !toggleSidebar.contains(e.target)) {
+                    if (sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            }
+
+            // Close profile dropdown if click is outside
+            const profile = document.querySelector("nav .profile");
+            const dropdownProfile = profile ? profile.querySelector(".profile-link") : null;
+            if (profile && !profile.contains(e.target)) {
+                 if (dropdownProfile && dropdownProfile.classList.contains("show")) {
+                    dropdownProfile.classList.remove("show");
+                }
+            }
+        });
+
+        // --- Date Display ---
+        const dateElement = document.getElementById("current-date");
+        if (dateElement) {
+             const today = new Date();
+             const dateOptions = {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                timeZone: 'GMT'
+            };
+            const formattedDate = today.toLocaleDateString("en-US", dateOptions);
+            dateElement.textContent = formattedDate;
+        }
+
+        // --- Initial Setup ---
+        setInitialSidebarState();
+    });
+    </script>
+</body>
+
+</html>

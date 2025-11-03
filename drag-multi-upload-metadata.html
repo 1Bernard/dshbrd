@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banner Uploader with Metadata Prototype</title>
+  
+  <!-- SortableJS for drag-and-drop list reordering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  
+  <!-- Cropper.js for image cropping -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+  <style>
+    :root {
+      --border-color: #e5e7eb; /* gray-200 */
+      --border-color-dark: #d1d5db; /* gray-300 */
+      --border-focus-color: #3b82f6; /* blue-500 */
+      --background-color: #f9fafb; /* gray-50 */
+      --background-hover: #f0f9ff; /* sky-50 */
+      --text-color-light: #6b7280; /* gray-500 */
+      --text-color-dark: #1f2937; /* gray-800 */
+      --primary-color: #3b82f6; /* blue-500 */
+      --primary-hover-color: #2563eb; /* blue-600 */
+      --secondary-color: #f3f4f6; /* gray-100 */
+      --secondary-hover-color: #e5e7eb; /* gray-200 */
+      --success-color: #10b981; /* emerald-500 */
+      --danger-color: #ef4444; /* red-500 */
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+      background-color: #f3f4f6;
+      color: var(--text-color-dark);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+
+    .uploader-container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #ffffff;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07),
+        0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+    }
+
+    /* --- 1. DROPZONE --- */
+    .drop-zone {
+      width: 100%;
+      min-height: 150px;
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      cursor: pointer;
+      background-color: var(--background-color);
+      display: flex;
+      flex-direction: column;
+      transition: all 200ms ease-in-out;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .drop-zone.drop-zone-active {
+      border-color: var(--border-focus-color);
+      background-color: var(--background-hover);
+    }
+
+    .drop-zone-prompt svg {
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary-color);
+    }
+
+    .drop-zone-prompt p {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.875rem;
+      color: var(--text-color-light);
+    }
+
+    .drop-zone-prompt .upload-link {
+      color: var(--primary-color);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .drop-zone-prompt .upload-link:hover {
+      text-decoration: underline;
+    }
+
+    /* --- 2. FILE LIST --- */
+    .file-list-area {
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+    
+    .file-list-area:empty {
+      margin-top: 0;
+    }
+
+    /* --- 3. FILE ITEM --- */
+    .file-item {
+      display: flex;
+      flex-wrap: wrap; /* Allows stacking */
+      gap: 0 0.75rem; /* Column gap */
+      width: 100%;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color-dark);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      box-sizing: border-box;
+    }
+    
+    .file-item.sortable-ghost {
+      opacity: 0.4;
+      background: #f0f9ff;
+    }
+    
+    .file-item.sortable-chosen {
+      cursor: grabbing;
+    }
+
+    .drag-handle {
+      flex-shrink: 0;
+      cursor: grab;
+      color: var(--text-color-light);
+      margin-top: 0.75rem; /* Align with center of thumbnail */
+    }
+    
+    .drag-handle:hover {
+      color: var(--text-color-dark);
+    }
+
+    .drag-handle svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+    
+    .file-thumbnail {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      object-fit: cover;
+      background-color: var(--background-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .file-details {
+      flex-grow: 1;
+      min-width: 0; /* Prevents text overflow */
+    }
+    
+    .file-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-color-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .file-size {
+      font-size: 0.75rem;
+      color: var(--text-color-light);
+    }
+    
+    .file-actions {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: auto; /* Pushes to the right */
+    }
+    
+    /* --- Progress Bar Wrapper --- */
+    .file-progress-wrapper {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .file-progress-container {
+      flex-grow: 1;
+      position: relative;
+      height: 8px;
+    }
+    
+    .file-progress-bar {
+      width: 100%;
+      height: 8px;
+      background-color: var(--background-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .file-progress {
+      width: 0%;
+      height: 100%;
+      background-color: var(--primary-color);
+      transition: width 0.4s ease;
+    }
+    
+    .file-status {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+    }
+    
+    .file-status-percentage {
+      font-size: 0.75rem;
+      color: var(--text-color-light);
+      font-weight: 500;
+      display: none; 
+    }
+
+    .file-status-complete {
+      color: var(--success-color);
+      display: none;
+    }
+    
+    .file-status-complete svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* --- 5. Action Buttons (Crop, Delete) --- */
+    .action-button {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      color: var(--text-color-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action-button:hover {
+        color: var(--primary-color); /* Hover for crop */
+    }
+    .delete-btn:hover {
+        color: var(--danger-color); /* Specific hover for delete */
+    }
+
+    .action-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* --- 6. Metadata Inputs --- */
+    .file-metadata {
+        width: 100%;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 1rem;
+    }
+
+    .form-group {
+        flex: 1; /* Each group takes 50% */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-color-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .form-group input[type="datetime-local"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color-dark);
+        border-radius: 6px;
+        font-size: 0.875rem;
+        box-sizing: border-box; /* Important for 100% width */
+    }
+
+    /* --- 7. Modal Styles (Unchanged) --- */
+    .crop-modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+      width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7);
+      justify-content: center; align-items: center;
+    }
+    .crop-modal.is-open { display: flex; }
+    .modal-content {
+      background-color: #fefefe; margin: auto; padding: 20px; border-radius: 8px;
+      width: 90%; max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+      position: relative;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;
+    }
+    .modal-header h3 { margin: 0; font-size: 1.25rem; color: var(--text-color-dark); }
+    .modal-close-btn {
+      color: var(--text-color-light); font-size: 28px; font-weight: bold; cursor: pointer;
+      background: none; border: none; padding: 0;
+    }
+    .modal-close-btn:hover, .modal-close-btn:focus { color: var(--text-color-dark); text-decoration: none; cursor: pointer; }
+    .crop-container { width: 100%; max-height: 60vh; overflow: hidden; background-color: #f5f5f5; }
+    .crop-container img { max-width: 100%; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 20px; }
+
+    /* General Button Styles (Unchanged) */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; border: 1px solid transparent;
+    }
+    .btn-primary { background-color: var(--primary-color); color: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-primary:hover { background-color: var(--primary-hover-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.07); }
+    .btn-secondary { background-color: var(--secondary-color); color: var(--text-color-dark); border-color: var(--border-color-dark); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-secondary:hover { background-color: var(--secondary-hover-color); }
+    
+    #submit-btn {
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+
+    /* Utility */
+    .hidden {
+      display: none !important;
+    }
+
+  </style>
+</head>
+<body>
+  
+  <div class="uploader-container">
+    <!-- 1. The Dropzone -->
+    <label class="drop-zone" id="drop-zone">
+      <div class="drop-zone-prompt" id="drop-zone-prompt">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+        </svg>
+        <p>
+          <span class="upload-link">Click to upload</span> or drag and drop banners
+        </p>
+        <p style="font-size: 0.75rem;">Images only (Max 2MB)</p>
+      </div>
+      <input type="file" id="file-input" class="hidden" multiple accept="image/*">
+    </label>
+
+    <!-- 2. The File List Area (where items will be added) -->
+    <div class="file-list-area" id="file-list-area">
+      <!-- File items will be dynamically inserted here -->
+    </div>
+    
+    <!-- 3. Submit Button (for demonstration) -->
+    <button id="submit-btn" class="btn btn-primary">Submit (Log Data to Console)</button>
+  </div>
+
+  <!-- 
+    This is a <template> for a single file item.
+    It's now more complex and includes the metadata inputs.
+  -->
+  <template id="file-item-template">
+    <div class="file-item">
+        
+      <!-- Top row: Drag, Thumb, Info, Actions -->
+      <span class="drag-handle" title="Drag to reorder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M2 12.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+      </span>
+
+      <img class="file-thumbnail" src="https://placehold.co/48x48/e0e0e0/909090?text=...&font=sans-serif" alt="Preview">
+
+      <div class="file-details">
+        <div class="file-name">filename.jpg</div>
+        <div class="file-size">120 KB</div>
+      </div>
+
+      <div class="file-actions">
+        <button type="button" class="action-button crop-btn" title="Crop image">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M4.545 6.784a.5.5 0 0 0-.256.711L6.783 10l-2.494 2.494a.5.5 0 0 0 .707.707L7.5 10.707l2.494 2.494a.5.5 0 0 0 .707-.707L8.207 10l2.494-2.494a.5.5 0 0 0-.707-.707L7.5 9.293 5.006 6.799a.5.5 0 0 0-.461-.015Z"/>
+                <path d="M6 1a1 1 0 0 0-1 1v2H2.5A1.5 1.5 0 0 0 1 5.5v2.793l-1.045 1.046a.5.5 0 0 0 .707.707L1.5 9.207V12.5A1.5 1.5 0 0 0 3 14h6.707l1.046 1.045a.5.5 0 1 0 .707-.707L10.793 14H13.5a1.5 1.5 0 0 0 1.5-1.5V9.207l1.045-1.046a.5.5 0 0 0-.707-.707L14.5 7.207V4.5A1.5 1.5 0 0 0 13 3h-2V2a1 1 0 0 0-1-1H6Zm-2 3v1.5a.5.5 0 0 0 .5.5H6V4H4Zm5 0V3h2v2h-1.5a.5.5 0 0 0-.5.5V4H9ZM2 12.5a.5.5 0 0 1 .5-.5H4v-2H2.5a.5.5 0 0 1-.5-.5v-1.305L3.293 8H4v.5a.5.5 0 0 0 .5.5H5v-2H3.5a.5.5 0 0 0-.5.5v2.5ZM13.5 13a.5.5 0 0 1-.5-.5V10h-2v.5a.5.5 0 0 0-.5.5h-1v2h1.5a.5.5 0 0 0 .5-.5V10h2.5a.5.5 0 0 1 .5.5v1.305L12.707 13H13.5ZM6 2h4v2H6V2Z"/>
+            </svg>
+        </button>
+        <button type="button" class="action-button delete-btn" title="Remove file">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Second row: Progress Bar -->
+      <div class="file-progress-wrapper">
+        <div class="file-progress-container">
+          <div class="file-progress-bar">
+            <div class="file-progress"></div>
+          </div>
+        </div>
+        <div class="file-status">
+          <span class="file-status-percentage">40%</span>
+          <span class="file-status-complete">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- Third row: Metadata Inputs -->
+      <div class="file-metadata">
+        <div class="form-group">
+          <label class="start-time-label">Start Time</label>
+          <input type="datetime-local" class="start-time-input">
+        </div>
+        <div class="form-group">
+          <label class="end-time-label">End Time</label>
+          <input type="datetime-local" class="end-time-input">
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Cropping Modal (HTML is unchanged) -->
+  <div id="crop-modal" class="crop-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Crop Image</h3>
+        <button class="modal-close-btn" id="close-crop-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="crop-container">
+          <img id="image-to-crop" src="" alt="Image to crop">
+        </div>
+        <div class="modal-actions">
+          <button id="cancel-crop-btn" class="btn btn-secondary">Cancel</button>
+          <button id="apply-crop-btn" class="btn btn-primary">Apply Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // --- Get DOM Elements ---
+      const dropZone = document.getElementById("drop-zone");
+      const fileInput = document.getElementById("file-input");
+      const fileListArea = document.getElementById("file-list-area");
+      const fileItemTemplate = document.getElementById("file-item-template");
+      const submitBtn = document.getElementById('submit-btn');
+      
+      const cropModal = document.getElementById('crop-modal');
+      const imageToCrop = document.getElementById('image-to-crop');
+      const closeCropModalBtn = document.getElementById('close-crop-modal');
+      const cancelCropBtn = document.getElementById('cancel-crop-btn');
+      const applyCropBtn = document.getElementById('apply-crop-btn');
+
+      // --- State Variables ---
+      let filesStore = []; // Stores { file, src, element, metadata: { startTime, endTime } }
+      let cropper; // Cropper.js instance
+      let currentCropFileWrapper = null; // The fileWrapper being cropped
+      let fileCounter = 0; // To create unique IDs
+
+      // === 1. Initialize SortableJS ===
+      const sortable = new Sortable(fileListArea, {
+        handle: ".drag-handle",
+        animation: 150,
+        ghostClass: "sortable-ghost",
+        chosenClass: "sortable-chosen",
+        onEnd: (evt) => {
+          const oldIndex = evt.oldIndex;
+          const newIndex = evt.newIndex;
+          
+          const [movedItem] = filesStore.splice(oldIndex, 1);
+          filesStore.splice(newIndex, 0, movedItem);
+          
+          console.log("File order updated:", filesStore.map(f => f.file.name));
+        }
+      });
+
+      // === 2. Setup Dropzone Listeners ===
+      
+      dropZone.addEventListener("click", (e) => {
+        if (e.target.closest(".action-button") || e.target.closest(".form-group")) return;
+        fileInput.click();
+      });
+      
+      fileInput.addEventListener("change", () => {
+        handleFiles(fileInput.files);
+        fileInput.value = null; 
+      });
+
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      ["dragenter", "dragover"].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add("drop-zone-active"), false);
+      });
+      
+      ["dragleave", "drop"].forEach(eventName => {
+         dropZone.addEventListener(eventName, () => dropZone.classList.remove("drop-zone-active"), false);
+      });
+      
+      dropZone.addEventListener("drop", (e) => {
+        handleFiles(e.dataTransfer.files);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // === 3. Handle File Processing ===
+      function handleFiles(files) {
+        Array.from(files).forEach((file) => {
+          if (validateFile(file)) {
+            const fileUrl = URL.createObjectURL(file);
+            const fileWrapper = { 
+              file: file, 
+              src: fileUrl, 
+              element: null, 
+              metadata: { startTime: null, endTime: null } // NEW: Add metadata object
+            };
+            filesStore.push(fileWrapper);
+            
+            const fileItemElement = createFileItem(fileWrapper, fileCounter++);
+            fileWrapper.element = fileItemElement; // Store reference
+            fileListArea.appendChild(fileItemElement);
+            simulateUpload(fileItemElement);
+          }
+        });
+      }
+
+      function validateFile(file) {
+        if (!file.type.startsWith("image/")) {
+          alert("Only image files are allowed."); return false;
+        }
+        if (file.size > 2 * 1024 * 1024) { 
+          alert(`File ${file.name} is too large (max 2MB).`); return false;
+        }
+        return true;
+      }
+      
+      // === 4. Create DOM Element for File ===
+      function createFileItem(fileWrapper, index) {
+        const item = fileItemTemplate.content.cloneNode(true);
+        const fileItemElement = item.querySelector(".file-item");
+        
+        // Get all parts
+        const thumb = item.querySelector(".file-thumbnail");
+        const name = item.querySelector(".file-name");
+        const size = item.querySelector(".file-size");
+        const deleteBtn = item.querySelector(".delete-btn");
+        const cropBtn = item.querySelector(".crop-btn");
+        
+        // NEW: Get metadata inputs and labels
+        const startTimeLabel = item.querySelector(".start-time-label");
+        const startTimeInput = item.querySelector(".start-time-input");
+        const endTimeLabel = item.querySelector(".end-time-label");
+        const endTimeInput = item.querySelector(".end-time-input");
+
+        // Set unique IDs for accessibility
+        const uniqueId = `file-${index}`;
+        startTimeLabel.htmlFor = `${uniqueId}-start`;
+        startTimeInput.id = `${uniqueId}-start`;
+        endTimeLabel.htmlFor = `${uniqueId}-end`;
+        endTimeInput.id = `${uniqueId}-end`;
+        
+        // Set file info
+        name.textContent = fileWrapper.file.name;
+        size.textContent = bytesToSize(fileWrapper.file.size);
+        thumb.src = fileWrapper.src;
+
+        // --- Add Event Listeners ---
+        deleteBtn.addEventListener("click", () => {
+          URL.revokeObjectURL(fileWrapper.src);
+          const currentVisualIndex = filesStore.indexOf(fileWrapper);
+          if (currentVisualIndex > -1) {
+            filesStore.splice(currentVisualIndex, 1);
+          }
+          fileItemElement.remove();
+          console.log("Removed file. Remaining:", filesStore.map(f => f.file.name));
+        });
+
+        cropBtn.addEventListener("click", () => {
+          openCropModal(fileWrapper);
+        });
+
+        // NEW: Listen for changes on metadata inputs
+        startTimeInput.addEventListener('change', (e) => {
+          fileWrapper.metadata.startTime = e.target.value;
+          console.log("Updated metadata:", filesStore);
+        });
+
+        endTimeInput.addEventListener('change', (e) => {
+          fileWrapper.metadata.endTime = e.target.value;
+          console.log("Updated metadata:", filesStore);
+        });
+
+        return fileItemElement;
+      }
+
+      // === 5. Cropping Logic ===
+      closeCropModalBtn.addEventListener('click', closeCropModal);
+      cancelCropBtn.addEventListener('click', closeCropModal);
+      applyCropBtn.addEventListener('click', confirmCrop);
+
+      function openCropModal(fileWrapper) {
+        currentCropFileWrapper = fileWrapper; // Store the whole wrapper
+        imageToCrop.src = fileWrapper.src;
+        cropModal.classList.add('is-open');
+
+        imageToCrop.onload = () => {
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(imageToCrop, {
+            aspectRatio: 1680 / 590, // Example: Banner aspect ratio (168:59)
+            viewMode: 1,
+            autoCropArea: 1,
+            responsive: true,
+            guides: true,
+          });
+        };
+      }
+
+      function closeCropModal() {
+        cropModal.classList.remove('is-open');
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
+        }
+        imageToCrop.src = '';
+        currentCropFileWrapper = null;
+      }
+
+      function confirmCrop() {
+        if (!cropper || !currentCropFileWrapper) return;
+
+        cropper.getCroppedCanvas({
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high',
+        }).toBlob((blob) => {
+          const originalFile = currentCropFileWrapper.file;
+
+          const croppedFile = new File([blob], `cropped_${originalFile.name}`, {
+            type: blob.type,
+            lastModified: new Date().getTime(),
+          });
+
+          // Revoke old URL
+          URL.revokeObjectURL(currentCropFileWrapper.src);
+          const newFileUrl = URL.createObjectURL(croppedFile);
+
+          // Update the fileWrapper in our store
+          currentCropFileWrapper.file = croppedFile;
+          currentCropFileWrapper.src = newFileUrl;
+
+          // Update the DOM
+          const fileItemElement = currentCropFileWrapper.element;
+          if (fileItemElement) {
+            fileItemElement.querySelector('.file-thumbnail').src = newFileUrl;
+            fileItemElement.querySelector('.file-name').textContent = croppedFile.name;
+            fileItemElement.querySelector('.file-size').textContent = bytesToSize(croppedFile.size);
+          }
+
+          console.log(`File "${originalFile.name}" cropped and updated.`);
+          closeCropModal();
+        }, currentCropFileWrapper.file.type || 'image/png', 0.9);
+      }
+      
+      // === 6. Simulate Upload Progress ===
+      function simulateUpload(fileItemElement) {
+        const progressContainer = fileItemElement.querySelector(".file-progress-container");
+        const progress = fileItemElement.querySelector(".file-progress");
+        const percentage = fileItemElement.querySelector(".file-status-percentage");
+        const completeIcon = fileItemElement.querySelector(".file-status-complete");
+
+        progressContainer.style.display = "block"; 
+        percentage.style.display = "block";
+        completeIcon.style.display = "none";
+        progress.style.width = "0%";
+        
+        let width = 0;
+        const interval = setInterval(() => {
+          width += Math.random() * 20 + 10;
+          if (width >= 100) {
+            width = 100;
+            clearInterval(interval);
+            setTimeout(() => {
+              percentage.style.display = "none";
+              completeIcon.style.display = "block";
+            }, 300); 
+          }
+          progress.style.width = width + "%";
+          percentage.textContent = Math.round(width) + "%";
+        }, 200); 
+      }
+
+      // === 7. Helper Functions ===
+      function bytesToSize(bytes) {
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        if (bytes == 0) return "0 Byte";
+        const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
+      }
+      
+      // === 8. Submit Button Listener ===
+      submitBtn.addEventListener('click', () => {
+          console.log("--- Form Submission Data ---");
+          console.log(filesStore);
+          
+          // You can also check for validation
+          let allValid = true;
+          filesStore.forEach((wrapper, index) => {
+              if (!wrapper.metadata.startTime || !wrapper.metadata.endTime) {
+                  allValid = false;
+                  console.warn(`File ${index + 1} (${wrapper.file.name}) is missing start or end time.`);
+                  wrapper.element.style.border = '2px solid var(--danger-color)'; // Highlight invalid item
+              } else {
+                  wrapper.element.style.border = '1px solid var(--border-color-dark)'; // Reset border
+              }
+          });
+          
+          if (allValid) {
+              alert("Data is valid! Check the console (F12) to see the final data structure.");
+          } else {
+              alert("Some banners are missing a start or end time. Please complete the fields.");
+          }
+      });
+    });
+  </script>
+
+</body>
+</html>

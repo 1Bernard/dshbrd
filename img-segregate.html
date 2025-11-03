@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-File Drop Zone with Cropping</title>
+    <!-- Import Cropper.js for image cropping -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <style>
+        /* Basic Reset & Body Styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        /* Drop Zone Container */
+        #dropZoneContainer {
+            width: 100%;
+            max-width: 42rem; /* Increased width for better layout */
+        }
+
+        /* Hidden File Input */
+        #fileInput {
+            display: none;
+        }
+
+        /* Drop Zone Area (Label) */
+        #dropZone {
+            width: 100%;
+            min-height: 20rem; /* Increased min-height */
+            border-width: 2px;
+            border-style: dashed;
+            border-color: #7dd3fc;
+            border-radius: 1rem;
+            cursor: pointer;
+            background-color: #ffffff;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            transition-property: background-color, border-color;
+            transition-duration: 200ms;
+            transition-timing-function: ease-in-out;
+        }
+
+        #dropZone:hover {
+            background-color: #f0f9ff;
+        }
+
+        #dropZone.drop-zone-active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        #dropZone.dropzone-prompt-visible {
+            align-items: center;
+            justify-content: center;
+        }
+
+        #dropZone.dropzone-previews-visible {
+            align-items: flex-start; /* Align content to the top */
+            justify-content: flex-start;
+        }
+
+        /* Initial Prompt Area */
+        #dropZonePrompt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-grow: 1; /* Allow prompt to take available space if dropzone is empty */
+        }
+
+        #dropZonePrompt.hidden {
+            display: none;
+        }
+
+        #dropZonePrompt svg {
+            width: 3rem; 
+            height: 3rem; 
+            margin-bottom: 1rem; 
+            color: #0ea5e9; 
+        }
+
+        #dropZonePrompt p {
+            margin: 0; 
+            margin-bottom: 0.5rem; 
+            font-size: 0.875rem; 
+            line-height: 1.25rem;
+            color: #475569; 
+        }
+        #dropZonePrompt p:last-child {
+            margin-bottom: 0;
+        }
+
+        #dropZonePrompt .font-semibold {
+            font-weight: 600;
+        }
+
+        #dropZonePrompt .upload-link-style { 
+            color: #2563eb;
+            text-decoration: none;
+        }
+        #dropZonePrompt .upload-link-style:hover {
+            text-decoration: underline;
+        }
+        
+        #dropZonePrompt .text-xs {
+            font-size: 0.75rem; 
+            line-height: 1rem;
+            color: #64748b; 
+        }
+        
+        #dropZonePrompt .text-sm-detail { /* New class for slightly smaller detail text */
+            font-size: 0.8rem; 
+            color: #475569;
+            margin-top: 0.25rem;
+        }
+
+
+        /* Inline Preview Area - Main Container for all previews */
+        #inlinePreviewArea {
+            display: flex;
+            flex-direction: column; /* Stack main and supporting images vertically */
+            width: 100%;
+            gap: 1rem; /* Space between main and supporting sections */
+        }
+        #inlinePreviewArea.hidden {
+            display: none;
+        }
+        
+        /* Main Image Preview Area */
+        #mainImagePreviewContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 150px; /* Min height for main image area */
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb; /* Separator line */
+        }
+         #mainImagePreviewContainer .preview-container { /* Target specific preview-container */
+            max-width: 100%;
+            max-height: 250px; /* Max height for main image preview itself */
+            border: 2px solid #3b82f6; /* Highlight main image */
+         }
+         #mainImagePreviewContainer .preview-image {
+            max-height: 240px; /* Max height for the image inside preview-container */
+            object-fit: contain;
+         }
+         #mainImagePreviewContainer .no-main-image-text {
+            font-style: italic;
+            color: #64748b;
+         }
+
+        /* Supporting Images Preview Area */
+        #supportingImagesPreviewContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start; /* Align thumbnails to the start */
+            gap: 0.5rem;
+            width: 100%;
+            max-height: 200px; /* Max height before scrolling supporting images */
+            overflow-y: auto;
+        }
+        #supportingImagesPreviewContainer .preview-container { /* Smaller thumbnails */
+            width: 80px;
+            height: 80px;
+            border: 1px solid #e5e7eb;
+        }
+        #supportingImagesPreviewContainer .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Crop supporting images to fit */
+        }
+
+        /* Individual Preview Item Container (common styles) */
+        .preview-container {
+            position: relative;
+            display: inline-block; 
+            background-color: #f9fafb; 
+            border-radius: 0.375rem; 
+            overflow: hidden;
+        }
+
+        /* Preview Image (common styles, specific overrides above) */
+        .preview-image {
+            display: block;
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        /* Action Buttons on Preview */
+        .preview-actions {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            display: flex;
+            gap: 3px;
+            z-index: 10;
+        }
+
+        .action-button {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .action-button:hover {
+            opacity: 1;
+        }
+        
+        /* Cropping Modal Styles */
+        #cropModal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #cropModal.active {
+            display: flex;
+        }
+        .crop-modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 0.5rem;
+        }
+        #imageToCrop {
+            display: block;
+            max-width: 100%;
+            max-height: 60vh;
+        }
+        .crop-modal-actions {
+            margin-top: 1rem;
+            text-align: right;
+        }
+        .crop-modal-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #confirmCropBtn {
+            background-color: #2563eb;
+            color: white;
+        }
+        #cancelCropBtn {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dropZoneContainer">
+        <input type="file" id="fileInput" multiple accept="image/jpeg,image/png">
+
+        <label for="fileInput" id="dropZone">
+            <div id="dropZonePrompt">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                </svg>
+                <p>
+                    <span class="font-semibold">Drop your main image first, then supporting images</span> or
+                    <span class="upload-link-style">upload from your files</span>.
+                </p>
+                <p class="text-sm-detail">The first image uploaded will be the main display image.</p>
+                <p class="text-xs">Supported: JPG, PNG (Max. 2MB each)</p>
+            </div>
+
+            <div id="inlinePreviewArea" class="hidden">
+                <div id="mainImagePreviewContainer">
+                    <!-- Main image preview will be here -->
+                </div>
+                <div id="supportingImagesPreviewContainer">
+                    <!-- Supporting image previews will be here -->
+                </div>
+            </div>
+        </label>
+    </div>
+    
+    <!-- Cropping Modal -->
+    <div id="cropModal">
+        <div class="crop-modal-content">
+            <div>
+                <img id="imageToCrop" src="" alt="Image to crop">
+            </div>
+            <div class="crop-modal-actions">
+                <button id="cancelCropBtn">Cancel</button>
+                <button id="confirmCropBtn">Confirm Crop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const dropZonePrompt = document.getElementById('dropZonePrompt');
+        const inlinePreviewArea = document.getElementById('inlinePreviewArea');
+        const mainImagePreviewContainer = document.getElementById('mainImagePreviewContainer');
+        const supportingImagesPreviewContainer = document.getElementById('supportingImagesPreviewContainer');
+        const fileInput = document.getElementById('fileInput');
+        const cropModal = document.getElementById('cropModal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const confirmCropBtn = document.getElementById('confirmCropBtn');
+        const cancelCropBtn = document.getElementById('cancelCropBtn');
+        
+        let mainImageFileWrapper = null; 
+        let supportingImageFilesWrappers = [];
+        let cropper;
+        let fileToCrop = { type: null, index: -1 }; // To track which file is being cropped
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-zone-active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-zone-active'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+
+        function handleDrop(e) {
+            processFiles(e.dataTransfer.files);
+        }
+
+        function processFiles(files) {
+            const newFiles = Array.from(files);
+            
+            newFiles.forEach(file => {
+                if (!file) return;
+
+                if (file.size > 2 * 1024 * 1024) { 
+                    showMessage(`File ${file.name} is too large (max 2MB).`);
+                    return;
+                }
+                const allowedTypes = ['image/jpeg', 'image/png'];
+                if (!allowedTypes.includes(file.type)) {
+                    showMessage(`Only JPG and PNG images are supported. File: ${file.name}`);
+                    return;
+                }
+                
+                const isDuplicate = (mainImageFileWrapper && mainImageFileWrapper.file.name === file.name && mainImageFileWrapper.file.size === file.size) ||
+                                      supportingImageFilesWrappers.some(w => w.file.name === file.name && w.file.size === file.size);
+                if (isDuplicate) {
+                    showMessage(`Image ${file.name} is already selected.`);
+                    return;
+                }
+                
+                const fileWrapper = { file: file, src: URL.createObjectURL(file) };
+
+                if (mainImageFileWrapper === null) {
+                    mainImageFileWrapper = fileWrapper;
+                } else {
+                    supportingImageFilesWrappers.push(fileWrapper);
+                }
+            });
+            
+            renderPreviews();
+            fileInput.value = ''; 
+        }
+
+        function createPreviewElement(fileWrapper, index, isMain) {
+            const previewContainer = document.createElement('div');
+            previewContainer.classList.add('preview-container');
+
+            const img = document.createElement('img');
+            img.src = fileWrapper.src;
+            img.classList.add('preview-image');
+            img.alt = `Preview of ${fileWrapper.file.name}`;
+            previewContainer.appendChild(img);
+            
+            const actionsContainer = document.createElement('div');
+            actionsContainer.classList.add('preview-actions');
+
+            const cropButton = document.createElement('button');
+            cropButton.innerHTML = '&#9986;'; // Scissors icon
+            cropButton.classList.add('action-button');
+            cropButton.title = `Crop ${fileWrapper.file.name}`;
+            cropButton.onclick = (e) => {
+                e.preventDefault(); e.stopPropagation();
+                openCropModal(fileWrapper, index, isMain);
+            };
+            actionsContainer.appendChild(cropButton);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.innerHTML = '&times;'; 
+            cancelButton.classList.add('action-button');
+            cancelButton.title = `Remove ${fileWrapper.file.name}`;
+            cancelButton.onclick = (event) => {
+                event.preventDefault(); 
+                event.stopPropagation(); 
+                URL.revokeObjectURL(fileWrapper.src); // Clean up memory
+                if (isMain) {
+                    mainImageFileWrapper = null;
+                    if (supportingImageFilesWrappers.length > 0) {
+                        mainImageFileWrapper = supportingImageFilesWrappers.shift();
+                    }
+                } else {
+                    supportingImageFilesWrappers.splice(index, 1);
+                }
+                renderPreviews(); 
+            };
+            actionsContainer.appendChild(cancelButton);
+            
+            previewContainer.appendChild(actionsContainer);
+            return previewContainer;
+        }
+
+        function renderPreviews() {
+            mainImagePreviewContainer.innerHTML = ''; 
+            supportingImagesPreviewContainer.innerHTML = '';
+
+            if (mainImageFileWrapper === null && supportingImageFilesWrappers.length === 0) {
+                dropZonePrompt.classList.remove('hidden');
+                inlinePreviewArea.classList.add('hidden');
+                dropZone.classList.add('dropzone-prompt-visible');
+                dropZone.classList.remove('dropzone-previews-visible');
+            } else {
+                dropZonePrompt.classList.add('hidden');
+                inlinePreviewArea.classList.remove('hidden');
+                dropZone.classList.remove('dropzone-prompt-visible');
+                dropZone.classList.add('dropzone-previews-visible');
+
+                if (mainImageFileWrapper) {
+                    const mainPreviewEl = createPreviewElement(mainImageFileWrapper, 0, true);
+                    mainImagePreviewContainer.appendChild(mainPreviewEl);
+                } else {
+                    const noMainMsg = document.createElement('p');
+                    noMainMsg.textContent = "No main image selected. Drop an image to set it as main.";
+                    noMainMsg.classList.add('no-main-image-text');
+                    mainImagePreviewContainer.appendChild(noMainMsg);
+                }
+
+                supportingImageFilesWrappers.forEach((wrapper, index) => {
+                    const supportingPreviewEl = createPreviewElement(wrapper, index, false);
+                    supportingImagesPreviewContainer.appendChild(supportingPreviewEl);
+                });
+            }
+        }
+        
+        function openCropModal(fileWrapper, index, isMain) {
+            fileToCrop = { type: isMain ? 'main' : 'supporting', index: index };
+            imageToCrop.src = fileWrapper.src;
+            cropModal.classList.add('active');
+
+            imageToCrop.onload = () => {
+                if(cropper) cropper.destroy();
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: isMain ? 16/9 : 1, // Different aspect ratio for main vs supporting
+                    viewMode: 1,
+                });
+            };
+            imageToCrop.onerror = () => {
+                showMessage("Failed to load image for cropping.");
+                closeCropModal();
+            }
+        }
+
+        function closeCropModal() {
+            cropModal.classList.remove('active');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            fileToCrop = { type: null, index: -1 };
+        }
+
+        cancelCropBtn.addEventListener('click', closeCropModal);
+
+        confirmCropBtn.addEventListener('click', () => {
+            if (!cropper || !fileToCrop.type) return;
+
+            const canvas = cropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    showMessage("Could not crop image.");
+                    return;
+                }
+                
+                let oldWrapper;
+                if (fileToCrop.type === 'main') {
+                    oldWrapper = mainImageFileWrapper;
+                } else {
+                    oldWrapper = supportingImageFilesWrappers[fileToCrop.index];
+                }
+
+                const croppedFile = new File([blob], `cropped_${oldWrapper.file.name}`, {
+                    type: blob.type, lastModified: Date.now()
+                });
+                
+                const newWrapper = { file: croppedFile, src: URL.createObjectURL(croppedFile) };
+                
+                URL.revokeObjectURL(oldWrapper.src); // Clean up old URL
+
+                if (fileToCrop.type === 'main') {
+                    mainImageFileWrapper = newWrapper;
+                } else {
+                    supportingImageFilesWrappers[fileToCrop.index] = newWrapper;
+                }
+
+                closeCropModal();
+                renderPreviews();
+            }, 'image/png');
+        });
+
+        function showMessage(message) {
+            const messageBoxId = 'custom-message-box';
+            let messageBox = document.getElementById(messageBoxId);
+            if (!messageBox) {
+                messageBox = document.createElement('div');
+                messageBox.id = messageBoxId;
+                Object.assign(messageBox.style, {
+                    position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '12px 24px',
+                    borderRadius: '8px', zIndex: '1051', boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    opacity: '0', transition: 'opacity 0.3s ease-in-out'
+                });
+                document.body.appendChild(messageBox);
+            }
+            
+            messageBox.textContent = message;
+            messageBox.style.opacity = '1';
+
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                 setTimeout(() => { if (messageBox.parentNode && messageBox.style.opacity === '0') messageBox.parentNode.removeChild(messageBox); }, 300);
+            }, 3000);
+        }
+        
+        renderPreviews(); 
+    </script>
+</body>
+</html>

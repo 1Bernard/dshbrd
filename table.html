@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management Table (Vanilla CSS)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic Reset & Body Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            padding: 16px;
+            /* p-4 */
+            color: #374151;
+            /* default text-gray-700 */
+        }
+
+        /* Table Card */
+        .table-card {
+            position: relative;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: white;
+            padding: 24px;
+            /* p-6 */
+            border-radius: 12px;
+            /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* shadow-lg */
+        }
+
+        /* Header Section - Base styles (Mobile First) */
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            /* Text on top, actions below */
+            align-items: flex-start;
+            margin-bottom: 24px;
+            /* mb-6 */
+        }
+
+        .header-section h1 {
+            font-size: 1.875rem;
+            /* text-2xl */
+            line-height: 2.25rem;
+            font-weight: 600;
+            /* font-semibold */
+            color: #1f2937;
+            /* text-gray-800 */
+        }
+
+        .header-section p {
+            font-size: 0.875rem;
+            /* text-sm */
+            color: #6b7280;
+            /* text-gray-500 */
+            margin-top: 4px;
+            /* mt-1 */
+        }
+
+        .header-title-description {
+            margin-bottom: 16px;
+        }
+
+        /* Actions container for filters and export */
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            /* Stack filter group and export on mobile by default */
+            gap: 16px;
+            /* Space between filter group and export button when stacked */
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        /* Group for filter buttons */
+        .filter-buttons-group {
+            display: flex;
+            flex-wrap: wrap;
+            /* Filter buttons themselves wrap */
+            align-items: center;
+            gap: 12px;
+            /* gap-3 between filter buttons */
+        }
+
+        .export-button-container {
+            /* Styles applied via media queries for alignment */
+        }
+
+
+        /* Buttons & Dropdowns General */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            /* px-4 py-2 */
+            font-size: 0.875rem;
+            /* text-sm */
+            border-radius: 8px;
+            /* rounded-lg */
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            border: 1px solid #d1d5db;
+            /* border-gray-300 */
+            color: #374151;
+            /* text-gray-700 */
+            background-color: white;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            /* shadow-sm for some buttons */
+        }
+
+        .button:hover {
+            background-color: #f3f4f6;
+            /* hover:bg-gray-100 or hover:bg-gray-50 */
+        }
+
+        .button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #6d28d9;
+            /* focus:ring-2 focus:ring-offset-2 focus:ring-custom-purple */
+        }
+
+        .button svg {
+            height: 16px;
+            /* h-4 */
+            width: 16px;
+            /* w-4 */
+            margin-right: 8px;
+            /* mr-2 */
+        }
+
+        .button .dropdown-arrow-svg {
+            margin-left: 8px;
+            /* ml-2 */
+            margin-right: -4px;
+            /* -mr-1 */
+            height: 20px;
+            /* h-5 */
+            width: 20px;
+            /* w-5 */
+        }
+
+        .button-custom-purple-outlined {
+            border-width: 2px;
+            border-color: #6d28d9;
+            /* border-custom-purple */
+            background-color: white;
+            color: #6d28d9;
+            /* text-custom-purple */
+        }
+
+        .button-custom-purple-outlined:hover {
+            background-color: #6d28d9;
+            /* hover:bg-custom-purple */
+            color: white;
+            /* hover:text-white */
+        }
+
+        .button-custom-purple-filled {
+            /* For pagination active */
+            background-color: #6d28d9;
+            color: white;
+            border-color: #6d28d9;
+        }
+
+        .button-custom-purple-filled:hover {
+            background-color: #5b21b6;
+            /* custom-purple-dark */
+        }
+
+        /* General Dropdown Container styling (used for header filters) */
+        .dropdown-container {
+            position: relative;
+            /* Crucial for positioning the .dropdown-menu */
+            display: inline-block;
+            text-align: left;
+        }
+
+        /* New descriptive class for table row action dropdowns */
+        .table-row-action-dropdown {
+            /* position: relative; */
+            display: inline-block;
+            /* Ensures it wraps the button correctly */
+            text-align: left;
+            /* Aligns content if button was block and had text */
+        }
+
+        .table .actions-cell {
+            /* This cell can remain position: static or relative if needed for other reasons,
+                but the .table-row-action-dropdown handles its own menu positioning. */
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            /* Aligns to the right of its relative parent (.dropdown-container or .table-row-action-dropdown) */
+            margin-top: 8px;
+            width: 192px;
+            border-radius: 6px;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            /* Ensure menu is on top */
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0s linear 0.2s;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+            transition-delay: 0s, 0s, 0s;
+        }
+
+        /* Specific adjustments for the actions dropdown menu if needed */
+        .table-row-action-dropdown .actions-dropdown-menu {
+            margin-top: 4px;
+            /* Slightly less margin for a compact look next to the "..." button */
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f3f4f6;
+        }
+
+        .dropdown-menu a svg {
+            display: inline;
+            height: 16px;
+            width: 16px;
+            margin-right: 8px;
+        }
+
+
+        /* Table Section */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .table {
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background-color: #f9fafb;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 16px;
+            text-align: left;
+            white-space: nowrap;
+            font-size: 0.875rem;
+        }
+
+        .table th {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table td {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f3f4f6;
+        }
+
+        .table input:where([type="checkbox"]) {
+            height: 16px;
+            width: 16px;
+            color: #6d28d9;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        .table input:where([type="checkbox"]):focus {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #6d28d9;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .user-email {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .studio-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .studio-info img {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
+
+        .studio-info span {
+            color: #374151;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-active-dot {
+            background-color: #10b981;
+        }
+
+        .status-inactive-dot {
+            background-color: #ef4444;
+        }
+
+        .status-active-text {
+            color: #059669;
+        }
+
+        .status-inactive-text {
+            color: #dc2626;
+        }
+
+        .actions-button {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .actions-button:hover {
+            color: #6d28d9;
+        }
+
+        .actions-button svg {
+            height: 20px;
+            width: 20px;
+            margin: 0;
+        }
+
+        .actions-dropdown-menu {
+            /* Class for the menu itself, not its container */
+            width: 160px;
+        }
+
+        .actions-dropdown-menu a.text-red {
+            color: #dc2626;
+        }
+
+
+        /* Pagination Section - Default to row layout for mobile */
+        .pagination-section {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            /* mt-6 */
+            padding-left: 8px;
+            /* px-2 */
+            padding-right: 8px;
+            /* px-2 */
+        }
+
+        .pagination-nav-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            /* px-3 py-2 */
+            font-size: 0.875rem;
+            /* text-sm */
+            color: #6b7280;
+            /* text-gray-500 */
+            border-radius: 8px;
+            /* rounded-lg */
+            background-color: transparent;
+            border: none;
+            /* Removed border */
+            cursor: pointer;
+        }
+
+        .pagination-nav-button:hover {
+            color: #374151;
+            /* hover:text-gray-700 */
+            background-color: #f3f4f6;
+            /* hover:bg-gray-100 */
+        }
+
+        .pagination-nav-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #6d28d9, 0 0 0 4px rgba(109, 40, 217, 0.5);
+        }
+
+        .pagination-nav-button svg {
+            height: 20px;
+            /* h-5 */
+            width: 20px;
+            /* w-5 */
+        }
+
+        .pagination-pages {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            /* space-x-1 */
+        }
+
+        .pagination-pages button {
+            padding: 4px 12px;
+            /* px-3 py-1 */
+            font-size: 0.875rem;
+            /* text-sm */
+            border-radius: 6px;
+            /* rounded-md */
+            border: 1px solid transparent;
+            background-color: transparent;
+            color: #374151;
+            /* text-gray-700 */
+            cursor: pointer;
+        }
+
+        .pagination-pages button:hover {
+            background-color: #f3f4f6;
+            /* hover:bg-gray-100 */
+        }
+
+        .pagination-pages button:focus {
+            outline: none;
+        }
+
+        .pagination-pages button.active {
+            background-color: #6d28d9;
+            /* bg-custom-purple */
+            color: white;
+            border-color: #6d28d9;
+        }
+
+        .pagination-pages span {
+            font-size: 0.875rem;
+            /* text-sm */
+            color: #374151;
+            /* text-gray-700 */
+        }
+
+
+        /* Responsive Adjustments */
+        /* Small Tablet (767px - 825px): Title top, Filters & Export together below, grouped left */
+        @media (min-width: 767px) and (max-width: 825px) {
+            .header-actions {
+                flex-direction: row;
+                justify-content: flex-start;
+                /* Group filters and export to the left */
+                align-items: center;
+                gap: 12px;
+                /* Gap between filter group and export button */
+                width: 100%;
+                margin-top: 16px;
+            }
+        }
+
+        /* Standard Tablet (826px - 1023px): Title top, Filters left, Export right */
+        @media (min-width: 826px) and (max-width: 1023px) {
+            body {
+                padding: 32px;
+            }
+
+            .table-card {
+                padding: 32px;
+            }
+
+            .header-actions {
+                flex-direction: row;
+                justify-content: space-between;
+                /* Filters left, Export right */
+                align-items: center;
+                gap: 16px;
+                margin-top: 16px;
+                width: 100%;
+            }
+        }
+
+        /* Small Desktop / Large Tablet (1024px - 1174px): Title top, Filters & Export together below, grouped left */
+        @media (min-width: 1024px) and (max-width: 1174px) {
+            body {
+                padding: 32px;
+            }
+
+            .container {
+                padding: 32px;
+            }
+
+            .header-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-title-description {
+                margin-bottom: 16px;
+            }
+
+            .header-actions {
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+                margin-top: 16px;
+            }
+        }
+
+        /* Large Desktop / Laptop (1175px and up): Title left, Filters & Export together right */
+        @media (min-width: 1175px) {
+            body {
+                padding: 32px;
+            }
+
+            .container {
+                padding: 32px;
+            }
+
+            .header-section {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header-title-description {
+                margin-bottom: 0;
+            }
+
+            .header-actions {
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                gap: 12px;
+                width: auto;
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="table-card">
+        <div class="header-section">
+            <div class="header-title-description">
+                <h1>Users</h1>
+                <p>View and manage users and user permissions</p>
+            </div>
+            <div class="header-actions">
+                <div class="filter-buttons-group">
+                    <button class="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        All filters
+                    </button>
+
+                    <div class="dropdown-container">
+                        <button type="button" onclick="toggleDropdown('statusDropdown')" class="button"
+                            id="status-menu-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Status
+                            <svg class="dropdown-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="statusDropdown" class="dropdown-menu" role="menu">
+                            <a href="#" role="menuitem" id="status-option-all">All</a>
+                            <a href="#" role="menuitem" id="status-option-active">Active</a>
+                            <a href="#" role="menuitem" id="status-option-inactive">Inactive</a>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-container">
+                        <button type="button" onclick="toggleDropdown('categoryDropdown')" class="button"
+                            id="category-menu-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            Category
+                            <svg class="dropdown-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="categoryDropdown" class="dropdown-menu" role="menu">
+                            <a href="#" role="menuitem">All</a>
+                            <a href="#" role="menuitem">Theatre</a>
+                            <a href="#" role="menuitem">Concert</a>
+                            <a href="#" role="menuitem">Dynamic</a>
+                            <a href="#" role="menuitem">Music</a>
+                        </div>
+                    </div>
+
+                    <div class="dropdown-container">
+                        <button type="button" onclick="toggleDropdown('dateDropdown')" class="button"
+                            id="date-menu-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Date listed
+                            <svg class="dropdown-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="dateDropdown" class="dropdown-menu" style="width: 224px;" role="menu">
+                            <a href="#" role="menuitem">Any Date</a>
+                            <a href="#" role="menuitem">Last 7 days</a>
+                            <a href="#" role="menuitem">Last 30 days</a>
+                            <a href="#" role="menuitem">Last 90 days</a>
+                            <a href="#" role="menuitem">Custom Range...</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="export-button-container dropdown-container"> <button type="button"
+                        onclick="toggleDropdown('exportDropdown')" class="button button-custom-purple-outlined"
+                        id="export-menu-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export
+                        <svg class="dropdown-arrow-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                            fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="exportDropdown" class="dropdown-menu actions-dropdown-menu" role="menu">
+                        <a href="#" role="menuitem">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            CSV
+                        </a>
+                        <a href="#" role="menuitem">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 3v6h6" />
+                            </svg>
+                            PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"></th>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Name of studio/creator</th>
+                        <th>Category</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Date Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-section">
+            <button class="pagination-nav-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                        clip-rule="evenodd" />
+                </svg>
+            </button>
+            <div class="pagination-pages">
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <span>...</span>
+                <button>67</button>
+                <button>68</button>
+            </div>
+            <button class="pagination-nav-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sample data based on the image
+        const users = [
+            { id: 1, name: "Emelia Ayitey", email: "emeliaayitey@people.com", studio: "Sarkodie", studioIcon: "https://placehold.co/24x24/A78BFA/FFFFFF?text=S", category: "Theatre", role: "Admin", status: "Active", dateAdded: "26 Feb 2025" },
+            { id: 2, name: "Ashley Coleman", email: "ashleycoleman@people.com", studio: "appsNmobile Solutions", studioIcon: "https://placehold.co/24x24/F472B6/FFFFFF?text=A", category: "Concert", role: "Concert", status: "Active", dateAdded: "23 Feb 2025" },
+            { id: 3, name: "Uncle Ebo Whyte", email: "uncleebowhyte@gmail.com", studio: "Roverman Productions", studioIcon: "https://placehold.co/24x24/FB923C/FFFFFF?text=R", category: "Dynamic", role: "Dynamic", status: "Inactive", dateAdded: "20 Feb 2024" },
+            { id: 4, name: "Emelia Ayitey", email: "emeliaayitey@people.com", studio: "National Theater of Ghana", studioIcon: "https://placehold.co/24x24/34D399/FFFFFF?text=N", category: "Music", role: "Music", status: "Active", dateAdded: "17 Jan 2025" },
+            { id: 5, name: "Emelia Ayitey", email: "emeliaayitey@people.com", studio: "National Theater of Ghana", studioIcon: "https://placehold.co/24x24/34D399/FFFFFF?text=N", category: "Dynamic", role: "Dynamic", status: "Inactive", dateAdded: "12 Jan 2025" },
+            { id: 6, name: "Emelia Ayitey", email: "emeliaayitey@people.com", studio: "Accra Hearts Of Oak", studioIcon: "https://placehold.co/24x24/60A5FA/FFFFFF?text=A", category: "Concert", role: "Concert", status: "Inactive", dateAdded: "22 Dec 2024" },
+            { id: 7, name: "Emelia Ayitey", email: "emeliaayitey@people.com", studio: "National Theater of Ghana", studioIcon: "https://placehold.co/24x24/34D399/FFFFFF?text=N", category: "Music", role: "Music", status: "Active", dateAdded: "22 Dec 2024" },
+            { id: 8, name: "Kwame Despite", email: "kwdespite@media.com", studio: "Despite Media", studioIcon: "https://placehold.co/24x24/FACC15/FFFFFF?text=D", category: "Music", role: "Admin", status: "Active", dateAdded: "15 Nov 2024" },
+            { id: 9, name: "Ama K. Abebrese", email: "ama.k@actress.com", studio: "Freelance", studioIcon: "https://placehold.co/24x24/EC4899/FFFFFF?text=A", category: "Theatre", role: "User", status: "Inactive", dateAdded: "01 Oct 2024" },
+            { id: 10, name: "Stonebwoy", email: "1gad@bhim.com", studio: "Burniton Music Group", studioIcon: "https://placehold.co/24x24/8B5CF6/FFFFFF?text=B", category: "Concert", role: "Concert", status: "Active", dateAdded: "22 Sep 2024" }
+        ];
+
+        const userTableBody = document.getElementById('userTableBody');
+
+        function renderTable(usersToRender) {
+            userTableBody.innerHTML = ''; // Clear existing rows
+            usersToRender.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox"></td>
+                    <td>${user.id}</td>
+                    <td>
+                        <div class="user-name">${user.name}</div>
+                        <div class="user-email">${user.email}</div>
+                    </td>
+                    <td>
+                        <div class="studio-info">
+                            <img src="${user.studioIcon}" alt="${user.studio} logo" onerror="this.src='https://placehold.co/24x24/cccccc/999999?text=Err'; this.onerror=null;">
+                            <span>${user.studio}</span>
+                        </div>
+                    </td>
+                    <td>${user.category}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <span class="status-dot ${user.status === 'Active' ? 'status-active-dot' : 'status-inactive-dot'}"></span>
+                        <span class="${user.status === 'Active' ? 'status-active-text' : 'status-inactive-text'}">${user.status}</span>
+                    </td>
+                    <td>${user.dateAdded}</td>
+                    <td class="actions-cell"> 
+                        <div class="table-row-action-dropdown">
+                            <button type="button" onclick="toggleDropdown('actionsDropdown-${user.id}')" class="actions-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                </svg>
+                            </button>
+                            <div id="actionsDropdown-${user.id}" class="dropdown-menu actions-dropdown-menu" role="menu">
+                                <a href="#" role="menuitem">View Profile</a>
+                                <a href="#" role="menuitem">Edit User</a>
+                                <a href="#" class="text-red" role="menuitem">Deactivate</a>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
+            });
+        }
+
+        // Initial table render
+        renderTable(users);
+
+        // Dropdown toggle function
+        function toggleDropdown(dropdownId) {
+            // Close all other open dropdowns first
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu.id !== dropdownId && menu.classList.contains('show')) {
+                    menu.classList.remove('show');
+                }
+            });
+            // Toggle the target dropdown
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        window.onclick = function (event) {
+            let clickedOnToggle = false;
+            const target = event.target;
+
+            // Check if the click is on a dropdown toggle button
+            if (target.closest('button[id$="-menu-button"]') || target.closest('button[onclick^="toggleDropdown"]')) {
+                clickedOnToggle = true;
+            }
+
+            // If the click was not on a toggle button, proceed to close open menus
+            if (!clickedOnToggle) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    // Additionally, ensure the click is not within the dropdown menu itself
+                    if (!menu.contains(target)) {
+                        menu.classList.remove('show');
+                    }
+                });
+            }
+        }
+    </script>
+
+</body>
+
+</html>

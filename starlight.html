@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeminiCharts | Modern JavaScript Charting Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+        .chart-container {
+            position: relative;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+        }
+        .gemini-chart-tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -110%);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .gemini-chart-tooltip.active {
+            opacity: 1;
+            transform: translate(-50%, -120%);
+        }
+        .docs-section h2 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0; /* slate-200 */
+        }
+        .docs-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        .docs-section code {
+            background-color: #e2e8f0; /* slate-200 */
+            color: #1e293b; /* slate-800 */
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .docs-section pre {
+            background-color: #1e293b; /* slate-800 */
+            color: #e2e8f0; /* slate-200 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .docs-section pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">
+                <span class="text-indigo-600">Gemini</span>Charts
+            </h1>
+            <p class="mt-1 text-md text-slate-600">A powerful, modern, and framework-free JavaScript charting library.</p>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Chart Examples Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Bar Chart -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Bar Chart - Monthly Revenue</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <!-- Line Chart -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Line Chart - Stock Prices</h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Pie Chart - Market Share</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+
+            <!-- Doughnut Chart -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Doughnut Chart - Device Usage</h3>
+                <canvas id="doughnutChart"></canvas>
+            </div>
+
+            <!-- Scatter Plot -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Scatter Plot - Height vs Weight</h3>
+                <canvas id="scatterChart"></canvas>
+            </div>
+
+            <!-- Radar Chart -->
+            <div class="chart-container">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">Radar Chart - Skill Assessment</h3>
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Documentation Section -->
+        <div class="docs-section mt-16 bg-white p-8 rounded-lg shadow-md">
+            <h2>Documentation</h2>
+
+            <p class="mb-4">Welcome to the GeminiCharts documentation. Here you'll find everything you need to integrate beautiful, interactive charts into your projects.</p>
+
+            <h3>1. Getting Started</h3>
+            <p>To create a chart, you need a <code>&lt;canvas&gt;</code> element in your HTML and then instantiate a <code>GeminiChart</code> object.</p>
+            
+            <pre><code class="language-html">&lt;!-- 1. Add a canvas element to your HTML --&gt;
+&lt;canvas id="myChart"&gt;&lt;/canvas&gt;
+
+&lt;!-- 2. Include the GeminiCharts library --&gt;
+&lt;script src="path/to/GeminiCharts.js"&gt;&lt;/script&gt;
+
+&lt;!-- 3. Create a new chart instance --&gt;
+&lt;script&gt;
+    const ctx = document.getElementById('myChart');
+    new GeminiChart(ctx, {
+        type: 'bar', // or 'line', 'pie', etc.
+        data: {
+            labels: ['Jan', 'Feb', 'Mar'],
+            datasets: [{
+                label: 'Sample Data',
+                data: [10, 20, 30],
+            }]
+        },
+        options: {
+            // ... your options here
+        }
+    });
+&lt;/script&gt;</code></pre>
+
+            <h3>2. Configuration</h3>
+            <p>A GeminiChart is configured using a single object with three main properties: <code>type</code>, <code>data</code>, and <code>options</code>.</p>
+
+            <h4>The <code>type</code> Property</h4>
+            <p>A string representing the chart type. Available types are:</p>
+            <ul>
+                <li><code>'bar'</code></li>
+                <li><code>'line'</code></li>
+                <li><code>'pie'</code></li>
+                <li><code>'doughnut'</code></li>
+                <li><code>'scatter'</code></li>
+                <li><code>'radar'</code></li>
+            </ul>
+
+            <h4>The <code>data</code> Object</h4>
+            <p>This object contains the information needed to build the chart.</p>
+            <pre><code class="language-javascript">data: {
+    // An array of strings for the labels on the x-axis or for pie/doughnut segments.
+    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+
+    // An array of dataset objects.
+    datasets: [{
+        // The label for this dataset, shown in the legend and tooltips.
+        label: '# of Votes',
+
+        // The actual data points. For scatter charts, this would be an array of objects like {x: 10, y: 20}.
+        data: [12, 19, 3, 5, 2, 3],
+
+        // The fill color for bars, pie slices, etc. Can be a single color string or an array of strings.
+        backgroundColor: 'rgba(79, 70, 229, 0.8)',
+
+        // The border color for bars, lines, etc.
+        borderColor: 'rgba(79, 70, 229, 1)',
+
+        // The width of the border.
+        borderWidth: 1,
+
+        // For line charts: the tension of the line (0 for straight lines).
+        tension: 0.4,
+
+        // For line charts: whether to fill the area under the line.
+        fill: true
+    }]
+}</code></pre>
+
+            <h4>The <code>options</code> Object</h4>
+            <p>This object allows for deep customization of the chart's appearance and behavior.</p>
+            <pre><code class="language-javascript">options: {
+    // Makes the chart resize when its container does.
+    responsive: true,
+    
+    // The width-to-height ratio of the chart.
+    aspectRatio: 2,
+
+    // Chart title configuration.
+    title: {
+        display: true,
+        text: 'My Custom Chart Title',
+        font: { size: 20, weight: 'bold' },
+        color: '#334155'
+    },
+
+    // Legend configuration.
+    legend: {
+        display: true,
+        position: 'top', // 'top', 'bottom', 'left', 'right'
+        align: 'center', // 'start', 'center', 'end'
+        labels: {
+            color: '#475569',
+            usePointStyle: true,
+        }
+    },
+
+    // Tooltip configuration.
+    tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+    },
+
+    // Axis configuration (for bar, line, scatter charts).
+    scales: {
+        x: {
+            display: true,
+            title: {
+                display: true,
+                text: 'Month'
+            },
+            grid: {
+                display: false // Hides grid lines for the x-axis
+            }
+        },
+        y: {
+            display: true,
+            title: {
+                display: true,
+                text: 'Value'
+            },
+            beginAtZero: true
+        }
+    },
+    
+    // Animation configuration
+    animation: {
+        duration: 1000, // duration in ms
+        easing: 'easeOutQuart' // 'linear', 'easeOutQuad', etc.
+    }
+}</code></pre>
+
+            <h3>3. Integration with Ruby on Rails</h3>
+            <p>Integrating GeminiCharts into a Rails application is straightforward.</p>
+
+            <h4>Step 1: Add GeminiCharts to your project</h4>
+            <p>Save the GeminiCharts library code (provided below in this file) as <code>GeminiCharts.js</code> inside your Rails app's JavaScript directory, typically <code>app/javascript/</code>.</p>
+
+            <h4>Step 2: Import the library</h4>
+            <p>In your main JavaScript entry point, likely <code>app/javascript/application.js</code>, import the library:</p>
+            <pre><code class="language-javascript">// app/javascript/application.js
+import "./controllers"
+import * as bootstrap from "bootstrap"
+
+// Import GeminiCharts
+import "./GeminiCharts" 
+</code></pre>
+            <p>If you are using Rails 7 with import maps, you would pin the file in <code>config/importmap.rb</code> and then import it.</p>
+            <pre><code class="language-ruby"># config/importmap.rb
+pin "application"
+pin_all_from "app/javascript/controllers", under: "controllers"
+pin "GeminiCharts", to: "GeminiCharts.js" # Add this line
+</code></pre>
+            <pre><code class="language-javascript">// app/javascript/application.js or a specific controller
+import "GeminiCharts"
+</code></pre>
+
+            <h4>Step 3: Prepare data in your Rails Controller</h4>
+            <p>In your controller, query your database and format the data as JSON.</p>
+            <pre><code class="language-ruby"># app/controllers/dashboards_controller.rb
+class DashboardsController &lt; ApplicationController
+  def show
+    @chart_data = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+      datasets: [{
+        label: 'Sales',
+        data: [65, 59, 80, 81, 56],
+        backgroundColor: 'rgba(79, 70, 229, 0.8)',
+        borderColor: 'rgba(79, 70, 229, 1)'
+      }]
+    }.to_json
+  end
+end
+</code></pre>
+
+            <h4>Step 4: Initialize the chart in your View</h4>
+            <p>In your ERB view file, add the canvas and a script tag to initialize the chart, passing the data from your controller.</p>
+            <pre><code class="language-html">&lt;!-- app/views/dashboards/show.html.erb --&gt;
+&lt;h1&gt;Dashboard&lt;/h1&gt;
+
+&lt;div style="width: 80%; margin: auto;"&gt;
+  &lt;canvas id="salesChart"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // Wait for the DOM to be fully loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('salesChart');
+    const chartData = JSON.parse('&lt;%= @chart_data.html_safe %&gt;');
+
+    new GeminiChart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        title: {
+          display: true,
+          text: 'Monthly Sales Data'
+        }
+      }
+    });
+  });
+&lt;/script&gt;
+</code></pre>
+            <p>This approach cleanly separates your Ruby backend from your JavaScript frontend, providing a robust and maintainable way to display dynamic charts in your Rails application.</p>
+        </div>
+    </main>
+
+    <!-- The GeminiCharts Library -->
+    <script>
+    /**
+     * GeminiCharts.js - A Modern, Framework-Free JavaScript Charting Library
+     * Version: 1.0.3
+     * Author: Gemini
+     * License: MIT
+     */
+    (function(global) {
+        'use strict';
+
+        // --- Helper Functions ---
+        const helpers = {
+            colors: ['#4f46e5', '#db2777', '#16a34a', '#d97706', '#0891b2', '#6d28d9', '#be185d', '#059669', '#c2410c', '#0e7490'],
+            color(index) { return this.colors[index % this.colors.length]; },
+            toRgba(hex, alpha = 1) {
+                let c;
+                if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+                    c = hex.substring(1).split('');
+                    if (c.length == 3) { c = [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+                    c = '0x' + c.join('');
+                    return `rgba(${[(c>>16)&255, (c>>8)&255, c&255].join(',')},${alpha})`;
+                }
+                throw new Error('Bad Hex');
+            },
+            easingEffects: {
+                linear: t => t,
+                easeOutQuart: t => 1 - (--t) * t * t * t,
+            },
+            defaults: {
+                options: {
+                    responsive: true,
+                    aspectRatio: 2,
+                    title: { display: false, text: '', font: { size: 18, weight: '600' }, color: '#334155', padding: 10 },
+                    legend: { display: true, position: 'top', align: 'center', labels: { color: '#475569', padding: 20, usePointStyle: false, pointStyle: 'circle', boxWidth: 12, font: { size: 12 }}},
+                    tooltip: { enabled: true, backgroundColor: 'rgba(0,0,0,0.8)', titleColor: '#fff', bodyColor: '#fff', padding: 8, cornerRadius: 4, caretSize: 5 },
+                    animation: { duration: 1000, easing: 'easeOutQuart' },
+                    scales: {
+                        x: { display: true, title: { display: false, text: '' }, grid: { display: true, color: '#e2e8f0' }, ticks: { color: '#64748b' } },
+                        y: { display: true, title: { display: false, text: '' }, grid: { display: true, color: '#e2e8f0' }, ticks: { color: '#64748b' }, beginAtZero: true }
+                    }
+                }
+            },
+            merge(target, source) {
+                for (const key in source) {
+                    if (source[key] instanceof Object && key in target) {
+                        target[key] = this.merge(target[key] || {}, source[key]);
+                    } else {
+                        target[key] = source[key];
+                    }
+                }
+                return target;
+            }
+        };
+
+        // --- Main Chart Class ---
+        class GeminiChart {
+            constructor(canvas, config) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                const defaultsClone = JSON.parse(JSON.stringify(helpers.defaults));
+                this.config = helpers.merge(defaultsClone, config);
+                this.chartType = this.config.type;
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                this.tooltip = new Tooltip(this);
+                this.legend = new Legend(this);
+                this.processData();
+                const chartTypes = {
+                    bar: BarChart, line: LineChart, pie: PieChart, doughnut: PieChart,
+                    scatter: ScatterChart, radar: RadarChart
+                };
+                if (!chartTypes[this.chartType]) { throw new Error(`Chart type "${this.chartType}" not supported.`); }
+                this.chart = new chartTypes[this.chartType](this);
+                this.animationState = { startTime: 0, progress: 0, complete: false };
+                this.addEventListeners();
+                this.animate();
+            }
+            
+            resize() {
+                const parent = this.canvas.parentElement;
+                const newWidth = parent.clientWidth;
+                const newHeight = newWidth / (this.config.options.aspectRatio || 2);
+                this.width = newWidth;
+                this.height = newHeight;
+                this.canvas.width = this.width * window.devicePixelRatio;
+                this.canvas.height = this.height * window.devicePixelRatio;
+                this.canvas.style.width = `${this.width}px`;
+                this.canvas.style.height = `${this.height}px`;
+                this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            }
+            
+            processData() {
+                this.config.data.datasets.forEach((dataset, i) => {
+                    if (!dataset.backgroundColor) {
+                        if (['pie', 'doughnut'].includes(this.chartType)) {
+                            dataset.backgroundColor = this.config.data.labels.map((_, j) => helpers.toRgba(helpers.color(j), 0.8));
+                        } else {
+                            dataset.backgroundColor = helpers.toRgba(helpers.color(i), 0.8);
+                        }
+                    }
+                    if (!dataset.borderColor) {
+                        if (['pie', 'doughnut'].includes(this.chartType)) {
+                            dataset.borderColor = this.config.data.labels.map((_, j) => helpers.color(j));
+                        } else {
+                            dataset.borderColor = helpers.color(i);
+                        }
+                    }
+                });
+            }
+
+            addEventListeners() {
+                if (this.config.options.responsive) {
+                    this.resizeObserver = new ResizeObserver(() => {
+                        this.resize();
+                        this.draw();
+                    });
+                    this.resizeObserver.observe(this.canvas.parentElement);
+                }
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('mouseout', () => this.tooltip.hide());
+                this.canvas.addEventListener('click', (e) => this.handleClick(e));
+            }
+
+            handleMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const activeElements = this.chart.getElementsAtEvent(x, y);
+                if (activeElements.length > 0) {
+                    this.canvas.style.cursor = 'pointer';
+                    this.tooltip.show(x, y, activeElements);
+                } else {
+                    this.canvas.style.cursor = 'default';
+                    this.tooltip.hide();
+                }
+            }
+            
+            handleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                this.legend.handleClick(x, y);
+            }
+
+            animate() {
+                this.animationState.startTime = Date.now();
+                const animateFrame = () => {
+                    const now = Date.now();
+                    const elapsedTime = now - this.animationState.startTime;
+                    const duration = this.config.options.animation.duration;
+                    this.animationState.progress = Math.min(elapsedTime / duration, 1);
+                    const easingFunction = helpers.easingEffects[this.config.options.animation.easing] || helpers.easingEffects.linear;
+                    const easedProgress = easingFunction(this.animationState.progress);
+                    this.draw(easedProgress);
+                    if (this.animationState.progress < 1) {
+                        requestAnimationFrame(animateFrame);
+                    } else {
+                        this.animationState.complete = true;
+                    }
+                };
+                requestAnimationFrame(animateFrame);
+            }
+
+            draw(progress = 1) {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.chartArea = { top: 0, left: 0, right: this.width, bottom: this.height };
+                if (this.config.options.title.display) {
+                    this.ctx.save();
+                    const title = this.config.options.title;
+                    this.ctx.font = `${title.font.weight || 'normal'} ${title.font.size || 18}px ${'Inter'}`;
+                    this.ctx.fillStyle = title.color;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(title.text, this.width / 2, this.chartArea.top + title.font.size + title.padding);
+                    this.chartArea.top += title.font.size + title.padding * 2;
+                    this.ctx.restore();
+                }
+                this.legend.calculateLayout();
+                this.legend.draw();
+                this.chart.draw(progress);
+            }
+            
+            update() { this.animate(); }
+        }
+
+        // --- Tooltip Class ---
+        class Tooltip {
+            constructor(chart) {
+                this.chart = chart;
+                this.el = document.createElement('div');
+                this.el.className = 'gemini-chart-tooltip';
+                this.chart.canvas.parentElement.appendChild(this.el);
+            }
+            show(x, y, elements) {
+                if (!this.chart.config.options.tooltip.enabled || elements.length === 0) return;
+                const element = elements[0];
+                const dataset = this.chart.config.data.datasets[element.datasetIndex];
+                const label = this.chart.config.data.labels[element.index];
+                const value = typeof element.value === 'object' ? `(${element.value.x}, ${element.value.y})` : element.value;
+                let html = `<div style="font-weight: bold; margin-bottom: 4px;">${label}</div>`;
+                html += `<div><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${element.backgroundColor}; margin-right: 5px;"></span>${dataset.label}: ${value}</div>`;
+                this.el.innerHTML = html;
+                this.el.classList.add('active');
+                this.el.style.left = `${x}px`;
+                this.el.style.top = `${y}px`;
+            }
+            hide() { this.el.classList.remove('active'); }
+        }
+        
+        // --- Legend Class ---
+        class Legend {
+            constructor(chart) {
+                this.chart = chart;
+                this.items = [];
+            }
+            calculateLayout() {
+                if (!this.chart.config.options.legend.display) return;
+                const { legend } = this.chart.config.options;
+                const { datasets } = this.chart.config.data;
+                const { ctx } = this.chart;
+                this.items = datasets.map((ds, i) => {
+                    const text = ds.label;
+                    ctx.font = `${legend.labels.font.size}px Inter`;
+                    const textWidth = ctx.measureText(text).width;
+                    return { text, datasetIndex: i, fillStyle: ds.backgroundColor, strokeStyle: ds.borderColor, hidden: ds.hidden || false, width: legend.labels.boxWidth + 5 + textWidth };
+                });
+                const totalWidth = this.items.reduce((sum, item) => sum + item.width + legend.labels.padding, 0);
+                let x, y = this.chart.chartArea.top + (legend.labels.font.size / 2);
+                if (legend.align === 'start') { x = this.chart.chartArea.left + 20; }
+                else if (legend.align === 'end') { x = this.chart.chartArea.right - totalWidth; }
+                else { x = (this.chart.chartArea.right - totalWidth) / 2; }
+                this.items.forEach(item => { item.x = x; item.y = y; x += item.width + legend.labels.padding; });
+                this.chart.chartArea.top += legend.labels.boxWidth + legend.labels.padding;
+            }
+            draw() {
+                if (!this.chart.config.options.legend.display) return;
+                const { ctx } = this.chart;
+                const { labels } = this.chart.config.options.legend;
+                this.items.forEach(item => {
+                    ctx.save();
+                    ctx.fillStyle = item.hidden ? '#ccc' : (Array.isArray(item.fillStyle) ? item.fillStyle[0] : item.fillStyle);
+                    ctx.strokeStyle = item.hidden ? '#ccc' : item.strokeStyle;
+                    const boxX = item.x, boxY = item.y, boxWidth = labels.boxWidth;
+                    ctx.fillRect(boxX, boxY, boxWidth, boxWidth);
+                    ctx.fillStyle = item.hidden ? '#ccc' : labels.color;
+                    ctx.font = `${labels.font.size}px Inter`;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(item.text, boxX + boxWidth + 5, boxY + boxWidth / 2);
+                    if (item.hidden) {
+                        ctx.beginPath();
+                        ctx.moveTo(boxX, boxY + boxWidth / 2);
+                        ctx.lineTo(boxX + boxWidth + 5 + ctx.measureText(item.text).width, boxY + boxWidth / 2);
+                        ctx.strokeStyle = '#888';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                });
+            }
+            handleClick(x, y) {
+                if (!this.chart.config.options.legend.display) return;
+                this.items.forEach(item => {
+                    if (x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + this.chart.config.options.legend.labels.boxWidth) {
+                        const dataset = this.chart.config.data.datasets[item.datasetIndex];
+                        dataset.hidden = !dataset.hidden;
+                        this.chart.update();
+                    }
+                });
+            }
+        }
+        
+        // --- Base Chart Class ---
+        class BaseChart {
+            constructor(chartInstance) {
+                this.chart = chartInstance;
+                this.ctx = chartInstance.ctx;
+                this.config = chartInstance.config;
+                this.elements = [];
+            }
+            draw() { throw new Error("Draw method must be implemented"); }
+            getElementsAtEvent() { return []; }
+        }
+        
+        // --- Chart Implementations ---
+        class AxisChart extends BaseChart {
+            calculateLayout() {
+                const { scales } = this.config.options;
+                const chartArea = this.chart.chartArea; // Access chartArea from the main instance
+                chartArea.left += 50;
+                chartArea.bottom -= 40;
+                if (scales.x.title.display) chartArea.bottom -= 20;
+                if (scales.y.title.display) chartArea.left += 20;
+                const allData = this.config.data.datasets.filter(ds => !ds.hidden).flatMap(ds => ds.data.map(d => typeof d === 'object' ? d.y : d).filter(v => v != null));
+                const yMin = scales.y.beginAtZero ? 0 : Math.min(...allData, 0);
+                const yMax = Math.max(...allData, 0);
+                this.yScale = { min: yMin, max: yMax, range: yMax - yMin };
+            }
+            drawAxes() {
+                const { ctx } = this.chart;
+                const { scales } = this.config.options;
+                const { left, right, top, bottom } = this.chart.chartArea;
+                ctx.save();
+                ctx.strokeStyle = '#d1d5db';
+                ctx.lineWidth = 1;
+                if (scales.y.display) { ctx.beginPath(); ctx.moveTo(left, top); ctx.lineTo(left, bottom); ctx.stroke(); }
+                if (scales.x.display) { ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(right, bottom); ctx.stroke(); }
+                ctx.restore();
+            }
+            drawGrid() {
+                 const { ctx } = this.chart;
+                 const { scales } = this.config.options;
+                 const { left, right, top, bottom } = this.chart.chartArea;
+                 const numLabels = this.config.data.labels.length;
+                 const numYTicks = 5;
+                 ctx.save();
+                 ctx.strokeStyle = scales.y.grid.color;
+                 ctx.lineWidth = 1;
+                 ctx.font = `12px Inter`;
+                 ctx.fillStyle = scales.y.ticks.color;
+                 ctx.textAlign = 'right';
+                 ctx.textBaseline = 'middle';
+                 if (scales.y.grid.display && this.yScale.range > 0) {
+                     for (let i = 0; i <= numYTicks; i++) {
+                         const y = bottom - (i / numYTicks) * (bottom - top);
+                         const value = this.yScale.min + (i / numYTicks) * this.yScale.range;
+                         ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+                         ctx.fillText(value.toFixed(0), left - 8, y);
+                     }
+                 }
+                 ctx.textAlign = 'center';
+                 ctx.textBaseline = 'top';
+                 ctx.fillStyle = scales.x.ticks.color;
+                 const xStep = (right - left) / numLabels;
+                 this.config.data.labels.forEach((label, i) => {
+                     const x = left + (i + 0.5) * xStep;
+                     ctx.fillText(label, x, bottom + 8);
+                 });
+                 ctx.restore();
+            }
+        }
+        
+        class BarChart extends AxisChart {
+            draw(progress) {
+                this.calculateLayout();
+                this.drawAxes();
+                this.drawGrid();
+                const { ctx } = this;
+                const { left, right, top, bottom } = this.chart.chartArea;
+                const { datasets, labels } = this.config.data;
+                const numLabels = labels.length;
+                const xStep = (right - left) / numLabels;
+                const barWidth = xStep * 0.6;
+                this.elements = [];
+                datasets.forEach((dataset, datasetIndex) => {
+                    if (dataset.hidden) return;
+                    dataset.data.forEach((value, index) => {
+                        const barHeight = this.yScale.max > 0 ? (value / this.yScale.max) * (bottom - top) * progress : 0;
+                        const x = left + (index * xStep) + (xStep - barWidth) / 2;
+                        const y = bottom - barHeight;
+                        ctx.fillStyle = dataset.backgroundColor;
+                        ctx.strokeStyle = dataset.borderColor;
+                        ctx.lineWidth = dataset.borderWidth || 1;
+                        ctx.fillRect(x, y, barWidth, barHeight);
+                        ctx.strokeRect(x, y, barWidth, barHeight);
+                        this.elements.push({ x, y, width: barWidth, height: barHeight, index, datasetIndex, value, backgroundColor: dataset.backgroundColor });
+                    });
+                });
+            }
+            getElementsAtEvent(x, y) { return this.elements.filter(el => x >= el.x && x <= el.x + el.width && y >= el.y && y <= el.y + el.height); }
+        }
+        
+        class LineChart extends AxisChart {
+            draw(progress) {
+                this.calculateLayout();
+                this.drawAxes();
+                this.drawGrid();
+                const { ctx } = this;
+                const { left, right, top, bottom } = this.chart.chartArea;
+                const { datasets, labels } = this.config.data;
+                const numLabels = labels.length;
+                const xStep = (right - left) / (numLabels > 1 ? numLabels - 1 : 1);
+                this.elements = [];
+                datasets.forEach((dataset, datasetIndex) => {
+                    if (dataset.hidden) return;
+                    const points = dataset.data.map((value, index) => ({
+                        x: left + index * xStep,
+                        y: bottom - (this.yScale.max > 0 ? (value / this.yScale.max) * (bottom - top) : 0)
+                    }));
+                    ctx.beginPath();
+                    ctx.strokeStyle = dataset.borderColor;
+                    ctx.lineWidth = dataset.borderWidth || 2;
+                    ctx.moveTo(points[0].x, bottom - (points[0].y - bottom) * progress);
+                    for (let i = 1; i < points.length; i++) { ctx.lineTo(points[i].x, bottom - (points[i].y - bottom) * progress); }
+                    ctx.stroke();
+                    points.forEach((point, index) => {
+                        ctx.beginPath();
+                        ctx.fillStyle = dataset.borderColor;
+                        const pointY = bottom - (point.y - bottom) * progress;
+                        ctx.arc(point.x, pointY, 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                        this.elements.push({ x: point.x, y: pointY, radius: 6, index, datasetIndex, value: dataset.data[index], backgroundColor: dataset.borderColor });
+                    });
+                });
+            }
+            getElementsAtEvent(x, y) { return this.elements.filter(el => Math.sqrt((x - el.x)**2 + (y - el.y)**2) <= el.radius); }
+        }
+        
+        class PieChart extends BaseChart {
+             draw(progress) {
+                const { ctx } = this.chart;
+                const { left, right, top, bottom } = this.chart.chartArea;
+                const centerX = left + (right - left) / 2;
+                const centerY = top + (bottom - top) / 2;
+                const radius = Math.min(right - left, bottom - top) / 2 * 0.8;
+                const { datasets } = this.config.data;
+                const total = datasets[0].data.reduce((sum, value) => sum + value, 0);
+                let startAngle = -0.5 * Math.PI;
+                this.elements = [];
+                datasets[0].data.forEach((value, index) => {
+                    const sliceAngle = total > 0 ? (value / total) * 2 * Math.PI : 0;
+                    const endAngle = startAngle + sliceAngle * progress;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = Array.isArray(datasets[0].backgroundColor) ? datasets[0].backgroundColor[index] : datasets[0].backgroundColor;
+                    ctx.fill();
+                    this.elements.push({ startAngle, endAngle, index, datasetIndex: 0, value, backgroundColor: ctx.fillStyle, centerX, centerY, radius });
+                    startAngle = endAngle;
+                });
+                if (this.config.type === 'doughnut') {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius * 0.5, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                }
+            }
+            getElementsAtEvent(x, y) {
+                return this.elements.filter(el => {
+                    const distance = Math.sqrt((x - el.centerX)**2 + (y - el.centerY)**2);
+                    if (distance > el.radius || (this.config.type === 'doughnut' && distance < el.radius * 0.5)) return false;
+                    let angle = Math.atan2(y - el.centerY, x - el.centerX);
+                    if (angle < -0.5 * Math.PI) angle += 2 * Math.PI;
+                    return angle >= el.startAngle && angle <= el.endAngle;
+                });
+            }
+        }
+        
+        class ScatterChart extends AxisChart {
+            calculateLayout() {
+                super.calculateLayout();
+                const allXData = this.config.data.datasets.filter(ds => !ds.hidden).flatMap(ds => ds.data.map(d => d.x));
+                const allYData = this.config.data.datasets.filter(ds => !ds.hidden).flatMap(ds => ds.data.map(d => d.y));
+                this.xScale = { min: Math.min(...allXData), max: Math.max(...allXData), range: Math.max(...allXData) - Math.min(...allXData) };
+                this.yScale = { min: Math.min(...allYData), max: Math.max(...allYData), range: Math.max(...allYData) - Math.min(...allYData) };
+            }
+            draw(progress) {
+                this.calculateLayout();
+                this.drawAxes();
+                const { ctx } = this;
+                const { left, right, top, bottom } = this.chart.chartArea;
+                this.elements = [];
+                this.config.data.datasets.forEach((dataset, datasetIndex) => {
+                    if (dataset.hidden) return;
+                    dataset.data.forEach((point, index) => {
+                        const xPos = left + (this.xScale.range > 0 ? ((point.x - this.xScale.min) / this.xScale.range) * (right - left) : (right-left)/2);
+                        const yPos = bottom - (this.yScale.range > 0 ? ((point.y - this.yScale.min) / this.yScale.range) * (bottom - top) : 0);
+                        ctx.beginPath();
+                        ctx.fillStyle = helpers.toRgba(dataset.borderColor, 0.7);
+                        ctx.arc(xPos, yPos, 5 * progress, 0, 2 * Math.PI);
+                        ctx.fill();
+                        this.elements.push({ x: xPos, y: yPos, radius: 7, index, datasetIndex, value: point, backgroundColor: ctx.fillStyle });
+                    });
+                });
+            }
+            getElementsAtEvent(x, y) { return this.elements.filter(el => Math.sqrt((x - el.x)**2 + (y - el.y)**2) <= el.radius); }
+        }
+        
+        class RadarChart extends BaseChart {
+            draw(progress) {
+                const { ctx } = this.chart;
+                const { left, right, top, bottom } = this.chart.chartArea;
+                const centerX = left + (right - left) / 2;
+                const centerY = top + (bottom - top) / 2;
+                const radius = Math.min(right - left, bottom - top) / 2 * 0.7;
+                const labels = this.config.data.labels;
+                const angleSlice = (2 * Math.PI) / labels.length;
+                ctx.strokeStyle = '#e2e8f0';
+                for (let i = 1; i <= 5; i++) {
+                    ctx.beginPath(); ctx.arc(centerX, centerY, radius * (i / 5), 0, 2 * Math.PI); ctx.stroke();
+                }
+                ctx.fillStyle = '#64748b';
+                labels.forEach((label, i) => {
+                    const angle = i * angleSlice - Math.PI / 2;
+                    const x = centerX + radius * 1.1 * Math.cos(angle);
+                    const y = centerY + radius * 1.1 * Math.sin(angle);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, x, y);
+                    ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)); ctx.stroke();
+                });
+                this.config.data.datasets.forEach(dataset => {
+                    if (dataset.hidden) return;
+                    const maxValue = 100;
+                    ctx.beginPath();
+                    dataset.data.forEach((value, i) => {
+                        const r = (value / maxValue) * radius * progress;
+                        const angle = i * angleSlice - Math.PI / 2;
+                        const x = centerX + r * Math.cos(angle);
+                        const y = centerY + r * Math.sin(angle);
+                        if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
+                    });
+                    ctx.closePath();
+                    ctx.strokeStyle = dataset.borderColor;
+                    ctx.fillStyle = helpers.toRgba(dataset.borderColor, 0.4);
+                    ctx.stroke(); ctx.fill();
+                });
+            }
+            getElementsAtEvent(x, y) { return []; }
+        }
+
+        global.GeminiChart = GeminiChart;
+
+    })(window);
+    </script>
+    
+    <script>
+    // --- Chart Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Bar Chart
+        const barCtx = document.getElementById('barChart');
+        new GeminiChart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Revenue (USD)',
+                    data: [12000, 19000, 15000, 21000, 18000, 24000],
+                    backgroundColor: 'rgba(79, 70, 229, 0.8)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true } },
+                title: { display: false }
+            }
+        });
+
+        // 2. Line Chart
+        const lineCtx = document.getElementById('lineChart');
+        new GeminiChart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                datasets: [{
+                    label: 'Stock A',
+                    data: [150, 155, 152, 160, 165],
+                    borderColor: 'rgba(219, 39, 119, 1)',
+                    tension: 0.4
+                }, {
+                    label: 'Stock B',
+                    data: [140, 142, 148, 145, 152],
+                    borderColor: 'rgba(22, 163, 74, 1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: false } },
+                title: { display: false }
+            }
+        });
+
+        // 3. Pie Chart
+        const pieCtx = document.getElementById('pieChart');
+        new GeminiChart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Google', 'Facebook', 'Amazon', 'Apple'],
+                datasets: [{
+                    label: 'Market Share',
+                    data: [300, 150, 100, 80]
+                }]
+            },
+            options: {
+                legend: { position: 'right' },
+                aspectRatio: 1.5
+            }
+        });
+
+        // 4. Doughnut Chart
+        const doughnutCtx = document.getElementById('doughnutChart');
+        new GeminiChart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Desktop', 'Mobile', 'Tablet'],
+                datasets: [{
+                    label: 'Device Usage',
+                    data: [55, 35, 10]
+                }]
+            },
+            options: {
+                legend: { position: 'bottom' },
+                aspectRatio: 1.5
+            }
+        });
+        
+        // 5. Scatter Plot
+        const scatterCtx = document.getElementById('scatterChart');
+        new GeminiChart(scatterCtx, {
+            type: 'scatter',
+            data: {
+                labels: ['Point 1', 'Point 2', 'Point 3', 'Point 4', 'Point 5', 'Point 6', 'Point 7', 'Point 8', 'Point 9'],
+                datasets: [{
+                    label: 'Adults',
+                    data: [
+                        {x: 170, y: 65}, {x: 180, y: 80}, {x: 165, y: 55},
+                        {x: 175, y: 75}, {x: 190, y: 95}, {x: 160, y: 50},
+                        {x: 182, y: 78}, {x: 173, y: 72}, {x: 168, y: 60},
+                    ],
+                    borderColor: '#db2777',
+                }]
+            }
+        });
+        
+        // 6. Radar Chart
+        const radarCtx = document.getElementById('radarChart');
+        new GeminiChart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Coding', 'Communication', 'Teamwork', 'Problem Solving', 'Creativity'],
+                datasets: [{
+                    label: 'Developer A',
+                    data: [90, 75, 85, 80, 70],
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                }, {
+                    label: 'Developer B',
+                    data: [70, 90, 80, 85, 95],
+                    borderColor: 'rgba(219, 39, 119, 1)',
+                }]
+            },
+            options: {
+                aspectRatio: 1.5
+            }
+        });
+    });
+    </script>
+</body>
+</html>
