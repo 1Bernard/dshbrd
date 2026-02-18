@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bernard [Surname] | Senior Software Engineer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- DESIGN TOKENS --- */
+        :root {
+            /* Light Theme */
+            --bg-body: #eef0f4;
+            --bg-card: #ffffff;
+            /* Grid color for canvas use */
+            --grid-color: rgba(0, 0, 0, 0.06);
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --accent: #2c3e50;
+            --highlight: #3b82f6;
+            --border: rgba(0, 0, 0, 0.08);
+            --glass: rgba(255, 255, 255, 0.7);
+            --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --font-body: 'Inter', sans-serif;
+            --radius: 12px;
+            --cursor-size: 20px;
+        }
+
+        body.dark-mode {
+            /* Dark Theme */
+            --bg-body: #0a0a0a;
+            --bg-card: #141414;
+            --grid-color: rgba(255, 255, 255, 0.04);
+            --text-main: #f0f0f0;
+            --text-muted: #888888;
+            --accent: #ffffff;
+            --highlight: #00f0ff;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(20, 20, 20, 0.7);
+            --shadow: 0 10px 40px -10px rgba(0, 240, 255, 0.1);
+        }
+
+        /* --- RESET & BASE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Hide default cursor globally */
+        }
+
+        ::selection {
+            background: var(--highlight);
+            color: var(--bg-body);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            /* Removed static background-image to let canvas handle the grid */
+            transition: background-color 0.5s ease;
+        }
+
+        /* Launch State */
+        body.locked {
+            overflow: hidden;
+        }
+
+        /* --- GRAIN OVERLAY --- */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9000;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* --- BACKGROUND GRID CANVAS --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2; /* Behind everything */
+            pointer-events: none;
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        .cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--cursor-size);
+            height: var(--cursor-size);
+            border: 1px solid var(--text-main);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 200000;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+            mix-blend-mode: difference;
+        }
+
+        .cursor.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--highlight);
+            mix-blend-mode: normal;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 4px;
+            background-color: var(--highlight);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 200001;
+            transform: translate(-50%, -50%);
+        }
+
+        /* --- LAUNCH SCREEN --- */
+        #launch-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-body);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.5s ease;
+            cursor: none;
+        }
+
+        #launch-screen.hidden {
+            transform: translateY(-100%);
+            pointer-events: none;
+        }
+
+        .rocket-container {
+            position: relative;
+            margin-bottom: 40px;
+            transform-origin: bottom center;
+            width: 160px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Rocket SVG */
+        .rocket-svg { width: 100px; height: 120px; filter: drop-shadow(0 0 8px var(--highlight)); z-index: 2; position: relative; }
+        .rocket-body { fill: #c0c0c0; stroke: var(--highlight); stroke-width: 1.5; transition: stroke 0.3s; }
+        .dark-mode .rocket-body { fill: #2a2a2a; stroke: var(--highlight); }
+        .rocket-fin { fill: #a0a0a0; stroke: var(--highlight); stroke-width: 1.2; }
+        .dark-mode .rocket-fin { fill: #1e1e1e; }
+        .rocket-window { fill: #00f0ff; opacity: 0.8; stroke: #0a0a0a; stroke-width: 1; }
+        .dark-mode .rocket-window { stroke: #fff; }
+
+        /* Fire Animation */
+        .rocket-flames { position: absolute; top: 105px; left: 50%; transform: translateX(-50%); width: 40px; height: 0; display: flex; flex-direction: column; align-items: center; z-index: 1; }
+        .flame { position: absolute; bottom: 0; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 30px solid #ffaa00; border-radius: 50% 50% 20% 20%; filter: blur(2px); opacity: 0.9; animation: flameFlicker 0.12s infinite alternate; }
+        .flame-1 { border-bottom-color: #ff5500; border-left-width: 14px; border-right-width: 14px; border-bottom-width: 50px; bottom: -5px; filter: blur(4px); opacity: 0.7; animation-delay: 0.05s; }
+        .flame-2 { border-bottom-color: #ffaa00; border-left-width: 10px; border-right-width: 10px; border-bottom-width: 40px; bottom: 0px; filter: blur(3px); opacity: 0.8; animation-delay: 0.1s; }
+        .flame-3 { border-bottom-color: #ffe500; border-left-width: 6px; border-right-width: 6px; border-bottom-width: 28px; bottom: 5px; filter: blur(2px); opacity: 1; animation-delay: 0.2s; }
+        .flame-4 { border-bottom-color: #ff3300; border-left-width: 18px; border-right-width: 18px; border-bottom-width: 60px; bottom: -15px; filter: blur(8px); opacity: 0.5; animation: flameFlicker 0.2s infinite alternate-reverse; }
+        .flame-particle { position: absolute; width: 6px; height: 6px; background: radial-gradient(circle, #ffaa00, #ff3300); border-radius: 50%; bottom: -20px; filter: blur(2px); animation: spark 0.4s infinite; opacity: 0.7; }
+        .particle1 { left: 10px; animation-delay: 0.1s; width: 8px; height: 8px; }
+        .particle2 { left: -6px; animation-delay: 0.3s; width: 5px; height: 5px; }
+        .particle3 { left: 20px; animation-delay: 0.5s; width: 7px; height: 7px; }
+
+        @keyframes flameFlicker { 0% { transform: scaleY(1) translateY(0px); opacity: 0.8; } 100% { transform: scaleY(1.3) translateY(-5px); opacity: 1; } }
+        @keyframes spark { 0% { transform: translateY(0) scale(1); opacity: 0.7; } 100% { transform: translateY(-30px) scale(0.2); opacity: 0; } }
+        body.launching .rocket-svg { animation: rocket-shake 0.1s infinite; }
+        body.launching .flame, body.launching .flame-particle { animation-duration: 0.08s; }
+        body.blastoff .rocket-container { animation: rocket-fly 1s cubic-bezier(0.6, 0, 1, 1) forwards; }
+        @keyframes rocket-shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        @keyframes rocket-fly { 0% { transform: translateY(0); } 100% { transform: translateY(-120vh); } }
+
+        .launch-text { font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 30px; font-size: 0.9rem; letter-spacing: 1px; text-align: center; min-height: 24px; }
+        .cursor-blink { display: inline-block; width: 8px; height: 15px; background-color: var(--highlight); animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 5px; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        #launch-btn { background: transparent; color: var(--highlight); border: 1px solid var(--highlight); padding: 15px 30px; font-family: var(--font-display); font-weight: 700; font-size: 1rem; letter-spacing: 2px; text-transform: uppercase; cursor: none; transition: all 0.3s ease; position: relative; overflow: hidden; z-index: 10; opacity: 0; transform: translateY(10px); pointer-events: none; }
+        #launch-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        #launch-btn::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%; background: var(--highlight); z-index: -1; transition: width 0.3s ease; }
+        #launch-btn:hover { color: var(--bg-body); box-shadow: 0 0 20px var(--highlight); }
+        #launch-btn:hover::before { width: 100%; }
+
+        /* --- UTILITIES --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 2; }
+        .mono { font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: -0.02em; }
+        .highlight-text { color: var(--highlight); font-weight: 600; position: relative; display: inline-block; }
+        .highlight-text::after { content: ''; position: absolute; width: 100%; height: 2px; bottom: 0; left: 0; background-color: var(--highlight); transform: scaleX(0); transform-origin: bottom right; transition: transform 0.4s ease-out; }
+        .highlight-text:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+
+        /* --- NAVIGATION --- */
+        nav { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 100px; z-index: 100; box-shadow: var(--shadow); transition: all 0.3s ease; opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        nav.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .nav-brand { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; letter-spacing: -0.03em; display: flex; align-items: center; }
+        .theme-toggle { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 20px; font-family: var(--font-mono); font-size: 0.75rem; display: flex; align-items: center; gap: 8px; overflow: hidden; position: relative; z-index: 1; }
+        .theme-toggle::before { content: ''; position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: var(--highlight); z-index: -1; transition: width 0.3s ease; }
+        .theme-toggle:hover::before { width: 100%; }
+        .theme-toggle:hover { color: var(--bg-body); border-color: var(--highlight); }
+        .status-dot { width: 8px; height: 8px; background-color: var(--highlight); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--highlight); }
+        .theme-toggle:hover .status-dot { background-color: var(--bg-body); box-shadow: none; }
+
+        /* --- HERO SECTION --- */
+        .hero { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; padding-top: 100px; position: relative; overflow: hidden; }
+        #hero-canvas { position: absolute; top: 50%; right: -10%; transform: translateY(-50%); width: 600px; height: 600px; z-index: -1; opacity: 0; pointer-events: none; transition: opacity 1s ease; }
+        #hero-canvas.visible { opacity: 0.75; }
+        .hero-label { color: var(--highlight); margin-bottom: 20px; display: block; text-transform: uppercase; letter-spacing: 0.1em; overflow: hidden; }
+        .hero-title { font-family: var(--font-display); font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; line-height: 0.95; letter-spacing: -0.04em; margin-bottom: 30px; color: var(--text-main); z-index: 2; }
+        .char { display: inline-block; opacity: 0; transform: translateY(100%); transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease; }
+        .hero-title.visible .char { opacity: 1; transform: translateY(0); }
+        .hero-subtitle { font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin-bottom: 50px; opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s; z-index: 2; }
+        .hero-subtitle.visible { opacity: 1; transform: translateY(0); }
+        .contact-pill-group { display: flex; flex-wrap: wrap; gap: 15px; opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s; z-index: 2; }
+        .contact-pill-group.visible { opacity: 1; transform: translateY(0); }
+        .contact-pill { text-decoration: none; color: var(--text-main); border: 1px solid var(--border); padding: 12px 24px; border-radius: 50px; font-family: var(--font-mono); font-size: 0.9rem; background: var(--bg-card); display: inline-block; transition: color 0.3s ease; }
+
+        /* --- SECTIONS COMMON --- */
+        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; padding-top: 100px; }
+        .section-title { font-family: var(--font-display); font-size: 2.5rem; font-weight: 600; letter-spacing: -0.03em; cursor: help; }
+        .section-number { font-family: var(--font-mono); font-size: 3rem; color: var(--border); font-weight: 700; opacity: 0.5; }
+
+        /* --- MIND BLOWING CARD STYLES --- */
+        .bento-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
+        /* Base Card Styling */
+        .tilt-card {
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+            position: relative;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            /* Hide the default border, we will use pseudo-elements */
+            border: 1px solid transparent;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            will-change: transform;
+            /* Smooth tilt reset */
+            transition: transform 0.1s ease;
+        }
+
+        /* Dark mode adjustment for transparency */
+        body.dark-mode .tilt-card {
+            background: rgba(20, 20, 20, 0.6);
+        }
+
+        /* 1. The Glowing Border (Spotlight) */
+        .tilt-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px; /* Width of the border */
+            background: radial-gradient(
+                400px circle at var(--mouse-x) var(--mouse-y),
+                var(--highlight),
+                transparent 40%
+            );
+            /* Mask composite to show only the border area */
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.4s ease;
+            z-index: 2;
+        }
+
+        /* 2. The Internal Sheen (Flashlight Effect) */
+        .tilt-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.06),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Reveal effects on hover */
+        .tilt-card:hover::before,
+        .tilt-card:hover::after {
+            opacity: 1;
+        }
+
+        /* 3. Deep Parallax for Content */
+        .bento-card {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .bento-content {
+            position: relative;
+            z-index: 3;
+            transform: translateZ(40px); /* Lifts content off the card */
+        }
+
+        .bento-card h3 { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 15px; pointer-events: none; }
+        .bento-card ul { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; }
+        .bento-card li { font-family: var(--font-mono); font-size: 0.8rem; background: var(--bg-body); padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); transition: all 0.3s ease; }
+        .bento-card li:hover { background: var(--highlight); color: #000; border-color: var(--highlight); transform: translateY(-2px); }
+
+        /* --- EXPERIENCE TIMELINE --- */
+        .experience-list { display: flex; flex-direction: column; }
+        .job-row { display: grid; grid-template-columns: 1fr 2fr; padding: 45px 0; border-bottom: 1px solid var(--border); opacity: 0; transform: translateY(20px); transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s ease, border-color 0.4s ease, padding-left 0.4s cubic-bezier(0.25, 1, 0.5, 1); position: relative; }
+        .job-row.visible { opacity: 1; transform: translateY(0); }
+        .job-row:hover { background-color: var(--bg-card); padding-left: 25px; border-bottom-color: var(--highlight); }
+        .job-row::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background-color: var(--highlight); transform: scaleY(0); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); transform-origin: top; }
+        .job-row:hover::before { transform: scaleY(1); }
+        .job-meta { font-family: var(--font-mono); color: var(--text-muted); font-size: 0.9rem; transition: color 0.3s; }
+        .job-row:hover .job-meta { color: var(--text-main); }
+        .job-content h3 { font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 5px; color: var(--text-main); }
+        .job-company { color: var(--highlight); font-weight: 500; font-size: 1.1rem; display: block; margin-bottom: 15px; }
+        .job-details { list-style: none; color: var(--text-muted); }
+        .job-details li { margin-bottom: 10px; padding-left: 20px; position: relative; }
+        .job-details li::before { content: '▹'; position: absolute; left: 0; color: var(--highlight); }
+
+        /* --- PROJECTS DIRECTORY LIST (NEW) --- */
+        .project-directory {
+            display: flex;
+            flex-direction: column;
+            gap: 2px; /* Small gap for border illusion */
+        }
+
+        .project-item {
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+            position: relative;
+            padding: 35px 20px;
+            border-bottom: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 0.5fr 2fr 1.5fr 0.2fr;
+            align-items: center;
+            cursor: none; /* Custom cursor */
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            background: transparent;
+            overflow: hidden;
+        }
+
+        /* 1. Spotlight Effect specifically for List Items */
+        .project-item::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(59, 130, 246, 0.08), /* Blueish glow */
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body.dark-mode .project-item::before {
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(0, 240, 255, 0.08),
+                transparent 40%
+            );
+        }
+
+        .project-item:hover::before {
+            opacity: 1;
+        }
+
+        /* 2. Focus Mode (Dim others) */
+        .project-directory:hover .project-item {
+            opacity: 0.4;
+            filter: blur(1px);
+        }
+        .project-directory:hover .project-item:hover {
+            opacity: 1;
+            filter: blur(0);
+            background: rgba(255,255,255,0.02);
+            padding-left: 30px; /* Slide interaction */
+        }
+
+        .p-index {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        .p-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            position: relative;
+            z-index: 1;
+        }
+
+        .p-tech {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .p-tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        .project-item:hover .p-tag {
+            border-color: var(--highlight);
+            color: var(--highlight);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .p-arrow {
+            font-size: 1.5rem;
+            color: var(--highlight);
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.3s ease;
+        }
+        .project-item:hover .p-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Accordion Description (Hidden by default) */
+        .p-details {
+            grid-column: 1 / -1;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            font-family: var(--font-body);
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-top: 0;
+            padding-left: 0.5fr; /* Align with title roughly */
+        }
+
+        .project-item:hover .p-details {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 20px;
+        }
+
+        /* --- FOOTER --- */
+        footer { margin-top: 100px; border-top: 1px solid var(--border); padding: 50px 0; text-align: center; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 3.5rem; }
+            .job-row { grid-template-columns: 1fr; gap: 20px; }
+            .project-item { grid-template-columns: 1fr; gap: 10px; padding: 25px 10px; }
+            .p-index { display: none; }
+            .p-arrow { display: none; }
+            .p-details { padding-left: 0; }
+            .nav-brand span { display: none; }
+            #hero-canvas { width: 100%; right: 0; top: 20%; opacity: 0.3; }
+            .cursor, .cursor-dot { display: none; }
+            * { cursor: auto; }
+        }
+    </style>
+</head>
+<body class="dark-mode locked">
+
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
+
+    <!-- Background Grid Canvas (for subtle shimmer) -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+
+    <!-- LAUNCH SCREEN -->
+    <div id="launch-screen">
+        <div class="rocket-container">
+            <!-- Retro Rocket SVG -->
+            <svg class="rocket-svg" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+                <rect x="40" y="30" width="40" height="80" rx="8" class="rocket-body" />
+                <polygon points="60,15 40,30 80,30" class="rocket-body" />
+                <polygon points="25,110 40,90 40,110" class="rocket-fin" />
+                <polygon points="95,110 80,90 80,110" class="rocket-fin" />
+                <ellipse cx="60" cy="110" rx="12" ry="6" style="fill:#333; stroke:var(--highlight); stroke-width:1" />
+                <circle cx="60" cy="65" r="8" class="rocket-window" />
+                <circle cx="60" cy="65" r="4" fill="#0a0a0a" />
+            </svg>
+            <div class="rocket-flames">
+                <div class="flame flame-1"></div>
+                <div class="flame flame-2"></div>
+                <div class="flame flame-3"></div>
+                <div class="flame flame-4"></div>
+                <div class="flame-particle particle1"></div>
+                <div class="flame-particle particle2"></div>
+                <div class="flame-particle particle3"></div>
+            </div>
+        </div>
+
+        <div class="launch-text mono" id="launch-status">
+            <span id="type-text"></span><span class="cursor-blink"></span>
+        </div>
+
+        <button id="launch-btn" class="magnetic" data-strength="50">INITIATE LAUNCH</button>
+    </div>
+
+    <nav id="main-nav">
+        <div class="nav-brand magnetic" data-strength="20">
+            BERNARD <span class="mono" style="font-weight:400; font-size:0.9rem; margin-left:10px;">[SURNAME]</span>
+        </div>
+        <button class="theme-toggle magnetic" id="theme-btn" data-strength="30" onclick="toggleTheme()">
+            <span class="status-dot"></span> <span id="theme-text">SYSTEM: DARK</span>
+        </button>
+    </nav>
+
+    <div class="container">
+        <!-- Hero -->
+        <header class="hero">
+            <canvas id="hero-canvas"></canvas>
+            <span class="hero-label mono reveal-type">System Architecture / Fintech</span>
+            <h1 class="hero-title split-text" id="main-title">
+                SENIOR<br>
+                SOFTWARE<br>
+                ENGINEER
+            </h1>
+            <p class="hero-subtitle">
+                Specializing in building payment infrastructures with <span class="highlight-text" data-hover>Elixir</span> and <span class="highlight-text" data-hover>Ruby on Rails</span>. Transforming monolithic architectures into distributed systems.
+            </p>
+            <div class="contact-pill-group">
+                <a href="mailto:[Email Address]" class="contact-pill magnetic" data-strength="50" data-hover>Email</a>
+                <a href="#" class="contact-pill magnetic" data-strength="50" data-hover>LinkedIn</a>
+                <a href="#" class="contact-pill magnetic" data-strength="50" data-hover>GitHub</a>
+                <span class="mono" style="margin-left: 15px; align-self:center; color: var(--text-muted);">Accra, Ghana (Open to Relocation)</span>
+            </div>
+        </header>
+
+        <!-- Tech Stack (Bento) -->
+        <section>
+            <div class="section-header reveal-scroll">
+                <h2 class="section-title" data-scramble>TECHNICAL_STACK</h2>
+                <span class="section-number">01</span>
+            </div>
+            <div class="bento-grid">
+                <div class="bento-card tilt-card reveal-scroll-stagger">
+                    <div class="bento-content">
+                        <h3>Core Languages</h3>
+                        <ul>
+                            <li>Elixir</li>
+                            <li>Ruby</li>
+                            <li>JavaScript</li>
+                            <li>SQL</li>
+                            <li>HTML/CSS</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bento-card tilt-card reveal-scroll-stagger" style="transition-delay: 0.1s;">
+                    <div class="bento-content">
+                        <h3>Frameworks</h3>
+                        <ul>
+                            <li>Phoenix</li>
+                            <li>Ruby on Rails</li>
+                            <li>Ecto</li>
+                            <li>OTP</li>
+                            <li>LiveView</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bento-card tilt-card reveal-scroll-stagger" style="transition-delay: 0.2s;">
+                    <div class="bento-content">
+                        <h3>Architecture</h3>
+                        <ul>
+                            <li>Event Sourcing</li>
+                            <li>CQRS</li>
+                            <li>Microservices</li>
+                            <li>DDD</li>
+                            <li>REST APIs</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bento-card tilt-card reveal-scroll-stagger" style="transition-delay: 0.3s;">
+                    <div class="bento-content">
+                        <h3>Infrastructure</h3>
+                        <ul>
+                            <li>PostgreSQL</li>
+                            <li>RabbitMQ</li>
+                            <li>Redis</li>
+                            <li>Docker</li>
+                            <li>Kubernetes</li>
+                            <li>AWS</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience -->
+        <section>
+            <div class="section-header reveal-scroll">
+                <h2 class="section-title" data-scramble>EXPERIENCE_LOG</h2>
+                <span class="section-number">02</span>
+            </div>
+
+            <div class="experience-list">
+                <div class="job-row reveal-scroll-stagger" data-hover>
+                    <div class="job-meta">
+                        <div>2023 — Present</div>
+                        <div>Accra, Ghana</div>
+                    </div>
+                    <div class="job-content">
+                        <h3>Software Engineer</h3>
+                        <span class="job-company">AppsNmobile Solutions</span>
+                        <p style="margin-bottom:15px; color: var(--text-main);">Fintech provider processing millions in monthly transactions. Promoted from Intern to Lead Engineer.</p>
+                        <ul class="job-details">
+                            <li>Architected an Elixir/Phoenix microservice processing 50K+ requests/minute with &lt;200ms latency.</li>
+                            <li>Integrated RabbitMQ and Oban for background jobs, ensuring 100% delivery guarantee.</li>
+                            <li>Decoupled critical payment logic from a legacy Rails monolith into independent Elixir services.</li>
+                            <li>Refactored Ecto queries and PostgreSQL schemas, improving reporting generation performance by 40%.</li>
+                            <li>Championed BDD adoption using Gherkin/Cucumber.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="job-row reveal-scroll-stagger" data-hover>
+                    <div class="job-meta">
+                        <div>2022 — Present</div>
+                        <div>Remote</div>
+                    </div>
+                    <div class="job-content">
+                        <h3>Freelance Full Stack Developer</h3>
+                        <span class="job-company">Self-Employed</span>
+                        <ul class="job-details">
+                            <li>Designed a double-entry accounting system using Event Sourcing/CQRS for immutable audit trails.</li>
+                            <li>Built a custom task management platform (Rails/Angular), reducing client admin overhead by 30%.</li>
+                            <li>Developed a secure, offline-first file sharing service using Phoenix Channels and WebRTC.</li>
+                            <li>Delivered fully documented REST APIs with 99% test coverage.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="job-row reveal-scroll-stagger" data-hover>
+                    <div class="job-meta">
+                        <div>2022 — 2023</div>
+                        <div>Accra, Ghana</div>
+                    </div>
+                    <div class="job-content">
+                        <h3>Software Engineer Intern</h3>
+                        <span class="job-company">AppsNmobile Solutions</span>
+                        <ul class="job-details">
+                            <li>Assisted in the maintenance of legacy Ruby on Rails applications.</li>
+                            <li>Developed unit tests and participated in daily scrum meetings.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects - NEW DIRECTORY LIST STYLE -->
+        <section>
+            <div class="section-header reveal-scroll">
+                <h2 class="section-title" data-scramble>KEY_PROJECTS</h2>
+                <span class="section-number">03</span>
+            </div>
+
+            <div class="project-directory reveal-scroll-stagger">
+
+                <div class="project-item">
+                    <div class="p-index">01</div>
+                    <div class="p-title">Messaging Gateway</div>
+                    <div class="p-tech">
+                        <span class="p-tag">Elixir</span>
+                        <span class="p-tag">ETS</span>
+                        <span class="p-tag">GenStage</span>
+                    </div>
+                    <div class="p-arrow">↗</div>
+                    <div class="p-details">
+                        Built a fault-tolerant gateway handling massive concurrent traffic using ETS for high-speed caching and rate-limiting. Implemented custom supervision trees to ensure 99.99% uptime during peak load events.
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="p-index">02</div>
+                    <div class="p-title">Financial Transaction Platform</div>
+                    <div class="p-tech">
+                        <span class="p-tag">Ruby on Rails</span>
+                        <span class="p-tag">PostgreSQL</span>
+                        <span class="p-tag">Sidekiq</span>
+                    </div>
+                    <div class="p-arrow">↗</div>
+                    <div class="p-details">
+                        Maintained backend services handling 20K+ daily financial transactions. Optimized database queries reducing reporting latency by 40% and implemented idempotent API endpoints for payment processing.
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="p-index">03</div>
+                    <div class="p-title">Double-Entry Ledger</div>
+                    <div class="p-tech">
+                        <span class="p-tag">Elixir</span>
+                        <span class="p-tag">Event Sourcing</span>
+                        <span class="p-tag">CQRS</span>
+                    </div>
+                    <div class="p-arrow">↗</div>
+                    <div class="p-details">
+                        Designed an immutable ledger system using Event Sourcing. Ensures full auditability of all financial movements with a replayable event stream, critical for regulatory compliance in Fintech.
+                    </div>
+                </div>
+
+                <div class="project-item">
+                    <div class="p-index">04</div>
+                    <div class="p-title">Real-Time File Share</div>
+                    <div class="p-tech">
+                        <span class="p-tag">Phoenix</span>
+                        <span class="p-tag">WebRTC</span>
+                        <span class="p-tag">LiveView</span>
+                    </div>
+                    <div class="p-arrow">↗</div>
+                    <div class="p-details">
+                        Developed a secure, offline-first file sharing service. Utilized Phoenix Channels for signaling and WebRTC for peer-to-peer data transfer, minimizing server bandwidth costs.
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <footer>
+            <div class="mono" style="color:var(--text-muted)">
+                [Degree Name] in Computer Science @ [University Name]<br><br>
+                © 2024 Bernard [Surname]. All Systems Operational.
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- 1. THEME TOGGLE ---
+        const body = document.body;
+        const btn = document.getElementById('theme-btn');
+        const themeText = document.getElementById('theme-text');
+
+        function toggleTheme() {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                themeText.textContent = 'SYSTEM: DARK';
+            } else {
+                themeText.textContent = 'SYSTEM: LIGHT';
+            }
+        }
+
+        // --- 2. CUSTOM CURSOR ---
+        const cursor = document.getElementById('cursor');
+        const cursorDot = document.getElementById('cursor-dot');
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+        });
+
+        function animateCursor() {
+            const dx = mouseX - cursorX;
+            const dy = mouseY - cursorY;
+            cursorX += dx * 0.15;
+            cursorY += dy * 0.15;
+            cursor.style.left = cursorX + 'px';
+            cursor.style.top = cursorY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        const hoverElements = document.querySelectorAll('a, button, .project-card, .job-row, .project-item, [data-hover]');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        });
+
+        // --- 3. MAGNETIC BUTTONS ---
+        const magnets = document.querySelectorAll('.magnetic');
+        magnets.forEach((magnet) => {
+            magnet.addEventListener('mousemove', (e) => {
+                const rect = magnet.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                const strength = magnet.getAttribute('data-strength') || 20;
+                magnet.style.transform = `translate(${x / strength}px, ${y / strength}px)`;
+            });
+            magnet.addEventListener('mouseleave', () => {
+                magnet.style.transform = 'translate(0, 0)';
+            });
+        });
+
+        // --- 4. MIND BLOWING CARD TILT & SPOTLIGHT ---
+        const tiltCards = document.querySelectorAll('.tilt-card');
+
+        tiltCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // Set CSS variables for spotlight position
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+
+                // Calculate Tilt
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                // Rotation multiplier
+                const rotateX = ((y - centerY) / centerY) * -8; // More dramatic tilt
+                const rotateY = ((x - centerX) / centerX) * 8;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                // Reset transform
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            });
+        });
+
+        // --- 4.5 LIST SPOTLIGHT (New logic for list items) ---
+        const listItems = document.querySelectorAll('.project-item');
+        listItems.forEach(item => {
+            item.addEventListener('mousemove', (e) => {
+                const rect = item.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                item.style.setProperty('--mouse-x', `${x}px`);
+                item.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+
+        // --- 5. TEXT SCRAMBLE ---
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/<>[]';
+        function scramble(element) {
+            const originalText = element.dataset.originalText || element.innerText;
+            if(!element.dataset.originalText) element.dataset.originalText = originalText;
+            let iteration = 0;
+            clearInterval(element.interval);
+            element.interval = setInterval(() => {
+                element.innerText = originalText
+                    .split("")
+                    .map((letter, index) => {
+                        if(index < iteration) return originalText[index];
+                        return chars[Math.floor(Math.random() * chars.length)];
+                    })
+                    .join("");
+                if(iteration >= originalText.length) clearInterval(element.interval);
+                iteration += 1 / 2;
+            }, 30);
+        }
+        document.querySelectorAll('[data-scramble]').forEach(el => {
+            el.addEventListener('mouseenter', () => scramble(el));
+        });
+
+        // --- 6. BACKGROUND GRID CANVAS ANIMATION (NEW: GENTLE "CAR" FLOW) ---
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgWidth, bgHeight;
+
+        function resizeBgCanvas() {
+            bgWidth = bgCanvas.width = window.innerWidth;
+            bgHeight = bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBgCanvas);
+        resizeBgCanvas();
+
+        const gridSize = 40;
+        let gridCars = [];
+
+        function drawBgGrid() {
+            bgCtx.clearRect(0, 0, bgWidth, bgHeight);
+
+            const style = getComputedStyle(document.body);
+            const gridColor = style.getPropertyValue('--grid-color').trim();
+            const highlight = style.getPropertyValue('--highlight').trim();
+
+            // 1. Draw Static Base Grid
+            bgCtx.strokeStyle = gridColor;
+            bgCtx.lineWidth = 1;
+            bgCtx.beginPath();
+            // Verticals
+            for(let x = 0; x <= bgWidth; x += gridSize) {
+                bgCtx.moveTo(x, 0); bgCtx.lineTo(x, bgHeight);
+            }
+            // Horizontals
+            for(let y = 0; y <= bgHeight; y += gridSize) {
+                bgCtx.moveTo(0, y); bgCtx.lineTo(bgWidth, y);
+            }
+            bgCtx.stroke();
+
+            // 2. Spawn "Cars" (Light Packets)
+            if(Math.random() < 0.02) { // Adjust frequency
+                const col = Math.floor(Math.random() * (bgWidth/gridSize));
+                const x = col * gridSize;
+
+                gridCars.push({
+                    x: x,
+                    y: -100,
+                    speed: 1 + Math.random(), // Gentle speed
+                    len: 100 + Math.random() * 150 // Long tail
+                });
+            }
+
+            // 3. Draw Cars
+            gridCars.forEach((car) => {
+                car.y += car.speed;
+
+                // Gradient for the trail effect
+                // Head is at car.y, Tail is at car.y - car.len
+                const grad = bgCtx.createLinearGradient(car.x, car.y, car.x, car.y - car.len);
+                // Head color (faint highlight)
+                grad.addColorStop(0, highlight);
+                // Tail color (transparent)
+                grad.addColorStop(1, 'transparent');
+
+                bgCtx.strokeStyle = grad;
+                bgCtx.lineWidth = 2; // Slightly thicker than grid to sit "on" it
+                bgCtx.globalAlpha = 0.1; // Much fainter
+                // Optional: very subtle glow
+                bgCtx.shadowColor = highlight;
+                bgCtx.shadowBlur = 2;
+
+                bgCtx.beginPath();
+                bgCtx.moveTo(car.x, car.y);
+                bgCtx.lineTo(car.x, car.y - car.len);
+                bgCtx.stroke();
+
+                // Reset context
+                bgCtx.shadowBlur = 0;
+                bgCtx.globalAlpha = 1;
+            });
+
+            // Cleanup
+            gridCars = gridCars.filter(c => c.y - c.len < bgHeight);
+
+            requestAnimationFrame(drawBgGrid);
+        }
+        drawBgGrid();
+
+
+        // --- 7. RETRO GLOBE (Hero) ---
+        const canvas = document.getElementById('hero-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        function resizeCanvas() { width = canvas.width = 600; height = canvas.height = 600; }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const cities = [
+            { name: 'Accra', lat: 5.6037, lon: -0.1870, size: 4.5 },
+            { name: 'London', lat: 51.5074, lon: -0.1278, size: 3.5 },
+            { name: 'New York', lat: 40.7128, lon: -74.0060, size: 3.8 },
+            { name: 'Tokyo', lat: 35.6895, lon: 139.6917, size: 3.8 },
+            { name: 'Sydney', lat: -33.8688, lon: 151.2093, size: 3.2 },
+            { name: 'Cape Town', lat: -33.9249, lon: 18.4241, size: 3.0 },
+            { name: 'Sao Paulo', lat: -23.5505, lon: -46.6333, size: 3.0 },
+            { name: 'Lagos', lat: 6.5244, lon: 3.3792, size: 3.2 },
+            { name: 'Dubai', lat: 25.276987, lon: 55.296249, size: 3.0 },
+            { name: 'Singapore', lat: 1.3521, lon: 103.8198, size: 3.2 }
+        ];
+
+        function latLonTo3D(lat, lon, radius = 200) {
+            const phi = (90 - lat) * Math.PI / 180;
+            const theta = lon * Math.PI / 180;
+            return { x: radius * Math.sin(phi) * Math.cos(theta), y: radius * Math.cos(phi), z: radius * Math.sin(phi) * Math.sin(theta) };
+        }
+
+        let points3D = cities.map(c => ({ ...c, ...latLonTo3D(c.lat, c.lon) }));
+        let gridPoints = [];
+        for (let lat = -80; lat <= 80; lat += 20) {
+            for (let lon = -180; lon <= 180; lon += 20) {
+                gridPoints.push(latLonTo3D(lat, lon, 200));
+            }
+        }
+
+        let angleX = 0.2, angleY = 0.5, dashOffset = 0;
+
+        function drawGlobe() {
+            ctx.clearRect(0, 0, width, height);
+            angleX += 0.001; angleY += 0.0008;
+            const rotX = angleX + (mouseY * 0.00005);
+            const rotY = angleY + (mouseX * 0.00005);
+
+            function project(p) {
+                let x = p.x, y = p.y, z = p.z;
+                let x1 = x * Math.cos(rotY) - z * Math.sin(rotY), z1 = x * Math.sin(rotY) + z * Math.cos(rotY), y1 = y;
+                let y2 = y1 * Math.cos(rotX) - z1 * Math.sin(rotX), z2 = y1 * Math.sin(rotX) + z1 * Math.cos(rotX);
+                let scale = 400 / (400 + z2);
+                return { x: x1 * scale + width/2, y: y2 * scale + height/2, z: z2 };
+            }
+
+            const projGrid = gridPoints.map(p => project(p));
+
+            ctx.strokeStyle = body.classList.contains('dark-mode') ? 'rgba(0,240,255,0.12)' : 'rgba(59,130,246,0.15)';
+            ctx.lineWidth = 0.6;
+
+            for (let i = 0; i < projGrid.length; i++) {
+                for (let j = i+1; j < projGrid.length; j++) {
+                    const p1 = projGrid[i];
+                    const p2 = projGrid[j];
+                    const d = Math.hypot(p1.x-p2.x, p1.y-p2.y);
+                    if (d < 50) {
+                        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+                    }
+                }
+            }
+
+            const projected = points3D.map(p => ({ ...p, ...project(p) }));
+            const accraPoint = projected.find(p => p.name === 'Accra');
+            if (accraPoint && accraPoint.z > -100) {
+                ctx.strokeStyle = body.classList.contains('dark-mode') ? '#00f0ff' : '#3b82f6';
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([5, 5]);
+                ctx.lineDashOffset = dashOffset;
+                dashOffset -= 0.5;
+                projected.forEach(city => {
+                    if (city.name !== 'Accra' && city.z > -100) {
+                        ctx.beginPath(); ctx.moveTo(accraPoint.x, accraPoint.y); ctx.lineTo(city.x, city.y); ctx.stroke();
+                    }
+                });
+                ctx.setLineDash([]);
+            }
+
+            projected.forEach(city => {
+                if (city.z > -180) {
+                   ctx.beginPath();
+                   ctx.arc(city.x, city.y, city.size, 0, 2 * Math.PI);
+                   ctx.fillStyle = body.classList.contains('dark-mode') ? '#00f0ff' : '#3b82f6';
+                   ctx.shadowColor = ctx.fillStyle;
+                   ctx.shadowBlur = 12;
+                   ctx.fill();
+                   ctx.shadowBlur = 0;
+                }
+            });
+            requestAnimationFrame(drawGlobe);
+        }
+        drawGlobe();
+
+        // --- 8. LAUNCH SEQUENCE ---
+        const launchBtn = document.getElementById('launch-btn');
+        const launchScreen = document.getElementById('launch-screen');
+        const typeText = document.getElementById('type-text');
+        const mainNav = document.getElementById('main-nav');
+        const heroCanvas = document.getElementById('hero-canvas');
+
+        const sequence = [
+            "INITIALIZING SCALABLE ARCHITECTURE...",
+            "OPTIMIZING PAYMENT INFRASTRUCTURE...",
+            "DEPLOYING DISTRIBUTED SYSTEMS...",
+            "READY TO ENGINEER VALUE."
+        ];
+
+        let seqIndex = 0;
+        let charIndex = 0;
+
+        function typeWriter() {
+            if (seqIndex < sequence.length) {
+                const currentLine = sequence[seqIndex];
+                if (charIndex < currentLine.length) {
+                    typeText.innerHTML = currentLine.substring(0, charIndex + 1);
+                    charIndex++;
+                    setTimeout(typeWriter, 50);
+                } else {
+                    setTimeout(() => {
+                        if(seqIndex < sequence.length - 1) {
+                            seqIndex++;
+                            charIndex = 0;
+                            typeWriter();
+                        } else {
+                            launchBtn.classList.add('visible');
+                        }
+                    }, 600);
+                }
+            }
+        }
+        setTimeout(typeWriter, 500);
+
+        launchBtn.addEventListener('click', () => {
+            body.classList.add('launching');
+            typeText.innerHTML = "LIFT OFF IMMINENT...";
+
+            setTimeout(() => {
+                body.classList.add('blastoff');
+                typeText.innerText = "WE HAVE LIFT OFF!";
+                setTimeout(() => {
+                    launchScreen.classList.add('hidden');
+                    body.classList.remove('locked');
+                    startSite();
+                }, 800);
+            }, 1500);
+        });
+
+        function startSite() {
+            mainNav.classList.add('visible');
+            heroCanvas.classList.add('visible');
+
+            const title = document.querySelector('.split-text');
+            if(title) {
+                 title.innerHTML = `
+                    <div style="display:inline-block">SENIOR</div><br>
+                    <div style="display:inline-block">SOFTWARE</div><br>
+                    <div style="display:inline-block">ENGINEER</div>
+                `;
+                Array.from(title.children).forEach(div => {
+                   if(div.tagName === 'DIV') {
+                       div.innerHTML = div.innerText.split('').map(c => `<span class="char">${c}</span>`).join('');
+                   }
+                });
+            }
+            setTimeout(() => document.getElementById('main-title').classList.add('visible'), 200);
+
+            const observerOptions = { threshold: 0.15 };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        const scrambleTarget = entry.target.querySelector('[data-scramble]');
+                        if (scrambleTarget) scramble(scrambleTarget);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal-scroll, .reveal-scroll-stagger, .hero-subtitle, .contact-pill-group, .job-row, .project-directory').forEach(el => {
+                observer.observe(el);
+            });
+        }
+    </script>
+</body>
+</html>

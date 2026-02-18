@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elixir Nexus · RICH CMS</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Prism CSS for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <!-- QUILL Rich Text Editor (clean, modern, but we'll retro-skin it) -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        /* Quill custom retro skin - fits Elixir Nexus aesthetic */
+        .ql-container.ql-snow {
+            border: 1px solid #2A2A40;
+            background: #0D0D16;
+            font-family: 'Fira Code', 'Inter', monospace;
+            font-size: 0.95rem;
+            color: #B4B4CE;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .ql-toolbar.ql-snow {
+            background: #13131F;
+            border: 1px solid #2A2A40;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            border-bottom: none;
+        }
+        .ql-toolbar.ql-snow .ql-stroke {
+            stroke: #B4B4CE;
+        }
+        .ql-toolbar.ql-snow .ql-fill {
+            fill: #B4B4CE;
+        }
+        .ql-toolbar.ql-snow .ql-picker {
+            color: #B4B4CE;
+        }
+        .ql-toolbar.ql-snow .ql-picker-options {
+            background: #13131F;
+            border-color: #2A2A40;
+        }
+        .ql-toolbar.ql-snow button:hover .ql-stroke,
+        .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+            stroke: #00F0FF;
+        }
+        .ql-toolbar.ql-snow button:hover .ql-fill,
+        .ql-toolbar.ql-snow button.ql-active .ql-fill {
+            fill: #00F0FF;
+        }
+        .ql-editor {
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            color: #E2E8F0;
+            background: #0D0D16;
+        }
+        .ql-editor h1, .ql-editor h2, .ql-editor h3 {
+            color: #E2E8F0;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .ql-editor pre {
+            background: #0A0A10 !important;
+            border: 1px solid #FF003C40;
+            border-radius: 0.5rem;
+            color: #F1FA8C;
+        }
+        .ql-editor code {
+            background: #1C1C2D;
+            color: #00F0FF;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Fira Code', monospace;
+        }
+        /* Custom retro scrollbar for editor */
+        .ql-editor::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ql-editor::-webkit-scrollbar-track {
+            background: #0A0A10;
+        }
+        .ql-editor::-webkit-scrollbar-thumb {
+            background: #1C1C2D;
+            border-radius: 4px;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        retro: {
+                            bg: '#0A0A10',
+                            surface: '#13131F',
+                            surfaceHover: '#1C1C2D',
+                            text: '#B4B4CE',
+                            heading: '#E2E8F0',
+                            cyan: '#00F0FF',
+                            magenta: '#FF003C',
+                            purple: '#8A2BE2',
+                            yellow: '#FCE205'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Original scanlines, neon, progress, toc active — preserved */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0A10; }
+        ::-webkit-scrollbar-thumb { background: #1C1C2D; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 100%);
+            background-size: 100% 4px;
+            pointer-events: none; z-index: 50; opacity: 0.3;
+        }
+        .neon-text-cyan { text-shadow: 0 0 10px rgba(0,240,255,0.5), 0 0 20px rgba(0,240,255,0.3); }
+        .neon-border-magenta { box-shadow: 0 0 10px rgba(255,0,60,0.3); }
+
+        pre[class*="language-"] {
+            background: #0D0D16 !important;
+            border: 1px solid #2A2A40;
+            border-radius: 0.5rem;
+            margin: 1.5em 0;
+            padding: 1.5em;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        .toc-link.active {
+            color: #00F0FF;
+            border-left-color: #00F0FF;
+            background: rgba(0, 240, 255, 0.08);
+        }
+        .transition-all-custom { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+
+        /* Custom badge for rich text indicator */
+        .rte-badge {
+            background: linear-gradient(145deg, #8A2BE2 0%, #FF003C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-retro-bg text-retro-text font-sans antialiased relative overflow-x-hidden selection:bg-retro-purple selection:text-white">
+
+    <!-- Scanlines overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Progress Bar -->
+    <div id="progress-container" class="fixed top-0 left-0 w-full h-1 bg-retro-surface z-50">
+        <div id="progress-bar" class="h-full bg-retro-cyan shadow-[0_0_10px_#00F0FF] w-0 transition-all duration-150"></div>
+    </div>
+
+    <!-- =============== NEXT-GEN RICH TEXT CMS ================ -->
+    <!-- Separate UI: dedicated rich text editor panel that feeds the blog -->
+    <div id="app" class="flex flex-col min-h-screen">
+
+        <!-- NAVBAR with explicit CMS + RTE controls -->
+        <nav class="sticky top-0 z-40 bg-retro-bg/90 backdrop-blur-md border-b border-retro-surface/50">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <a href="#" id="logo-link" class="text-2xl font-display font-bold text-retro-heading flex items-center gap-2 group">
+                    <span class="text-retro-cyan group-hover:neon-text-cyan transition-all-custom">λ</span>
+                    <span>Elixir<span class="text-retro-magenta">Nexus</span></span>
+                    <span class="ml-2 text-xs font-mono bg-retro-surface px-2 py-1 rounded border border-retro-purple text-retro-purple">RICH CMS</span>
+                </a>
+                <div class="hidden md:flex gap-6 font-display text-sm tracking-widest uppercase items-center">
+                    <span id="stats-posts" class="text-retro-cyan text-xs bg-retro-surface/60 px-3 py-1 rounded-full border border-retro-surfaceHover">3 posts</span>
+                    <span id="stats-tags" class="text-retro-purple text-xs bg-retro-surface/60 px-3 py-1 rounded-full border border-retro-surfaceHover">8 tags</span>
+                    <!-- This button opens the DEDICATED RICH TEXT EDITOR UI -->
+                    <button id="open-rte-editor" class="border border-retro-yellow text-retro-yellow hover:bg-retro-yellow hover:text-retro-bg px-5 py-1.5 rounded text-xs transition-all flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                        COMPOSE (RTE)
+                    </button>
+                </div>
+                <!-- Search -->
+                <div class="flex gap-3 items-center">
+                    <div class="relative">
+                        <input type="text" id="search-input" placeholder="FILTER_POSTS..." class="w-40 lg:w-56 bg-[#0D0D16] border border-retro-surfaceHover text-retro-text px-4 py-1.5 rounded-full focus:outline-none focus:border-retro-cyan font-mono text-xs placeholder:text-retro-text/30">
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ========= DEDICATED RICH TEXT EDITOR INTERFACE (separate UI) ========= -->
+        <!-- This is the distinct CMS interface. It's a full modal that launches -->
+        <!-- with its own toolbar, Quill editor, and fields. Feeds into blog posts. -->
+        <div id="rich-editor-panel" class="hidden fixed inset-0 z-[100] bg-retro-bg/95 backdrop-blur-xl flex items-center justify-center p-6">
+            <div class="bg-retro-surface border-2 border-retro-cyan/70 rounded-xl w-full max-w-5xl max-h-[95vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,240,255,0.2)]">
+                <!-- Header with glitch effect -->
+                <div class="bg-gradient-to-r from-retro-surfaceHover to-retro-bg px-8 py-5 border-b border-retro-cyan/30 flex justify-between items-center">
+                    <h2 class="font-display text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-retro-cyan to-retro-magenta">⍟ NEXUS RICH COMPOSER</h2>
+                    <button id="close-rte-editor" class="text-retro-text/60 hover:text-retro-magenta text-3xl leading-none">&times;</button>
+                </div>
+
+                <!-- Editor body: two column layout (metadata + rich text) -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <!-- Metadata row: title, author, read time, tags -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Post Title</label>
+                            <input type="text" id="rte-title" placeholder="e.g. Distributed GenServer Clusters" class="w-full bg-[#0A0A10] border border-retro-surfaceHover text-retro-heading px-4 py-3 rounded focus:outline-none focus:border-retro-cyan font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Author</label>
+                            <input type="text" id="rte-author" value="Case_Zero" class="w-full bg-[#0A0A10] border border-retro-surfaceHover px-4 py-3 rounded text-retro-text font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Read Time (min)</label>
+                            <input type="number" id="rte-readtime" value="7" class="w-full bg-[#0A0A10] border border-retro-surfaceHover px-4 py-3 rounded text-retro-text font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Tags (comma separated)</label>
+                            <input type="text" id="rte-tags" value="Elixir, OTP, GenServer" class="w-full bg-[#0A0A10] border border-retro-surfaceHover px-4 py-3 rounded text-retro-text font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Rich Text Editor Container (Quill) -->
+                    <div>
+                        <label class="block text-xs font-mono text-retro-purple mb-2 uppercase tracking-wider">✦ RICH CONTENT EDITOR (headings, code, bold, lists)</label>
+                        <div id="rte-container" class="h-80">
+                            <!-- Quill will initialize here -->
+                        </div>
+                        <p class="text-xs text-retro-text/40 mt-2 font-mono">Supports code blocks, syntax highlighting preserved. Use the toolbar to format.</p>
+                    </div>
+                </div>
+
+                <!-- Footer actions: Publish / Cancel -->
+                <div class="bg-retro-surfaceHover/50 px-8 py-4 border-t border-retro-cyan/30 flex justify-end gap-5">
+                    <button id="cancel-rte" class="px-6 py-2 border border-retro-text/40 text-retro-text/80 hover:bg-retro-surfaceHover font-mono text-sm rounded transition">CANCEL</button>
+                    <button id="publish-rte" class="px-8 py-2 bg-retro-cyan text-retro-bg font-bold rounded hover:shadow-[0_0_20px_#00F0FF] transition-all font-display flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        TRANSMIT POST
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN LAYOUT: 3 cols (TOC, CONTENT, SIDEBAR) -->
+        <div class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 w-full">
+
+            <!-- LEFT TOC – dynamic from current article -->
+            <aside class="hidden lg:block lg:col-span-3">
+                <div class="sticky top-24">
+                    <h4 class="font-display font-bold text-retro-heading uppercase tracking-widest mb-6 text-sm flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        <span id="toc-headline">INDEX</span>
+                    </h4>
+                    <nav id="toc" class="flex flex-col text-sm border-l border-retro-surface min-h-[200px]"></nav>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT (active post feed from CMS) -->
+            <main class="lg:col-span-6">
+                <article id="active-article" class="prose-custom"></article>
+                <div id="tag-cloud-container" class="mt-10 pt-6 border-t border-retro-surface flex flex-wrap gap-3"></div>
+            </main>
+
+            <!-- RIGHT SIDEBAR: post list + author card -->
+            <aside class="hidden xl:block xl:col-span-3">
+                <div class="sticky top-24 space-y-8">
+                    <!-- POST CATALOG – functional post switcher -->
+                    <div class="p-5 bg-retro-surface/50 border border-retro-surface rounded-lg backdrop-blur">
+                        <h4 class="font-display font-bold text-retro-heading text-sm uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-retro-magenta rounded-full animate-pulse"></span> TERMINAL LOGS
+                        </h4>
+                        <div id="post-list-sidebar" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
+                        <button id="open-rte-from-sidebar" class="mt-4 w-full py-2 border border-retro-cyan/60 text-retro-cyan hover:bg-retro-cyan/20 font-mono text-xs transition-colors rounded">
+                            + NEW RICH POST
+                        </button>
+                    </div>
+
+                    <div class="p-6 bg-retro-surface/50 border border-retro-surface rounded-lg">
+                        <h4 class="font-display font-bold text-retro-heading text-sm uppercase tracking-widest mb-4">NEXUS ENGINE</h4>
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=quill&backgroundColor=1C1C2D" class="w-14 h-14 rounded border-2 border-retro-purple">
+                            <div>
+                                <div class="font-bold text-retro-heading">rich.cms</div>
+                                <div class="text-xs text-retro-cyan font-mono">Quill driver</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-retro-text/70 font-mono">Separate rich text interface. Compose with formatting, code, headings. Feeds directly into blog.</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-retro-surface bg-retro-surface/20 mt-10">
+            <div class="max-w-7xl mx-auto px-6 py-6 text-center text-xs font-mono text-retro-text/40 flex justify-between">
+                <span>© 2042 Elixir Nexus · RICH CMS MODE</span>
+                <span id="footer-timestamp" class="text-retro-cyan/60"></span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-elixir.min.js"></script>
+    <!-- Quill Rich Text Editor -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <script>
+        (function(){
+            "use strict";
+
+            // ---------- INITIAL POSTS DATASET (seed) ----------
+            let posts = [
+                {
+                    id: 'p1',
+                    title: 'Architecting Fault-Tolerant State Machines with GenServer',
+                    author: 'Case_Zero',
+                    readTime: 8,
+                    tags: ['GenServer','OTP','Elixir','Architecture','PhoenixFramework'],
+                    content: `<h2 id="the-problem-with-shared-state">The Problem with Shared State</h2><p>In traditional object-oriented languages, managing concurrent access to shared memory requires locks, mutexes, and a lot of praying. Race conditions are the ghosts in the machine. Elixir, running on the Erlang VM (BEAM), solves this using the Actor model. Processes encapsulate state and communicate exclusively via message passing.</p><h2 id="anatomy-of-a-genserver">Anatomy of a GenServer</h2><p>A <code>GenServer</code> (Generic Server) standardizes the implementation of client-server architectures within your application. Let's look at a practical example: a worker that processes high-priority telemetry data.</p><pre><code class="language-elixir">defmodule Nexus.TelemetryWorker do\n  use GenServer\n  def start_link(initial) do\n    GenServer.start_link(__MODULE__, initial, name: __MODULE__)\n  end\n  def push_data(data) do\n    GenServer.cast(__MODULE__, {:process_data, data})\n  end\n  def handle_cast({:process_data, data}, state) do\n    {:noreply, [data | state]}\n  end\nend</code></pre><h2 id="cast-vs-call">Cast vs. Call: The Asynchronous Matrix</h2><p>Notice the difference between <code>handle_cast</code> and <code>handle_call</code>.</p>`
+                },
+                {
+                    id: 'p2',
+                    title: 'Distributed Process Registry: When ETS meets Horde',
+                    author: 'CryptoKami',
+                    readTime: 12,
+                    tags: ['Distributed','Horde','ETS','OTP'],
+                    content: `<h2>The Registry Gap</h2><p>Built-in local registry is insufficient for multi-node.</p><h2>Horde.UniformRegistry</h2><p>Consistent hashing across cluster.</p><pre><code class="language-elixir">children = [\n  {Horde.Registry, name: MyApp.Registry, keys: :unique},\n  {Horde.DynamicSupervisor, name: MyApp.Supervisor, strategy: :one_for_one}\n]</code></pre>`
+                },
+                {
+                    id: 'p3',
+                    title: 'Nx + Axon: Cyberpunk Inference Pipelines',
+                    author: 'TensoriX',
+                    readTime: 7,
+                    tags: ['Nx','Axon','ML','Elixir'],
+                    content: `<h2>Numerical Elixir</h2><p>Nx brings tensors to the BEAM.</p><h2>Axon quickstart</h2><pre><code class="language-elixir">model = Axon.input("data") |> Axon.dense(128) |> Axon.relu() |> Axon.dense(10)</code></pre>`
+                }
+            ];
+
+            let currentPostId = 'p1';
+            let searchTerm = '';
+            let quill = null;  // rich text editor instance
+
+            // ----- DOM elements -----
+            const articleContainer = document.getElementById('active-article');
+            const tocContainer = document.getElementById('toc');
+            const postListSidebar = document.getElementById('post-list-sidebar');
+            const tagCloudContainer = document.getElementById('tag-cloud-container');
+            const statsPostsSpan = document.getElementById('stats-posts');
+            const statsTagsSpan = document.getElementById('stats-tags');
+            const searchInput = document.getElementById('search-input');
+            const tocHeadline = document.getElementById('toc-headline');
+
+            // Rich Editor panel controls
+            const rtePanel = document.getElementById('rich-editor-panel');
+            const openRteBtn = document.getElementById('open-rte-editor');
+            const openRteSidebar = document.getElementById('open-rte-from-sidebar');
+            const closeRteBtn = document.getElementById('close-rte-editor');
+            const cancelRte = document.getElementById('cancel-rte');
+            const publishRte = document.getElementById('publish-rte');
+
+            // RTE input fields
+            const rteTitle = document.getElementById('rte-title');
+            const rteAuthor = document.getElementById('rte-author');
+            const rteReadtime = document.getElementById('rte-readtime');
+            const rteTags = document.getElementById('rte-tags');
+
+            // ---------- Quill Initialization (separate UI) ----------
+            function initQuill() {
+                if (!quill) {
+                    quill = new Quill('#rte-container', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'code'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['code-block', 'link', 'clean']
+                            ]
+                        },
+                        placeholder: 'Compose your cyberpunk manuscript...',
+                        formats: ['header', 'bold', 'italic', 'underline', 'code', 'list', 'bullet', 'code-block', 'link'],
+                    });
+                    // set initial content from default?
+                }
+            }
+
+            // Open rich editor panel and reset fields (optional prepop)
+            function openRichEditor() {
+                rtePanel.classList.remove('hidden');
+                initQuill();
+                // set default values
+                rteTitle.value = '';
+                rteAuthor.value = 'Case_Zero';
+                rteReadtime.value = 6;
+                rteTags.value = 'Elixir, OTP';
+                quill.setText('');  // clear
+            }
+
+            // Close panel
+            function closeRichEditor() {
+                rtePanel.classList.add('hidden');
+            }
+
+            // ----- CMS Functions: render post, list, tags etc. -----
+            function extractHeadingsFromHtml(html) {
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                const headings = [];
+                div.querySelectorAll('h2, h3').forEach(el => {
+                    headings.push({ level: el.tagName.toLowerCase(), text: el.innerText });
+                });
+                return headings;
+            }
+
+            function renderPost(postId) {
+                const post = posts.find(p => p.id === postId);
+                if (!post) return;
+                currentPostId = post.id;
+
+                // Build article HTML using post.content (already HTML from quill)
+                let html = `<header class="mb-8">`;
+                html += `<div class="flex flex-wrap items-center gap-3 text-xs font-mono mb-4">`;
+                post.tags.slice(0,3).forEach(t => {
+                    html += `<span class="bg-retro-purple/10 border border-retro-purple/30 px-2 py-1 rounded">${t}</span>`;
+                });
+                html += `<span class="flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${post.readTime} min read</span>`;
+                html += `</div>`;
+                html += `<h1 class="text-4xl md:text-5xl font-display font-bold text-retro-heading leading-tight mb-6">${post.title}</h1>`;
+                html += `<div class="flex items-center gap-4 border-t border-retro-surface pt-6"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=${post.author}&backgroundColor=1C1C2D" class="w-12 h-12 rounded-full border border-retro-cyan/50"><div><div class="font-display text-retro-heading text-sm">${post.author}</div><div class="text-xs font-mono text-retro-text/60">SECTOR ${Math.floor(Math.random()*9)+1}</div></div></div>`;
+                html += `</header>`;
+                html += `<div class="blog-content space-y-6">${post.content}</div>`;
+                articleContainer.innerHTML = html;
+
+                // syntax highlight
+                Prism.highlightAll();
+
+                // TOC
+                const headings = extractHeadingsFromHtml(post.content);
+                tocContainer.innerHTML = '';
+                headings.forEach(h => {
+                    const id = h.text.toLowerCase().replace(/[^\w]+/g, '-');
+                    const link = document.createElement('a');
+                    link.href = `#${id}`;
+                    link.textContent = h.text;
+                    link.className = `toc-link block py-1.5 px-4 text-retro-text/70 hover:text-retro-cyan hover:bg-retro-surfaceHover transition-colors border-l-2 border-transparent ${h.level==='h3'? 'ml-4 text-xs' : ''}`;
+                    tocContainer.appendChild(link);
+                });
+
+                // tag cloud
+                tagCloudContainer.innerHTML = '';
+                post.tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'px-3 py-1 bg-retro-surface hover:bg-retro-surfaceHover transition-colors rounded text-sm text-retro-text cursor-pointer';
+                    span.textContent = `#${tag}`;
+                    span.addEventListener('click', () => { searchInput.value = tag; applySearchFilter(tag); });
+                    tagCloudContainer.appendChild(span);
+                });
+
+                tocHeadline.innerText = `INDEX: ${post.title.substring(0,20)}…`;
+            }
+
+            function renderPostList(filter = '') {
+                const filtered = posts.filter(p => p.title.toLowerCase().includes(filter.toLowerCase()) || p.tags.some(t=> t.toLowerCase().includes(filter.toLowerCase())));
+                postListSidebar.innerHTML = '';
+                filtered.forEach(post => {
+                    const btn = document.createElement('button');
+                    btn.className = `w-full text-left px-3 py-2 rounded text-sm font-mono transition-colors ${currentPostId === post.id ? 'bg-retro-cyan/20 border-l-4 border-retro-cyan text-retro-cyan' : 'hover:bg-retro-surfaceHover text-retro-text/80'}`;
+                    btn.innerHTML = `<span class="block truncate">${post.title}</span><span class="text-[10px] text-retro-purple/60">${post.readTime}min · ${post.author}</span>`;
+                    btn.onclick = () => { renderPost(post.id); renderPostList(searchInput.value); };
+                    postListSidebar.appendChild(btn);
+                });
+                statsPostsSpan.innerText = `${posts.length} posts`;
+                const allTags = new Set();
+                posts.forEach(p => p.tags.forEach(t => allTags.add(t)));
+                statsTagsSpan.innerText = `${allTags.size} tags`;
+            }
+
+            function applySearchFilter(term) { renderPostList(term); }
+
+            // ----- Create new post from RICH TEXT EDITOR -----
+            function createPostFromRTE() {
+                const title = rteTitle.value.trim() || 'Untitled Transmission';
+                const author = rteAuthor.value.trim() || 'Anonymous';
+                const readTime = parseInt(rteReadtime.value) || 5;
+                const tagsStr = rteTags.value.trim();
+                const tagArray = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t.length) : ['draft'];
+
+                // Get HTML content from Quill
+                let contentHTML = '';
+                if (quill) {
+                    contentHTML = quill.root.innerHTML;
+                    // clean empty paragraphs?
+                } else {
+                    contentHTML = '<p>No content</p>';
+                }
+
+                const newId = 'post_' + Date.now();
+                const newPost = {
+                    id: newId,
+                    title: title,
+                    author: author,
+                    readTime: readTime,
+                    tags: tagArray,
+                    content: contentHTML
+                };
+                posts.push(newPost);
+                renderPostList(searchTerm);
+                renderPost(newId);
+                closeRichEditor();
+            }
+
+            // ------ EVENT LISTENERS ------
+            openRteBtn.addEventListener('click', openRichEditor);
+            openRteSidebar.addEventListener('click', openRichEditor);
+            closeRteBtn.addEventListener('click', closeRichEditor);
+            cancelRte.addEventListener('click', closeRichEditor);
+            publishRte.addEventListener('click', createPostFromRTE);
+
+            // search
+            searchInput.addEventListener('input', (e) => applySearchFilter(e.target.value));
+
+            // progress bar
+            window.addEventListener('scroll', function() {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                document.getElementById('progress-bar').style.width = scrolled + '%';
+            });
+
+            // footer timestamp
+            document.getElementById('footer-timestamp').innerText = `BOOT: ${new Date().toLocaleDateString('en-US')} ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,'0')}`;
+
+            // initial renders
+            renderPost('p1');
+            renderPostList('');
+
+            // scrollspy observer (after render)
+            function observeHeadings() {
+                const headings = document.querySelectorAll('.blog-content h2, .blog-content h3');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+                            const activeLink = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+                            if (activeLink) activeLink.classList.add('active');
+                        }
+                    });
+                }, { rootMargin: '0px 0px -80% 0px', threshold: 0.5 });
+                headings.forEach(h => observer.observe(h));
+            }
+            setTimeout(observeHeadings, 200);
+        })();
+    </script>
+</body>
+</html>

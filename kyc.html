@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureFlow ID · real‑world identity verification</title>
+    <!-- Tailwind for rapid, clean UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide icons (updated) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* enterprise micro-interactions & accessibility */
+        @keyframes scan-progress {
+            0% { transform: translateY(-100%); opacity: 0.2; }
+            20% { transform: translateY(20%); opacity: 0.9; }
+            80% { transform: translateY(80%); opacity: 0.9; }
+            100% { transform: translateY(180%); opacity: 0; }
+        }
+        @keyframes gentle-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        @keyframes fade-up {
+            0% { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-scan-beam {
+            animation: scan-progress 2.2s ease-in-out infinite;
+        }
+        .pulse-soft {
+            animation: gentle-pulse 2s infinite;
+        }
+        .fade-up {
+            animation: fade-up 0.5s cubic-bezier(0.2,0.9,0.3,1) forwards;
+        }
+        .no-select {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* custom thin scroll for compliance panel */
+        .scroll-soft::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scroll-soft::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
+
+        /* real‑world touch‑target simulation for scanner */
+        .touch-feedback:active {
+            transform: scale(0.98);
+            transition: transform 0.1s;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0B0E14] text-slate-100 font-sans flex items-center justify-center p-3 selection:bg-indigo-500/40 overflow-hidden no-select">
+
+    <!-- main card – resembles secure hardware element -->
+    <div class="w-full max-w-md bg-[#14181F] border border-white/[0.06] rounded-[2.2rem] shadow-2xl flex flex-col relative min-h-[680px] backdrop-blur-sm">
+
+        <!-- top bar: step indicators + security badge (always visible) -->
+        <div class="pt-7 px-7 pb-3 flex justify-between items-center">
+            <div class="flex gap-1.5" id="stepDots">
+                <div class="step-dot w-8 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.7)] transition-all"></div>
+                <div class="step-dot w-4 h-1.5 rounded-full bg-white/10"></div>
+                <div class="step-dot w-4 h-1.5 rounded-full bg-white/10"></div>
+                <div class="step-dot w-4 h-1.5 rounded-full bg-white/10"></div>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/5 rounded-full border border-emerald-500/15">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                </span>
+                <span class="text-[9px] font-mono font-semibold uppercase tracking-widest text-emerald-400">AES-256 | HSM</span>
+            </div>
+        </div>
+
+        <!-- dynamic content area (step rendering) -->
+        <div id="contentArea" class="flex-1 px-7 pb-7 overflow-y-auto scroll-soft"></div>
+
+        <!-- footer – always visible compliance watermark (real-world fiduciary) -->
+        <div class="border-t border-white/[0.03] px-7 py-5 flex items-center justify-between text-white/20 text-[10px] font-medium tracking-wider">
+            <div class="flex items-center gap-2">
+                <i data-lucide="fingerprint" class="w-3.5 h-3.5"></i>
+                <span>ISO 27001:2022</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                <span>GDPR · CCPA</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ==================  STATE MANAGEMENT (real‑world) ==================
+            // industry standards: explicit consent, non‑repudiation trail,
+            // session timeout simulation, retry logic, and secure channel emulation.
+            const state = {
+                step: 'welcome',           // welcome, consent, biometric, verifying, success
+                scanSessionActive: false,
+                scanProgress: 0,            // 0..100
+                scanInterval: null,
+                consentGiven: false,
+                retryCount: 0,
+                maxRetries: 2,
+                deviceMotionOk: true,       // simulates hardware capability check
+                statusMessage: '',
+                verificationId: 'KYC-' + Math.random().toString(36).substring(2,10).toUpperCase(),
+                startTime: Date.now()
+            };
+
+            const contentDiv = document.getElementById('contentArea');
+            const stepDots = document.querySelectorAll('.step-dot');
+
+            // helper: update step indicators (4 steps)
+            function updateStepIndicators(currentStep) {
+                const stepOrder = ['welcome','consent','biometric','verifying','success'];
+                let activeIndex = stepOrder.indexOf(currentStep);
+                if (currentStep === 'verifying' || currentStep === 'success') activeIndex = 3; // last dot for both
+
+                stepDots.forEach((dot, idx) => {
+                    dot.classList.remove('w-8','bg-indigo-500','shadow-[0_0_12px_rgba(99,102,241,0.7)]','w-4','bg-white/10');
+                    if (idx === activeIndex) {
+                        dot.classList.add('w-8','bg-indigo-500','shadow-[0_0_12px_rgba(99,102,241,0.7)]');
+                    } else {
+                        dot.classList.add('w-4','bg-white/10');
+                    }
+                });
+            }
+
+            // ==== render methods per step =====
+            function renderWelcome() {
+                return `
+                    <div class="fade-up">
+                        <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 ring-1 ring-indigo-500/30">
+                            <i data-lucide="shield-check" class="w-7 h-7 text-indigo-400"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold mb-3 tracking-tight">Institutional verification</h1>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-7">Enhanced due diligence (EDD) compliant with FinCEN & Joint Money Laundering Steering Group guidance.</p>
+                        <div class="space-y-4 mb-8">
+                            <div class="flex gap-4">
+                                <div class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="scan-face" class="w-4 h-4"></i></div>
+                                <div><h3 class="font-semibold text-sm">Liveness detection (3.2)</h3><p class="text-[10px] text-slate-500 mt-0.5">ISO 30107‑3 presentation attack detection</p></div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="hash" class="w-4 h-4"></i></div>
+                                <div><h3 class="font-semibold text-sm">Biometric fuzzy hash</h3><p class="text-[10px] text-slate-500 mt-0.5">Cancelable biometrics / salted SHA‑512</p></div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="globe" class="w-4 h-4"></i></div>
+                                <div><h3 class="font-semibold text-sm">OFAC / UN / EU sanctions</h3><p class="text-[10px] text-slate-500 mt-0.5">Real‑time screening (simulated)</p></div>
+                            </div>
+                        </div>
+                        <button onclick="window.nextStep('consent')" class="w-full py-4 bg-indigo-600 active:bg-indigo-700 text-white font-semibold rounded-xl transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2 touch-feedback">
+                            <span>Start secure flow</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                        <p class="text-[9px] text-center text-slate-600 mt-4">🔒 session encrypted · 2048-bit RSA handshake</p>
+                    </div>
+                `;
+            }
+
+            function renderConsent() {
+                return `
+                    <div class="fade-up">
+                        <h2 class="text-2xl font-bold mb-3">Privacy & consent</h2>
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 text-xs text-slate-300 max-h-40 overflow-y-auto scroll-soft leading-relaxed">
+                            <p class="mb-2">Under <strong>GDPR Article 9(2)(a)</strong> and <strong>California Consumer Privacy Act</strong>, we require explicit consent to process biometric data for identity verification.</p>
+                            <ul class="list-disc ml-4 space-y-1.5 text-slate-400 text-[11px]">
+                                <li>Biometric template is one-way salted hash — never stored as raw image.</li>
+                                <li>Cross‑referenced with global watchlists (PEP, sanctions, adverse media).</li>
+                                <li>Data retention: 30 days or until regulatory obligation met.</li>
+                                <li>You may withdraw consent, but verification will fail.</li>
+                            </ul>
+                        </div>
+
+                        <div class="flex items-start gap-3 mb-8">
+                            <input type="checkbox" id="consentCheckbox" class="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-indigo-600 focus:ring-indigo-500">
+                            <label for="consentCheckbox" class="text-xs text-slate-300 leading-relaxed">I confirm that I have read and accept the <span class="text-indigo-400 underline">data processing notice</span> and consent to biometric verification.</label>
+                        </div>
+
+                        <button id="consentConfirmBtn" onclick="window.handleConsentConfirm()" class="w-full py-4 bg-white text-slate-900 font-bold rounded-xl transition-all active:scale-95 opacity-50 cursor-not-allowed touch-feedback" disabled>
+                            Confirm & continue
+                        </button>
+                        <button onclick="window.nextStep('welcome')" class="w-full mt-3 py-3 border border-white/10 text-slate-400 text-sm rounded-xl active:bg-white/5">Back</button>
+                    </div>
+                `;
+            }
+
+            // consent checkbox handler (wired after render)
+            function attachConsentHandler() {
+                const chk = document.getElementById('consentCheckbox');
+                const btn = document.getElementById('consentConfirmBtn');
+                if (chk && btn) {
+                    chk.addEventListener('change', (e) => {
+                        const checked = e.target.checked;
+                        btn.disabled = !checked;
+                        btn.classList.toggle('opacity-50', !checked);
+                        btn.classList.toggle('cursor-not-allowed', !checked);
+                        btn.classList.toggle('hover:bg-slate-200', checked);
+                    });
+                }
+            }
+
+            // === consent action (with audit trail simulation) ===
+            window.handleConsentConfirm = function() {
+                state.consentGiven = true;
+                // log consent event (real world would store hash)
+                console.log(`[AUDIT] consent given at ${new Date().toISOString()}`);
+                nextStep('biometric');
+            };
+
+            // === biometric step (realistic sensor simulation) ===
+            function renderBiometric() {
+                return `
+                    <div class="fade-up text-center flex flex-col items-center">
+                        <h2 class="text-2xl font-bold">Biometric handshake</h2>
+                        <p class="text-xs text-slate-400 mt-1 mb-4">Touch and hold the sensor area</p>
+
+                        <!-- simulated secure element with press & hold -->
+                        <div class="relative my-6 flex items-center justify-center">
+                            <div id="sensorOuterRing" class="absolute w-64 h-64 rounded-full border border-white/5 transition-all"></div>
+                            <div id="sensorPing" class="absolute w-64 h-64 rounded-full bg-indigo-500/10 animate-ping hidden"></div>
+
+                            <button
+                                id="biometricSensor"
+                                class="relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-200 touch-none bg-white/5 ring-1 ring-white/10 touch-feedback"
+                                onpointerdown="window.startBiometricScan(event)"
+                                onpointerup="window.stopBiometricScan(event)"
+                                onpointerleave="window.stopBiometricScan(event)"
+                                oncontextmenu="return false;"
+                            >
+                                <!-- progress ring -->
+                                <svg class="absolute w-full h-full -rotate-90 pointer-events-none">
+                                    <circle cx="96" cy="96" r="88" fill="none" stroke="currentColor" stroke-width="5" class="text-indigo-500/30" />
+                                    <circle id="progressCircle" cx="96" cy="96" r="88" fill="none" stroke="currentColor" stroke-width="5" class="text-indigo-500" stroke-dasharray="553" stroke-dashoffset="553" stroke-linecap="round" />
+                                </svg>
+
+                                <div id="sensorIconWrapper" class="transition-all text-slate-300">
+                                    <i data-lucide="fingerprint" class="w-16 h-16"></i>
+                                </div>
+
+                                <!-- scanning beam (horizontal line) -->
+                                <div id="scanBeam" class="absolute left-4 right-4 h-0.5 bg-indigo-400/80 shadow-[0_0_12px_#818cf8] opacity-0 pointer-events-none"></div>
+                            </button>
+                        </div>
+
+                        <div id="biometricHint" class="h-6 text-[10px] font-mono text-slate-500">⬇️ press & hold sensor ⬇️</div>
+
+                        <!-- hardware anchor / anti-spoof caption -->
+                        <div class="mt-8 p-4 bg-white/5 rounded-xl text-left border border-white/5 flex gap-3 w-full">
+                            <i data-lucide="cpu" class="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"></i>
+                            <p class="text-[9px] text-slate-400 leading-relaxed">Secure Enclave simulation: capture & encrypt within trusted execution environment. Biometric data never leaves this channel.</p>
+                        </div>
+                        <button onclick="window.nextStep('consent')" class="w-full mt-3 py-3 border border-white/10 text-slate-400 text-sm rounded-xl">← cancel</button>
+                    </div>
+                `;
+            }
+
+            // ---- scanner logic (with realistic retry) ----
+            window.startBiometricScan = function(e) {
+                if (!e.target || state.scanSessionActive) return;
+                if (state.retryCount >= state.maxRetries) {
+                    alert('Max retry attempts exceeded. Reset or contact support. (Demo: reload page)');
+                    return;
+                }
+                e.target.setPointerCapture?.(e.pointerId);
+                state.scanSessionActive = true;
+                state.scanProgress = 0;
+
+                // UI updates
+                const outerRing = document.getElementById('sensorOuterRing');
+                const pingEl = document.getElementById('sensorPing');
+                const beam = document.getElementById('scanBeam');
+                const wrapper = document.getElementById('sensorIconWrapper');
+                const hint = document.getElementById('biometricHint');
+                if (outerRing) outerRing.classList.add('border-indigo-500/40','scale-110');
+                if (pingEl) pingEl.classList.remove('hidden');
+                if (beam) {
+                    beam.style.opacity = '1';
+                    beam.classList.add('animate-scan-beam');
+                }
+                if (wrapper) {
+                    wrapper.classList.replace('text-slate-300','text-indigo-400');
+                }
+                if (hint) hint.innerHTML = '<span class="text-indigo-400">📡 capturing entropy ⋯ hold still</span>';
+
+                const circle = document.getElementById('progressCircle');
+                if (circle) circle.style.strokeDashoffset = '553';
+
+                // simulate scanning progress
+                if (state.scanInterval) clearInterval(state.scanInterval);
+                state.scanInterval = setInterval(() => {
+                    if (!state.scanSessionActive) return;
+                    state.scanProgress += 1.8;
+                    if (state.scanProgress >= 100) {
+                        state.scanProgress = 100;
+                        updateProgressCircle(553 - (553 * 100/100));
+                        window.finishBiometricScan(true); // success
+                    } else {
+                        const offset = 553 - (553 * state.scanProgress/100);
+                        updateProgressCircle(offset);
+                    }
+                }, 25);
+            };
+
+            function updateProgressCircle(offset) {
+                const circle = document.getElementById('progressCircle');
+                if (circle) circle.style.strokeDashoffset = offset;
+            }
+
+            window.stopBiometricScan = function(e) {
+                if (!state.scanSessionActive) return;
+                if (e?.target && e.pointerId) e.target.releasePointerCapture?.(e.pointerId);
+
+                if (state.scanProgress >= 100) {
+                    // already finishing – ignore
+                    return;
+                }
+                // incomplete → retry scenario (industry standard: partial scan invalid)
+                clearInterval(state.scanInterval);
+                state.scanSessionActive = false;
+                state.retryCount++;
+                // reset UI
+                resetBiometricUI();
+                if (state.retryCount < state.maxRetries) {
+                    document.getElementById('biometricHint').innerHTML = `<span class="text-amber-400">⚠️ partial scan (${state.retryCount}/${state.maxRetries}) — press & hold again</span>`;
+                } else {
+                    document.getElementById('biometricHint').innerHTML = `<span class="text-rose-400">❌ too many attempts, resetting</span>`;
+                }
+            };
+
+            function resetBiometricUI() {
+                const outerRing = document.getElementById('sensorOuterRing');
+                const pingEl = document.getElementById('sensorPing');
+                const beam = document.getElementById('scanBeam');
+                const wrapper = document.getElementById('sensorIconWrapper');
+                if (outerRing) outerRing.classList.remove('border-indigo-500/40','scale-110');
+                if (pingEl) pingEl.classList.add('hidden');
+                if (beam) {
+                    beam.style.opacity = '0';
+                    beam.classList.remove('animate-scan-beam');
+                }
+                if (wrapper) wrapper.classList.replace('text-indigo-400','text-slate-300');
+                const circle = document.getElementById('progressCircle');
+                if (circle) circle.style.strokeDashoffset = '553';
+                state.scanProgress = 0;
+            }
+
+            window.finishBiometricScan = function(success) {
+                if (!success) return;
+                clearInterval(state.scanInterval);
+                state.scanSessionActive = false;
+                // mark success
+                const wrapper = document.getElementById('sensorIconWrapper');
+                if (wrapper) {
+                    wrapper.innerHTML = '<i data-lucide="shield-check" class="w-16 h-16 text-emerald-400"></i>';
+                }
+                const hint = document.getElementById('biometricHint');
+                if (hint) hint.innerHTML = '<span class="text-emerald-400">✓ biometric hash created</span>';
+                const beam = document.getElementById('scanBeam');
+                if (beam) beam.style.opacity = '0';
+                lucide.createIcons();
+
+                // after short pause, go to verification
+                setTimeout(() => nextStep('verifying'), 800);
+            };
+
+            // === verifying step (with simulated background checks) ===
+            function renderVerifying() {
+                return `
+                    <div class="fade-up flex flex-col items-center pt-4">
+                        <div class="relative w-20 h-20 mb-5">
+                            <div class="absolute inset-0 border-4 border-indigo-500/10 rounded-full"></div>
+                            <div class="absolute inset-0 border-4 border-t-indigo-500 rounded-full animate-spin"></div>
+                            <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="scan" class="w-7 h-7 text-indigo-400"></i></div>
+                        </div>
+                        <h3 class="text-xl font-bold">Screening in progress</h3>
+                        <p class="text-xs text-slate-400 mb-6">watchlist & sanction checks (simulated)</p>
+
+                        <div class="w-full space-y-3">
+                            <div class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                                <span class="text-xs">Fuzzy hash match (internal)</span>
+                                <span class="text-emerald-400 text-[10px] font-bold">✓ passed</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                                <span class="text-xs">OFAC SDN / EU sanctions</span>
+                                <span class="text-emerald-400 text-[10px] font-bold" id="sanctionStatus">✓ clear</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                                <span class="text-xs">PEP / adverse media</span>
+                                <span class="text-amber-400 text-[10px] font-bold animate-pulse" id="pepStatus">scanning ⋯</span>
+                            </div>
+                        </div>
+                        <p class="text-[9px] text-slate-600 mt-6">ref: ${state.verificationId}</p>
+                    </div>
+                `;
+            }
+
+            // trigger after verification step mounts
+            function runVerificationSimulation() {
+                setTimeout(() => {
+                    const pepSpan = document.getElementById('pepStatus');
+                    if (pepSpan) pepSpan.innerHTML = '✓ low risk';
+                    setTimeout(() => nextStep('success'), 600);
+                }, 2000);
+            }
+
+            // === success step ===
+            function renderSuccess() {
+                return `
+                    <div class="fade-up flex flex-col items-center pt-6">
+                        <div class="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-5 ring-8 ring-emerald-500/10 text-emerald-400">
+                            <i data-lucide="badge-check" class="w-10 h-10"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">Identity verified</h2>
+                        <p class="text-sm text-slate-400 mt-1 mb-8 text-center">Enhanced Due Diligence completed.<br>Institutional limits activated.</p>
+
+                        <div class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl mb-8 text-left">
+                            <div class="flex justify-between mb-3">
+                                <span class="text-[9px] text-slate-500">verification ID</span>
+                                <span class="text-[10px] font-mono text-indigo-300">${state.verificationId}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-[9px] text-slate-500">risk score</span>
+                                <span class="text-[10px] font-bold text-emerald-400">LOW / 5</span>
+                            </div>
+                        </div>
+                        <button onclick="window.location.reload()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-xl active:scale-95">Enter secure dashboard</button>
+                    </div>
+                `;
+            }
+
+            // === main state dispatcher ===
+            window.nextStep = function(stepName) {
+                state.step = stepName;
+                updateStepIndicators(state.step);
+                let html = '';
+                if (stepName === 'welcome') html = renderWelcome();
+                else if (stepName === 'consent') html = renderConsent();
+                else if (stepName === 'biometric') html = renderBiometric();
+                else if (stepName === 'verifying') html = renderVerifying();
+                else if (stepName === 'success') html = renderSuccess();
+
+                contentDiv.innerHTML = html;
+                lucide.createIcons();
+
+                // attach extra handlers
+                if (stepName === 'consent') attachConsentHandler();
+                if (stepName === 'verifying') runVerificationSimulation();
+
+                // cleanup any lingering scan sessions
+                if (stepName !== 'biometric') {
+                    if (state.scanInterval) clearInterval(state.scanInterval);
+                    state.scanSessionActive = false;
+                }
+            };
+
+            // initial render
+            window.onload = function() {
+                nextStep('welcome');
+            };
+        })();
+    </script>
+</body>
+</html>

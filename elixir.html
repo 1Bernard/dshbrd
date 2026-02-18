@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSphere Pro | Enterprise AgriFinTech OS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:,
+                        mono:,
+                    },
+                    colors: {
+                        slate: { 850: '#151e2e', 900: '#0f172a', 950: '#020617' },
+                        emerald: { 450: '#10b981', 550: '#059669' },
+                        indigo: { 550: '#6366f1' }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Glassmorphism */
+      .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+      .glass-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+      .glass-input {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Utilities */
+      .text-gradient {
+            background: linear-gradient(to right, #34d399, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+      .aurora-bg {
+            background-color: #020617;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%);
+        }
+        [x-cloak] { display: none!important; }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-300 font-sans antialiased selection:bg-emerald-500 selection:text-white overflow-x-hidden"
+      x-data="{
+          view: 'landing',
+          sidebarOpen: true,
+          currentTab: 'overview',
+          user: {
+              name: 'Elena Rostova',
+              role: 'Senior Agronomist',
+              avatar: 'https://ui-avatars.com/api/?name=Elena+Rostova&background=10b981&color=fff'
+          }
+      }">
+
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b-0 transition-all duration-300" :class="{ 'py-2': view!== 'landing', 'py-4': view === 'landing' }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3 cursor-pointer" @click="view = 'landing'">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-seedling text-white text-lg"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-white">AgriSphere<span class="text-emerald-400">Pro</span></span>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-8" x-show="view === 'landing'">
+                    <a href="#platform" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Platform</a>
+                    <a href="#solutions" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Solutions</a>
+                    <a href="#pricing" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
+                    <div class="h-6 w-px bg-slate-800"></div>
+                    <button @click="view = 'auth-login'" class="text-sm font-medium text-white hover:text-emerald-400 transition-colors">Log In</button>
+                    <button @click="view = 'auth-register'" class="px-5 py-2 rounded-full bg-white/10 border border-white/5 hover:bg-white/20 text-white text-sm font-medium transition-all">Get Started</button>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-6" x-show="view.includes('dashboard')">
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-xs font-mono text-emerald-400">SYSTEM ONLINE</span>
+                    </div>
+                    <button class="relative text-slate-400 hover:text-white transition-colors">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 overflow-hidden cursor-pointer" @click="currentTab = 'profile'; view = 'dashboard-profile'">
+                        <img :src="user.avatar" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main x-show="view === 'landing'" x-transition.opacity.duration.500ms class="relative w-full overflow-hidden aurora-bg">
+        <div class="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px] animate-blob mix-blend-screen pointer-events-none"></div>
+        <div class="absolute top-40 right-0 translate-x-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000 mix-blend-screen pointer-events-none"></div>
+
+        <section class="relative pt-40 pb-20 lg:pt-52 lg:pb-32 px-4 max-w-7xl mx-auto text-center z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/80 border border-slate-800 backdrop-blur-md mb-8 animate-float shadow-2xl">
+                <span class="text-xs font-mono text-emerald-400">V2.4 RELEASE</span>
+                <span class="h-3 w-px bg-slate-700"></span>
+                <span class="text-xs text-slate-400">Advanced Risk Modeling Engine Live</span>
+            </div>
+
+            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight text-white mb-8 leading-tight animate-fade-in-up">
+                Bridging the Gap Between <br />
+                <span class="text-gradient">Soil & Capital</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up" style="animation-delay: 0.1s">
+                The first comprehensive AgriFinTech operating system. Combining geospatial telemetry with institutional-grade financial infrastructure.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style="animation-delay: 0.2s">
+                <button @click="view = 'auth-register'" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-white font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-1 transition-all duration-300">
+                    Deploy Platform
+                </button>
+                <button class="w-full sm:w-auto px-8 py-4 glass-panel rounded-xl text-white font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play text-emerald-400"></i> View Architecture
+                </button>
+            </div>
+        </section>
+
+        <section id="platform" class="py-24 px-4 max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-6">Vertical Slice Architecture</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Our platform is engineered using a modular Vertical Slice approach, ensuring high cohesion between agronomic data and financial logic.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-6 md:grid-rows-2 gap-6 h-auto md:h-[600px]">
+                <div class="md:col-span-4 md:row-span-2 glass-card rounded-3xl p-8 relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+                    <div class="absolute top-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-all duration-500">
+                        <i class="fa-solid fa-satellite text-9xl text-indigo-500"></i>
+                    </div>
+                    <div class="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 flex items-center justify-center mb-6 border border-indigo-500/30">
+                                <i class="fa-solid fa-map-location-dot text-indigo-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-3xl font-bold text-white mb-3">Geospatial Intelligence</h3>
+                            <p class="text-slate-400 max-w-md text-lg">PostGIS powered field mapping with sub-meter accuracy. Overlay satellite imagery with real-time IoT telemetry for precision underwriting.</p>
+                        </div>
+
+                        <div class="mt-8 w-full h-32 glass-panel rounded-xl border border-white/5 relative overflow-hidden flex items-end gap-1 px-2 pb-2">
+                            <template x-for="i in 20">
+                                <div class="flex-1 bg-indigo-500/40 hover:bg-indigo-400 transition-colors rounded-t-sm" :style="`height: ${Math.random() * 80 + 20}%`"></div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 md:row-span-1 glass-card rounded-3xl p-8 relative group hover:bg-white/5 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                            <i class="fa-solid fa-chart-pie text-emerald-400 text-xl"></i>
+                        </div>
+                        <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">LIVE</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mt-4 mb-2">Risk Engine</h3>
+                    <p class="text-slate-400 text-sm">Monte Carlo simulations running directly on the BEAM VM using Elixir Nx.</p>
+                </div>
+
+                <div class="md:col-span-2 md:row-span-1 glass-card rounded-3xl p-8 relative group hover:bg-white/5 transition-colors">
+                    <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4 border border-orange-500/30">
+                        <i class="fa-solid fa-wifi text-orange-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Offline-First Sync</h3>
+                    <p class="text-slate-400 text-sm">Conflict-free replicated data types (CRDTs) for seamless field operations.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="py-24 px-4 bg-slate-900/50 border-t border-white/5">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Transparent Pricing</h2>
+                    <p class="text-slate-400">Scalable solutions for individual farms to enterprise cooperatives.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass-card p-8 rounded-3xl border-t-4 border-slate-600">
+                        <h3 class="text-xl font-bold text-white">Starter</h3>
+                        <div class="my-4"><span class="text-4xl font-bold text-white">$0</span><span class="text-slate-500">/mo</span></div>
+                        <p class="text-slate-400 text-sm mb-6">Perfect for small family farms.</p>
+                        <ul class="space-y-3 mb-8 text-sm text-slate-300">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Basic Field Mapping</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Weather Alerts</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> 1 User Account</li>
+                        </ul>
+                        <button class="w-full py-3 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors">Start Free</button>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl border-t-4 border-emerald-500 relative transform md:-translate-y-4 shadow-2xl shadow-emerald-900/20">
+                        <div class="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl uppercase">Popular</div>
+                        <h3 class="text-xl font-bold text-white">Pro</h3>
+                        <div class="my-4"><span class="text-4xl font-bold text-white">$49</span><span class="text-slate-500">/mo</span></div>
+                        <p class="text-slate-400 text-sm mb-6">For growing agricultural businesses.</p>
+                        <ul class="space-y-3 mb-8 text-sm text-slate-300">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Financial Ledger</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> IoT Integration (5 devices)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Multi-User (up to 5)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Advanced Reporting</li>
+                        </ul>
+                        <button @click="view = 'auth-register'" class="w-full py-3 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20">Get Started</button>
+                    </div>
+
+                    <div class="glass-card p-8 rounded-3xl border-t-4 border-indigo-500">
+                        <h3 class="text-xl font-bold text-white">Enterprise</h3>
+                        <div class="my-4"><span class="text-4xl font-bold text-white">Custom</span></div>
+                        <p class="text-slate-400 text-sm mb-6">For cooperatives and insurers.</p>
+                        <ul class="space-y-3 mb-8 text-sm text-slate-300">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-500"></i> Dedicated Infrastructure</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-500"></i> Custom Risk Models</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-500"></i> API Access</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-indigo-500"></i> SLA Support</li>
+                        </ul>
+                        <button class="w-full py-3 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors">Contact Sales</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="border-t border-white/5 bg-slate-950 py-12 px-4">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-leaf text-emerald-500"></i>
+                    <span class="text-white font-bold">AgriSphere Pro</span>
+                </div>
+                <span class="text-slate-500 text-sm">© 2025 AgriSphere Pro. Built on Phoenix & Elixir.</span>
+                <div class="flex gap-6 text-slate-400">
+                    <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-linkedin"></i></a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <main x-show="view === 'auth-register'" x-transition.opacity class="min-h-screen flex items-center justify-center p-4 aurora-bg relative z-50">
+        <div class="w-full max-w-xl glass-card rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden"
+             x-data="{
+                 country: 'US',
+                 mfaPref: 'sms',
+                 countries:
+             }">
+
+            <button @click="view = 'landing'" class="absolute top-6 left-6 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+
+            <div class="text-center mb-8 mt-6">
+                <h2 class="text-2xl font-bold text-white">Create Account</h2>
+                <p class="text-slate-400 text-sm mt-2">Join the next generation of precision agriculture.</p>
+            </div>
+
+            <form class="space-y-5" @submit.prevent="view = 'auth-login'"> <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">First Name</label>
+                        <input type="text" class="w-full glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="John">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Last Name</label>
+                        <input type="text" class="w-full glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="Doe">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
+                    <input type="email" class="w-full glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="john@farm.com">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Mobile Number</label>
+                    <div class="flex gap-2">
+                        <div class="w-1/3 relative">
+                            <select x-model="country" class="w-full appearance-none glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-slate-900">
+                                <template x-for="c in countries">
+                                    <option :value="c.code" x-text="c.flag + ' ' + c.dial"></option>
+                                </template>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <input type="tel" class="w-2/3 glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" placeholder="555-0123">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">We'll auto-detect your region based on IP.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">2FA Preference</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="mfa" value="sms" class="peer sr-only" x-model="mfaPref">
+                            <div class="p-3 rounded-xl border border-white/10 bg-white/5 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 transition-all text-center">
+                                <i class="fa-solid fa-comment-sms text-lg mb-1 block" :class="mfaPref === 'sms'? 'text-emerald-400' : 'text-slate-400'"></i>
+                                <span class="text-xs font-medium" :class="mfaPref === 'sms'? 'text-white' : 'text-slate-400'">SMS</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="mfa" value="email" class="peer sr-only" x-model="mfaPref">
+                            <div class="p-3 rounded-xl border border-white/10 bg-white/5 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 transition-all text-center">
+                                <i class="fa-solid fa-envelope text-lg mb-1 block" :class="mfaPref === 'email'? 'text-emerald-400' : 'text-slate-400'"></i>
+                                <span class="text-xs font-medium" :class="mfaPref === 'email'? 'text-white' : 'text-slate-400'">Email</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="mfa" value="app" class="peer sr-only" x-model="mfaPref">
+                            <div class="p-3 rounded-xl border border-white/10 bg-white/5 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 transition-all text-center">
+                                <i class="fa-solid fa-shield-halved text-lg mb-1 block" :class="mfaPref === 'app'? 'text-emerald-400' : 'text-slate-400'"></i>
+                                <span class="text-xs font-medium" :class="mfaPref === 'app'? 'text-white' : 'text-slate-400'">Auth App</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-xl text-white font-bold shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30 transition-all transform hover:scale-[1.02]">
+                        Complete Registration
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center text-sm">
+                <span class="text-slate-400">Already have an account?</span>
+                <button @click="view = 'auth-login'" class="text-emerald-400 hover:text-emerald-300 font-medium ml-1">Sign In</button>
+            </div>
+        </div>
+    </main>
+
+    <main x-show="view === 'auth-login'" x-transition.opacity class="min-h-screen flex items-center justify-center p-4 aurora-bg relative z-50">
+        <div class="w-full max-w-md glass-card rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden"
+             x-data="{ step: 1, mfaMethod: 'sms' }">
+
+            <button @click="view = 'landing'" class="absolute top-6 left-6 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/30 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-10" x-transition:enter-end="opacity-100 translate-x-0">
+                <div class="text-center mb-8 mt-4">
+                    <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
+                    <p class="text-slate-400 text-sm mt-2">Secure access to your farm financial data</p>
+                </div>
+
+                <form class="space-y-5" @submit.prevent="step = 2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
+                        <input type="email" class="w-full glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors placeholder-slate-600" placeholder="farmer@agrisphere.io" value="demo@agrisphere.io">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Password</label>
+                        <input type="password" class="w-full glass-input rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" value="password123">
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-offset-slate-900">
+                            <span class="text-slate-400">Remember me</span>
+                        </label>
+                        <a href="#" class="text-emerald-400 hover:text-emerald-300">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-xl text-white font-bold shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30 transition-all transform hover:scale-[1.02]">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center text-sm">
+                    <span class="text-slate-400">New here?</span>
+                    <button @click="view = 'auth-register'" class="text-emerald-400 hover:text-emerald-300 font-medium ml-1">Create Account</button>
+                </div>
+            </div>
+
+            <div x-show="step === 2" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-10" x-transition:enter-end="opacity-100 translate-x-0">
+                <div class="text-center mb-8 mt-4">
+                    <div class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                        <i class="fa-solid fa-shield-halved text-2xl text-emerald-400"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">Two-Factor Authentication</h2>
+                    <p class="text-slate-400 text-sm mt-2">Enter the code sent to your device</p>
+                </div>
+
+                <div class="mb-6 text-center text-sm text-slate-300 bg-white/5 p-4 rounded-xl border border-white/5">
+                    <p class="mb-2">Receiving code via:</p>
+                    <div class="flex justify-center gap-4">
+                        <button @click="mfaMethod = 'sms'" :class="mfaMethod === 'sms'? 'text-emerald-400 font-bold' : 'text-slate-500'" class="transition-colors">SMS</button>
+                        <span class="text-slate-600">|</span>
+                        <button @click="mfaMethod = 'email'" :class="mfaMethod === 'email'? 'text-emerald-400 font-bold' : 'text-slate-500'" class="transition-colors">Email</button>
+                    </div>
+                </div>
+
+                <div class="mb-6 text-center text-sm text-slate-300">
+                    <span x-show="mfaMethod === 'sms'">Code sent to <span class="font-mono text-emerald-400">***-***-8921</span></span>
+                    <span x-show="mfaMethod === 'email'">Code sent to <span class="font-mono text-emerald-400">el***@agrisphere.io</span></span>
+                </div>
+
+                <div class="flex justify-between gap-2 mb-8">
+                    <template x-for="i in 6">
+                        <input type="text" maxlength="1" class="w-12 h-14 text-center text-xl font-bold bg-slate-800 border border-slate-700 rounded-xl focus:border-emerald-500 focus:outline-none text-white transition-colors" value="8" x-effect="if(i>4) $el.value=''">
+                    </template>
+                </div>
+
+                <button @click="view = 'dashboard-home'; step = 1" class="w-full py-3.5 bg-emerald-500 rounded-xl text-white font-bold shadow-lg hover:bg-emerald-400 transition-all">
+                    Verify & Login
+                </button>
+
+                <p class="text-center mt-6">
+                    <button class="text-xs text-slate-500 hover:text-slate-300 underline">Use a recovery code</button>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <div x-show="view.includes('dashboard')" x-transition.opacity class="flex h-screen bg-slate-950 overflow-hidden" x-init="$watch('view', value => { if(value === 'dashboard-home') { setTimeout(initCharts, 100) } })">
+
+        <aside class="w-64 glass-panel border-r border-white/5 flex-col hidden md:flex z-20">
+            <div class="h-20 flex items-center px-6 border-b border-white/5">
+                <i class="fa-solid fa-leaf text-emerald-500 text-xl mr-3"></i>
+                <span class="font-bold text-lg text-white">AgriSphere</span>
+            </div>
+
+            <div class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+                <div class="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Main</div>
+                <a href="#" @click.prevent="view = 'dashboard-home'; currentTab = 'overview'" :class="view === 'dashboard-home'? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'" class="flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all">
+                    <i class="fa-solid fa-chart-line w-5"></i> Dashboard
+                </a>
+
+                <div class="px-3 mt-8 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Operations</div>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                    <i class="fa-solid fa-map w-5"></i> Field Map
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                    <i class="fa-solid fa-cloud-sun w-5"></i> Weather
+                </a>
+
+                <div class="px-3 mt-8 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Settings</div>
+                <a href="#" @click.prevent="currentTab = 'profile'; view = 'dashboard-profile'" :class="currentTab === 'profile'? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'" class="flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all">
+                    <i class="fa-solid fa-user-shield w-5"></i> Security & Profile
+                </a>
+            </div>
+
+            <div class="p-4 border-t border-white/5">
+                <div class="flex items-center gap-3 cursor-pointer" @click="view = 'landing'">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-slate-500 hover:text-red-400 transition-colors"></i>
+                    <span class="text-sm text-slate-500 hover:text-slate-300">Log Out</span>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col relative overflow-hidden">
+
+            <div x-show="view === 'dashboard-home'" class="flex-1 overflow-y-auto p-8 relative">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">Farm Overview</h1>
+                        <p class="text-slate-400 mt-1">Real-time telemetry and financial snapshots.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="px-4 py-2 bg-indigo-600 rounded-lg text-white text-sm font-medium hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20">
+                            <i class="fa-solid fa-plus mr-2"></i> New Application
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="text-slate-400 text-sm font-medium">Net Revenue</div>
+                                <div class="text-2xl font-bold text-white mt-1">$124,500</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                <i class="fa-solid fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <span class="text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                <i class="fa-solid fa-arrow-trend-up"></i> +12.5%
+                            </span>
+                            <span class="text-slate-500 ml-2">vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="text-slate-400 text-sm font-medium">Risk Score</div>
+                                <div class="text-2xl font-bold text-white mt-1">12.4 <span class="text-sm font-normal text-slate-500">/ 100</span></div>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <span class="text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded">Low Risk</span>
+                            <span class="text-slate-500 ml-2">Updated 2m ago</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="text-slate-400 text-sm font-medium">Soil Moisture</div>
+                                <div class="text-2xl font-bold text-white mt-1">42%</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                <i class="fa-solid fa-droplet"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <span class="text-blue-400 flex items-center gap-1 bg-blue-500/10 px-1.5 py-0.5 rounded">Optimal</span>
+                            <span class="text-slate-500 ml-2">Zone A-4</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="text-slate-400 text-sm font-medium">Active Loans</div>
+                                <div class="text-2xl font-bold text-white mt-1">2</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <span class="text-orange-400 flex items-center gap-1 bg-orange-500/10 px-1.5 py-0.5 rounded">Due in 14d</span>
+                            <span class="text-slate-500 ml-2">Next payment</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-2 glass-card p-6 rounded-2xl border border-white/5">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold text-white">Financial Performance</h3>
+                            <div class="flex gap-2">
+                                <button class="px-2 py-1 text-xs rounded bg-slate-800 text-white">1M</button>
+                                <button class="px-2 py-1 text-xs rounded hover:bg-slate-800 text-slate-400 transition-colors">6M</button>
+                                <button class="px-2 py-1 text-xs rounded hover:bg-slate-800 text-slate-400 transition-colors">1Y</button>
+                            </div>
+                        </div>
+                        <div id="mainChart" class="w-full h-[300px]"></div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl border border-white/5">
+                        <h3 class="text-lg font-semibold text-white mb-6">Resource Allocation</h3>
+                        <div id="gaugeChart" class="w-full h-[300px]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="view === 'dashboard-profile'" class="flex-1 overflow-y-auto p-8 relative" x-cloak>
+                <div class="max-w-4xl mx-auto">
+                    <h1 class="text-3xl font-bold text-white mb-8">Account Settings</h1>
+
+                    <div class="flex border-b border-white/10 mb-8">
+                        <button class="px-6 py-3 text-sm font-medium text-white border-b-2 border-emerald-500">Security</button>
+                        <button class="px-6 py-3 text-sm font-medium text-slate-400 hover:text-white transition-colors">General</button>
+                        <button class="px-6 py-3 text-sm font-medium text-slate-400 hover:text-white transition-colors">Billing</button>
+                    </div>
+
+                    <div class="space-y-6">
+
+                        <div class="glass-card p-6 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white">Two-Factor Authentication</h3>
+                                    <p class="text-slate-400 text-sm">Add an extra layer of security to your account.</p>
+                                </div>
+                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="toggle" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out translate-x-6 checked:border-emerald-500" checked/>
+                                    <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-emerald-500 cursor-pointer"></label>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/50 border border-emerald-500/50">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                            <i class="fa-solid fa-mobile-screen"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-white">Authenticator App (TOTP)</div>
+                                            <div class="text-xs text-emerald-400">Recommended</div>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-white transition-colors">Configure</button>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-white/5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400">
+                                            <i class="fa-solid fa-comment-sms"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-white">SMS Messages</div>
+                                            <div class="text-xs text-slate-500">***-***-8921</div>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs border border-slate-600 hover:border-white text-slate-300 px-3 py-1.5 rounded transition-colors">Edit</button>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-white/5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400">
+                                            <i class="fa-solid fa-envelope"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-white">Email Authentication</div>
+                                            <div class="text-xs text-slate-500">demo@agrisphere.io</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-slate-500">Backup only</span>
+                                        <button class="text-xs border border-slate-600 hover:border-white text-slate-300 px-3 py-1.5 rounded transition-colors">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-2xl border border-white/5">
+                            <h3 class="text-lg font-semibold text-white mb-6">Active Sessions</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between pb-4 border-b border-white/5">
+                                    <div class="flex items-center gap-4">
+                                        <i class="fa-brands fa-chrome text-2xl text-slate-400"></i>
+                                        <div>
+                                            <div class="text-sm font-medium text-white">Chrome on macOS</div>
+                                            <div class="text-xs text-emerald-400 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Current Session
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-slate-400">192.168.1.45</div>
+                                        <div class="text-xs text-slate-500">Austin, TX</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <i class="fa-solid fa-mobile-screen-button text-2xl text-slate-400 pl-1"></i>
+                                        <div>
+                                            <div class="text-sm font-medium text-white">Safari on iPhone 14</div>
+                                            <div class="text-xs text-slate-500">Last seen 2 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs text-red-400 hover:text-red-300 hover:underline">Revoke</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Initialize ECharts with Dark Mode Theme
+        let mainChartInstance = null;
+        let gaugeChartInstance = null;
+
+        function initCharts() {
+            const chartDom = document.getElementById('mainChart');
+            const gaugeDom = document.getElementById('gaugeChart');
+
+            if (!chartDom ||!gaugeDom) return;
+
+            if (mainChartInstance) mainChartInstance.dispose();
+            if (gaugeChartInstance) gaugeChartInstance.dispose();
+
+            // 1. Area Chart
+            mainChartInstance = echarts.init(chartDom);
+            const mainOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    borderColor: '#334155',
+                    textStyle: { color: '#e2e8f0' }
+                },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    axisLine: { lineStyle: { color: '#475569' } },
+                    axisLabel: { color: '#94a3b8' }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: '#1e293b' } },
+                    axisLabel: { color: '#94a3b8' }
+                },
+                series:)
+                        },
+                        data:
+                    },
+                    {
+                        name: 'Cost',
+                        type: 'line',
+                        smooth: true,
+                        lineStyle: { width: 0 },
+                        showSymbol: false,
+                        areaStyle: {
+                            opacity: 0.8,
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(99, 102, 241, 0.3)' },
+                                { offset: 1, color: 'rgba(99, 102, 241, 0.01)' }
+                            ])
+                        },
+                        data:
+                    }
+                ]
+            };
+            mainChartInstance.setOption(mainOption);
+
+            // 2. Radar Chart
+            gaugeChartInstance = echarts.init(gaugeDom);
+            const gaugeOption = {
+                color: ['#10b981', '#6366f1'],
+                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', textStyle: { color: '#fff' } },
+                radar: {
+                    indicator:,
+                    shape: 'circle',
+                    splitNumber: 4,
+                    axisName: { color: '#94a3b8' },
+                    splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
+                    splitArea: { show: false },
+                    axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } }
+                },
+                series: [{
+                    type: 'radar',
+                    data: [
+                        {
+                            value: ,
+                            name: 'Allocated Budget',
+                            areaStyle: { color: 'rgba(99, 102, 241, 0.2)' },
+                            lineStyle: { color: '#6366f1' }
+                        },
+                        {
+                            value: ,
+                            name: 'Actual Usage',
+                            areaStyle: { color: 'rgba(16, 185, 129, 0.2)' },
+                            lineStyle: { color: '#10b981' }
+                        }
+                    ]
+                }]
+            };
+            gaugeChartInstance.setOption(gaugeOption);
+
+            window.addEventListener('resize', () => {
+                mainChartInstance.resize();
+                gaugeChartInstance.resize();
+            });
+        }
+    </script>
+</body>
+</html>

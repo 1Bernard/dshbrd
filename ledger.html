@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LedgerFlow - P2P Lending Platform</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Apache ECharts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+
+    <!-- Remix Icons (Reliable CSS Font) -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            500: '#3b82f6', // Blue
+                            600: '#2563eb',
+                            accent: '#8b5cf6', // Purple
+                        }
+                    },
+                    animation: {
+                        'float-slow': 'float 8s ease-in-out infinite',
+                        'float-medium': 'float 6s ease-in-out infinite',
+                        'float-fast': 'float 4s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'blob': 'blob 20s infinite',
+                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(1deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
+                            '50%': { opacity: 0.8, transform: 'scale(1.05)' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        }
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1e293b 1px, transparent 1px), linear-gradient(to bottom, #1e293b 1px, transparent 1px)",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* Slate 950 */
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Enhanced Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shine effect on hover */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
+        }
+
+        .glass-card:hover::before {
+            left: 100%;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5), 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .glass-nav {
+            background: rgba(2, 6, 23, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Vibrant Text Gradients */
+        .text-gradient {
+            background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientMove 5s linear infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 3D Perspective Utilities */
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .rotate-y-12 { transform: rotateY(12deg) rotateX(5deg); }
+        .rotate-y-n12 { transform: rotateY(-12deg) rotateX(5deg); }
+
+        /* Grid Background */
+        .bg-grid {
+            background-size: 40px 40px;
+            mask-image: linear-gradient(to bottom, transparent, 10%, black, 90%, transparent);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .hidden-section { display: none !important; }
+
+        /* Terminal Text Glow */
+        .terminal-text {
+            text-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+        }
+
+        /* Icon Alignment Fix */
+        i[class^="ri-"] {
+            vertical-align: middle;
+        }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3b82f6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3b82f6;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen relative selection:bg-purple-500/30 selection:text-purple-200">
+
+    <!-- Ambient Background Effects -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#020617]">
+        <!-- Moving Blobs -->
+        <div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen animate-blob"></div>
+        <div class="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[100px] mix-blend-screen animate-blob" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-0 left-1/3 w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[120px] mix-blend-screen animate-blob" style="animation-delay: 4s;"></div>
+
+        <!-- Grid Pattern Overlay -->
+        <div class="absolute inset-0 bg-grid-pattern opacity-[0.03] bg-grid"></div>
+
+        <!-- Noise Texture -->
+        <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+    </div>
+
+    <!-- TOAST NOTIFICATION SYSTEM -->
+    <div id="toast-container" class="fixed top-24 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+        <!-- Toasts injected here -->
+    </div>
+
+    <!-- ================= VIEW: LANDING PAGE ================= -->
+    <section id="view-landing" class="w-full relative">
+        <!-- Navigation -->
+        <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300" id="navbar">
+            <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="navigateTo('view-landing')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                        <i class="ri-funds-line text-white text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-white font-display">Ledger<span class="text-blue-400">Flow</span></span>
+                </div>
+
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="text-sm font-medium text-slate-300 hover:text-white transition-colors hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]">Features</a>
+                    <a href="#solutions" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Solutions</a>
+                    <!-- Demo Link for Invite Flow -->
+                    <button onclick="navigateTo('view-auth', 'invite')" class="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1">
+                        <i class="ri-mail-send-line"></i> Simulate Invite Link
+                    </button>
+                    <div class="h-6 w-[1px] bg-slate-700"></div>
+                    <button onclick="navigateTo('view-auth', 'login')" class="text-sm font-medium text-white hover:text-blue-400 transition-colors">Log In</button>
+                    <button onclick="navigateTo('view-auth', 'register')" class="bg-white text-slate-950 px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-200 transition-all transform hover:-translate-y-1 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <div class="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 min-h-[90vh]">
+
+            <!-- Hero Text -->
+            <div class="lg:w-1/2 text-left z-10 animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-8 backdrop-blur-md">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+                    v2.0: Event Sourcing Engine Live
+                </div>
+                <h1 class="text-6xl md:text-7xl font-bold leading-tight mb-6 tracking-tight">
+                    The Financial OS for <br>
+                    <span class="text-gradient">Modern Fintechs</span>
+                </h1>
+                <p class="text-lg text-slate-400 mb-10 leading-relaxed max-w-xl">
+                    Launch your own white-label lending platform. LedgerFlow provides the audit-proof ledger, multi-tenant identity, and CQRS architecture you need to scale.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <button onclick="navigateTo('view-auth', 'register')" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-bold shadow-[0_0_40px_rgba(59,130,246,0.4)] hover:shadow-[0_0_60px_rgba(59,130,246,0.6)] transition-all transform hover:-translate-y-1">
+                        Start Building Free
+                    </button>
+                    <button onclick="navigateTo('view-design-system')" class="w-full sm:w-auto px-8 py-4 glass text-white hover:bg-white/10 rounded-xl font-semibold transition-all flex items-center justify-center gap-2">
+                        <i class="ri-palette-line text-lg"></i> Design System
+                    </button>
+                </div>
+
+                <div class="mt-12 flex items-center gap-6 text-slate-500 text-sm font-medium">
+                    <div class="flex items-center gap-2"><i class="ri-checkbox-circle-fill text-blue-500 text-lg"></i> SOC2 Ready</div>
+                    <div class="flex items-center gap-2"><i class="ri-checkbox-circle-fill text-purple-500 text-lg"></i> 99.99% Uptime</div>
+                    <div class="flex items-center gap-2"><i class="ri-checkbox-circle-fill text-pink-500 text-lg"></i> Event Sourced</div>
+                </div>
+            </div>
+
+            <!-- Hero Visual: 3D Overlapping Cards -->
+            <div class="lg:w-1/2 relative h-[500px] w-full flex items-center justify-center perspective-1000">
+
+                <!-- CARD 1: BACK (The Terminal / Code) -->
+                <div class="absolute w-[380px] h-[240px] bg-[#0f172a] rounded-xl border border-slate-700/50 shadow-2xl transform translate-x-12 -translate-y-12 -rotate-6 z-10 animate-float-slow opacity-90 overflow-hidden">
+                    <div class="h-8 bg-slate-800 flex items-center px-3 gap-1.5 border-b border-slate-700">
+                        <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                        <span class="ml-2 text-[10px] text-slate-500 font-mono">event_store.ex</span>
+                    </div>
+                    <div class="p-4 font-mono text-[10px] text-slate-400 space-y-1">
+                        <div class="flex gap-2"><span class="text-blue-400">defmodule</span> <span class="text-yellow-300">Bank.Event</span> <span class="text-blue-400">do</span></div>
+                        <div class="pl-4 text-green-400">@derive Jason.Encoder</div>
+                        <div class="pl-4">defstruct [:id, :amount, :currency]</div>
+                        <div class="text-blue-400">end</div>
+                        <div class="pt-2 text-slate-500"># Stream: account-123</div>
+                        <div class="text-green-400 terminal-text">> FundsDeposited { amt: 5000 }</div>
+                        <div class="text-green-400 terminal-text">> LoanApproved { id: 99 }</div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: MIDDLE (The Virtual Card / Wallet) -->
+                <div class="absolute w-[360px] h-[220px] rounded-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform z-20 animate-float-medium glass overflow-hidden backdrop-blur-xl bg-gradient-to-br from-white/5 to-white/10">
+                    <!-- Holographic shine -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-50"></div>
+
+                    <div class="relative p-6 flex flex-col justify-between h-full">
+                        <div class="flex justify-between items-start">
+                            <i class="ri-rfid-fill text-white/70 text-3xl"></i>
+                            <div class="text-right">
+                                <p class="text-xs text-white/50 font-mono">CURRENT BALANCE</p>
+                                <p class="text-2xl font-bold text-white font-display tracking-wider">$42,500.00</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex gap-3 mb-4">
+                                <div class="w-10 h-6 bg-yellow-500/80 rounded flex items-center justify-center text-[8px] font-bold text-yellow-900 shadow-inner">CHIP</div>
+                                <i class="ri-wifi-fill text-white/50 text-xl rotate-90"></i>
+                            </div>
+                            <p class="font-mono text-white/80 text-sm tracking-[0.2em] mb-1">•••• •••• •••• 8829</p>
+                            <div class="flex justify-between items-end">
+                                <p class="text-xs text-white/60">ALEX MORGAN</p>
+                                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                    <div class="w-4 h-4 rounded-full bg-red-500/80"></div>
+                                    <div class="w-4 h-4 rounded-full bg-yellow-500/80 -ml-2 mix-blend-screen"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 3: FRONT (Success Notification) -->
+                <div class="absolute w-[240px] h-auto glass rounded-xl border border-green-500/30 shadow-[0_10px_40px_rgba(34,197,94,0.3)] transform -translate-x-32 translate-y-32 z-30 animate-float-fast p-4 flex items-center gap-3 bg-slate-900/80">
+                    <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.6)]">
+                        <i class="ri-check-line text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-semibold uppercase">Transaction</p>
+                        <p class="text-sm font-bold text-white">Loan Funded</p>
+                        <p class="text-xs text-green-400 font-mono">+ $5,000.00 USD</p>
+                    </div>
+                </div>
+
+                <!-- Decorative Orbs around cards -->
+                <div class="absolute -z-10 w-64 h-64 bg-blue-500/30 rounded-full blur-[80px] -top-10 -right-10 animate-pulse-glow"></div>
+                <div class="absolute -z-10 w-64 h-64 bg-purple-500/30 rounded-full blur-[80px] -bottom-10 -left-10 animate-pulse-glow" style="animation-delay: 1s;"></div>
+            </div>
+        </div>
+
+        <!-- Social Proof (Refined) -->
+        <div class="py-12 border-y border-slate-800/50 bg-[#0f172a]/30 backdrop-blur-sm">
+            <div class="max-w-7xl mx-auto px-6 text-center">
+                <p class="text-xs font-bold text-slate-500 mb-8 uppercase tracking-[0.2em]">Powering the next generation of finance</p>
+                <div class="flex flex-wrap justify-center gap-16 grayscale opacity-40 hover:opacity-100 transition-opacity duration-500">
+                    <span class="text-2xl font-bold font-display flex items-center gap-2"><i class="ri-vip-diamond-fill"></i> GEMINI</span>
+                    <span class="text-2xl font-bold font-display flex items-center gap-2"><i class="ri-asterisk"></i> NOVA</span>
+                    <span class="text-2xl font-bold font-display flex items-center gap-2"><i class="ri-flashlight-fill"></i> BOLT</span>
+                    <span class="text-2xl font-bold font-display flex items-center gap-2"><i class="ri-box-3-fill"></i> BLOCK</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid (Refined) -->
+        <div id="features" class="py-32 px-6 max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6 font-display">Engineered for Scale</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto text-lg">We've abstracted the complexity of banking infrastructure so you can focus on user experience.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-10 rounded-3xl group">
+                    <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 mb-8 group-hover:scale-110 transition-transform duration-300 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                        <i class="ri-database-2-fill text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 font-display">Event Sourcing</h3>
+                    <p class="text-slate-400 leading-relaxed">Immutable audit trails by default. Replay history, debug with time-travel, and never lose a transaction state.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card p-10 rounded-3xl group">
+                    <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-400 mb-8 group-hover:scale-110 transition-transform duration-300 border border-purple-500/20 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+                        <i class="ri-building-2-fill text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 font-display">Multi-Tenancy</h3>
+                    <p class="text-slate-400 leading-relaxed">Built for white-labeling. Isolate data logically while running on shared infrastructure. Perfect for SaaS.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-10 rounded-3xl group">
+                    <div class="w-14 h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center text-pink-400 mb-8 group-hover:scale-110 transition-transform duration-300 border border-pink-500/20 group-hover:bg-pink-500 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(236,72,153,0.5)]">
+                        <i class="ri-flashlight-fill text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 font-display">Real-time CQRS</h3>
+                    <p class="text-slate-400 leading-relaxed">Separate read and write models. Push updates to millions of clients instantly via WebSockets.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800 bg-[#020617] pt-20 pb-10">
+            <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
+                <div class="col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                            <i class="ri-funds-line text-white text-sm"></i>
+                        </div>
+                        <span class="text-xl font-bold font-display">LedgerFlow</span>
+                    </div>
+                    <p class="text-slate-500 text-sm max-w-sm leading-relaxed">The complete infrastructure for building modern lending and banking applications. Secure, scalable, and developer-first.</p>
+                    <div class="flex gap-4 mt-6">
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors"><i class="ri-twitter-x-fill text-xl"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors"><i class="ri-github-fill text-xl"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-white transition-colors"><i class="ri-discord-fill text-xl"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-white font-display">Product</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Features</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Security</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Enterprise</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6 text-white font-display">Resources</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Documentation</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">API Reference</a></li>
+                        <li><button onclick="navigateTo('view-design-system')" class="hover:text-blue-400 transition-colors text-left">Design System</button></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-6 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-600">
+                <p>&copy; 2024 LedgerFlow Inc. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-slate-400">Privacy Policy</a>
+                    <a href="#" class="hover:text-slate-400">Terms of Service</a>
+                </div>
+            </div>
+        </footer>
+    </section>
+
+    <!-- ================= VIEW: AUTHENTICATION ================= -->
+    <section id="view-auth" class="hidden-section min-h-screen flex items-center justify-center p-4 relative">
+        <div class="absolute inset-0 z-[-1] overflow-hidden">
+             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px] mix-blend-screen animate-pulse"></div>
+        </div>
+
+        <div class="w-full max-w-md animate-fade-in glass p-10 rounded-3xl border border-slate-700/50 shadow-2xl relative">
+            <!-- Decorative corner glow -->
+            <div class="absolute -top-10 -right-10 w-20 h-20 bg-purple-500/40 rounded-full blur-xl"></div>
+
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                    <i class="ri-funds-line text-white text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold font-display" id="auth-title">Welcome Back</h2>
+                <p class="text-slate-400 text-sm mt-2" id="auth-subtitle">Enter your credentials to access the workspace.</p>
+            </div>
+
+            <!-- Auth Tabs -->
+            <div class="flex p-1.5 bg-slate-900/60 rounded-xl mb-8 border border-slate-700/50" id="auth-tabs">
+                <button id="tab-login" onclick="toggleAuth('login')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-slate-700 text-white shadow-lg transition-all">Login</button>
+                <button id="tab-register" onclick="toggleAuth('register')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition-all">Register</button>
+            </div>
+
+            <!-- Invite Banner (Only shown for Invite flow) -->
+            <div id="invite-banner" class="hidden-section mb-8 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3">
+                <i class="ri-mail-check-line text-blue-400 text-xl mt-0.5"></i>
+                <div>
+                    <p class="text-sm font-bold text-white">Join Acme Corp</p>
+                    <p class="text-xs text-slate-400 mt-1">You've been invited to join this workspace. Please set up your account.</p>
+                </div>
+            </div>
+
+            <form onsubmit="event.preventDefault(); handleAuthSubmit();" class="space-y-5">
+                <div id="field-name" class="hidden-section space-y-1.5 animate-fade-in-up">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
+                    <input type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-600" placeholder="John Doe">
+                </div>
+
+                <div class="space-y-1.5" id="field-tenant">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Tenant ID</label>
+                    <div class="relative group">
+                        <i class="ri-building-2-line absolute left-4 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+                        <input type="text" id="input-tenant" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-600" placeholder="acme-corp" value="demo-tenant">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email</label>
+                    <div class="relative group">
+                        <i class="ri-mail-line absolute left-4 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+                        <input type="email" id="input-email" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-600" placeholder="name@company.com" value="admin@ledgerflow.io">
+                        <i id="icon-lock-email" class="ri-lock-fill absolute right-4 top-3.5 text-slate-600 hidden-section"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Password</label>
+                    <div class="relative group">
+                        <i class="ri-lock-password-line absolute left-4 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors"></i>
+                        <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" value="password123">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:scale-[1.02] mt-8">
+                    <span id="auth-btn-text">Sign In to Dashboard</span>
+                </button>
+            </form>
+
+            <button onclick="navigateTo('view-landing')" class="w-full mt-6 text-sm text-slate-500 hover:text-white transition-colors flex items-center justify-center gap-2 group">
+                <i class="ri-arrow-left-line group-hover:-translate-x-1 transition-transform"></i> Back to Home
+            </button>
+        </div>
+    </section>
+
+    <!-- ================= VIEW: DASHBOARD LAYOUT ================= -->
+    <div id="view-dashboard-layout" class="hidden-section flex h-screen overflow-hidden bg-[#0f172a]">
+
+        <!-- Sidebar (Desktop) -->
+        <aside class="w-72 glass border-r border-slate-700/50 flex-col hidden md:flex z-20 backdrop-blur-3xl" id="sidebar-desktop">
+            <div class="h-20 flex items-center px-6 border-b border-slate-700/50 cursor-pointer" onclick="navigateTo('view-landing')">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center mr-3 shadow-md shadow-blue-500/20">
+                    <i class="ri-funds-line text-white text-sm"></i>
+                </div>
+                <span class="font-bold tracking-tight text-white font-display text-lg">Ledger<span class="text-blue-400">Flow</span></span>
+            </div>
+
+            <div class="p-6 space-y-8 flex-1 overflow-y-auto">
+                <!-- Context: Banking -->
+                <div>
+                    <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">Banking Core</p>
+                    <nav class="space-y-1">
+                        <button onclick="switchDashView('dash-home')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all text-blue-400 bg-blue-500/10 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]" id="nav-dash-home">
+                            <i class="ri-dashboard-3-line text-xl"></i> Overview
+                        </button>
+                        <button onclick="switchDashView('dash-wallet')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" id="nav-dash-wallet">
+                            <i class="ri-wallet-3-line text-xl"></i> Wallet & Transfers
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Context: Lending -->
+                <div>
+                    <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">Lending Engine</p>
+                    <nav class="space-y-1">
+                        <button onclick="switchDashView('dash-market')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" id="nav-dash-market">
+                            <i class="ri-store-3-line text-xl"></i> Loan Marketplace
+                        </button>
+                        <button onclick="switchDashView('dash-invest')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" id="nav-dash-invest">
+                            <i class="ri-line-chart-line text-xl"></i> Portfolio
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Context: Organization -->
+                <div>
+                    <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">Organization</p>
+                    <nav class="space-y-1">
+                        <button onclick="switchDashView('dash-team')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" id="nav-dash-team">
+                            <i class="ri-team-line text-xl"></i> Team Members
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Context: Admin -->
+                <div>
+                    <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">System</p>
+                    <nav class="space-y-1">
+                        <button onclick="switchDashView('dash-events')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" id="nav-dash-events">
+                            <i class="ri-terminal-box-line text-xl"></i> Event Stream
+                        </button>
+                        <button onclick="navigateTo('view-design-system')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                            <i class="ri-palette-line text-xl"></i> Design System
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- User Footer -->
+            <div onclick="switchDashView('dash-profile')" class="p-4 m-4 rounded-2xl border border-slate-700/50 bg-slate-900/50 cursor-pointer hover:bg-slate-800 transition-colors group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-b from-slate-700 to-slate-800 border border-slate-600 flex items-center justify-center font-bold text-xs text-white shadow-inner group-hover:border-blue-500 transition-colors">AM</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-white truncate">Alex Morgan</p>
+                        <p class="text-xs text-slate-500 truncate font-mono">ID: tenant-01</p>
+                    </div>
+                    <button class="text-slate-500 hover:text-white transition-colors p-2 rounded-lg">
+                        <i class="ri-settings-4-line text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu-overlay" class="fixed inset-0 z-40 hidden mobile-menu-overlay md:hidden" onclick="toggleMobileMenu()"></div>
+
+        <!-- Mobile Menu (Drawer) -->
+        <aside id="sidebar-mobile" class="fixed inset-y-0 left-0 w-72 glass border-r border-slate-700/50 flex-col flex z-50 transform -translate-x-full transition-transform duration-300 md:hidden backdrop-blur-3xl bg-[#0f172a]">
+             <!-- Same content as desktop sidebar, injected via JS or duplicated here for simplicity in prototype -->
+             <div class="h-20 flex items-center px-6 border-b border-slate-700/50">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center mr-3 shadow-md shadow-blue-500/20">
+                    <i class="ri-funds-line text-white text-sm"></i>
+                </div>
+                <span class="font-bold tracking-tight text-white font-display text-lg">Ledger<span class="text-blue-400">Flow</span></span>
+                <button onclick="toggleMobileMenu()" class="ml-auto text-slate-400 hover:text-white"><i class="ri-close-line text-2xl"></i></button>
+            </div>
+             <div class="p-6 space-y-8 flex-1 overflow-y-auto" id="mobile-nav-content">
+                <!-- Links will be cloned here -->
+             </div>
+             <div onclick="switchDashView('dash-profile'); toggleMobileMenu()" class="p-4 m-4 rounded-2xl border border-slate-700/50 bg-slate-900/50 cursor-pointer hover:bg-slate-800 transition-colors group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-b from-slate-700 to-slate-800 border border-slate-600 flex items-center justify-center font-bold text-xs text-white shadow-inner group-hover:border-blue-500 transition-colors">AM</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-white truncate">Alex Morgan</p>
+                        <p class="text-xs text-slate-500 truncate font-mono">ID: tenant-01</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-grid-pattern bg-grid">
+
+            <!-- Top Header -->
+            <header class="h-20 glass border-b border-slate-700/50 flex items-center justify-between px-6 md:px-8 z-10 backdrop-blur-md relative">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white p-2 -ml-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <i class="ri-menu-2-line text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-bold text-white font-display" id="page-title">Dashboard Overview</h1>
+                        <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Real-time financial data</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 md:gap-6 relative">
+                     <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)] hidden sm:flex">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <span class="text-xs font-mono text-green-400 font-semibold">WS: CONNECTED</span>
+                    </div>
+                    <div class="h-8 w-[1px] bg-slate-700/50 hidden sm:block"></div>
+
+                    <!-- Notification Bell & Panel -->
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-white transition-colors">
+                            <i class="ri-notification-3-line text-xl"></i>
+                            <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0f172a] animate-pulse"></span>
+                        </button>
+
+                        <!-- Notification Dropdown Panel -->
+                        <div id="notification-panel" class="hidden-section absolute top-12 right-0 w-80 glass border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in-up origin-top-right backdrop-blur-xl bg-slate-900/95">
+                            <div class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/30">
+                                <h3 class="font-bold text-white font-display text-sm">Notifications</h3>
+                                <button class="text-xs text-blue-400 hover:text-white transition-colors">Mark all read</button>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto" id="notification-list">
+                                <!-- Mock Notification Items -->
+                                <div class="p-4 border-b border-slate-800/50 hover:bg-white/5 transition-colors cursor-pointer group">
+                                    <div class="flex gap-3">
+                                        <div class="mt-1 w-2 h-2 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                                        <div>
+                                            <p class="text-sm text-slate-300 group-hover:text-white transition-colors">Loan <span class="font-bold text-white">#8829</span> fully funded.</p>
+                                            <p class="text-xs text-slate-500 mt-1 font-mono">2 mins ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 border-b border-slate-800/50 hover:bg-white/5 transition-colors cursor-pointer group">
+                                    <div class="flex gap-3">
+                                        <div class="mt-1 w-2 h-2 rounded-full bg-green-500 shrink-0 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+                                        <div>
+                                            <p class="text-sm text-slate-300 group-hover:text-white transition-colors">Deposit of <span class="font-bold text-green-400">$5,000.00</span> confirmed.</p>
+                                            <p class="text-xs text-slate-500 mt-1 font-mono">1 hour ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 border-b border-slate-800/50 hover:bg-white/5 transition-colors cursor-pointer group">
+                                    <div class="flex gap-3">
+                                        <div class="mt-1 w-2 h-2 rounded-full bg-purple-500 shrink-0 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
+                                        <div>
+                                            <p class="text-sm text-slate-300 group-hover:text-white transition-colors">New team member <span class="font-bold text-white">John Smith</span> joined.</p>
+                                            <p class="text-xs text-slate-500 mt-1 font-mono">Yesterday</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-slate-800/30 text-center border-t border-slate-700/50 hover:bg-slate-800/50 transition-colors cursor-pointer">
+                                <button class="text-xs font-bold text-slate-400 hover:text-white transition-colors">View All History</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- DASH VIEW: HOME (OVERVIEW) -->
+            <div id="dash-home" class="dash-view flex-1 overflow-y-auto p-6 md:p-10 space-y-8">
+                <!-- Stats Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Stat 1 -->
+                    <div class="glass-card p-6 rounded-2xl relative group overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-blue-500/30 transition-colors"></div>
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20">
+                                    <i class="ri-wallet-3-fill text-2xl"></i>
+                                </div>
+                                <span class="flex items-center text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                                    <i class="ri-arrow-right-up-line mr-1"></i> 8.2%
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-400 font-medium">Total Liquidity</p>
+                            <h3 class="text-3xl font-bold text-white mt-1 font-display tracking-tight">$42,500.00</h3>
+                        </div>
+                    </div>
+
+                    <!-- Stat 2 -->
+                    <div class="glass-card p-6 rounded-2xl relative group overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl group-hover:bg-purple-500/30 transition-colors"></div>
+                         <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-purple-500/10 rounded-xl text-purple-400 border border-purple-500/20">
+                                    <i class="ri-bar-chart-grouped-fill text-2xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-400 font-medium">Active Loans</p>
+                            <h3 class="text-3xl font-bold text-white mt-1 font-display tracking-tight">14</h3>
+                            <p class="text-xs text-slate-500 mt-2 font-mono">Outstanding: $12,850.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Stat 3 -->
+                    <div class="glass-card p-6 rounded-2xl relative group overflow-hidden">
+                         <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-2xl group-hover:bg-pink-500/30 transition-colors"></div>
+                         <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 bg-pink-500/10 rounded-xl text-pink-400 border border-pink-500/20">
+                                    <i class="ri-group-fill text-2xl"></i>
+                                </div>
+                                <span class="flex items-center text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                                    +$1,240
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-400 font-medium">Net Return (YTD)</p>
+                            <h3 class="text-3xl font-bold text-white mt-1 font-display tracking-tight">11.4%</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 glass-card p-6 rounded-2xl">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-white font-display">Capital Flow</h3>
+                            <select class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                <option>Last 7 Days</option>
+                                <option>Last 30 Days</option>
+                            </select>
+                        </div>
+                        <div id="mainChart" class="w-full h-[320px]"></div>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl flex flex-col">
+                        <h3 class="text-lg font-bold text-white font-display mb-6">Risk Allocation</h3>
+                        <div id="pieChart" class="w-full flex-1 min-h-[300px]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASH VIEW: WALLET (BANKING) -->
+            <div id="dash-wallet" class="dash-view hidden-section flex-1 overflow-y-auto p-6 md:p-10 space-y-8">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Deposit Card -->
+                    <div class="glass-card p-8 rounded-3xl border-t-4 border-green-500 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-6 opacity-10"><i class="ri-bank-fill text-8xl text-green-500"></i></div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3 font-display"><i class="ri-arrow-left-down-line text-green-500"></i> Deposit Funds</h3>
+                        <div class="space-y-5 relative z-10">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3.5 text-slate-400 text-lg">$</span>
+                                    <input type="number" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-3 pl-8 pr-4 text-white text-lg font-mono focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none" placeholder="0.00">
+                                </div>
+                            </div>
+                            <button onclick="showToast('Deposit initiated via Payment Gateway')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl transition-all border border-slate-700 hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]">Confirm Deposit</button>
+                        </div>
+                    </div>
+                    <!-- Transfer Card -->
+                    <div class="glass-card p-8 rounded-3xl border-t-4 border-blue-500 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-6 opacity-10"><i class="ri-send-plane-fill text-8xl text-blue-500"></i></div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-3 font-display"><i class="ri-send-plane-2-line text-blue-500"></i> Transfer</h3>
+                        <div class="space-y-5 relative z-10">
+                             <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Recipient</label>
+                                <input type="text" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-3 px-4 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" placeholder="Wallet ID / Email">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3.5 text-slate-400 text-lg">$</span>
+                                    <input type="number" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl py-3 pl-8 pr-4 text-white text-lg font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none" placeholder="0.00">
+                                </div>
+                            </div>
+                            <button onclick="showToast('Transfer command dispatched to Ledger')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25">Send Funds</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Table -->
+                <div class="glass-card rounded-2xl overflow-hidden border border-slate-700/50">
+                    <div class="p-6 border-b border-slate-700/50 bg-slate-900/30">
+                        <h3 class="font-bold text-lg font-display">Transaction History</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-900/50 text-xs uppercase text-slate-500 font-bold tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4">Transaction ID</th>
+                                    <th class="px-6 py-4">Type</th>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/50 text-sm text-slate-300">
+                                <tr class="hover:bg-slate-800/30 transition-colors group">
+                                    <td class="px-6 py-4 font-mono text-slate-500 group-hover:text-blue-400 transition-colors">txn_8921a</td>
+                                    <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-md bg-green-500/10 text-green-400 text-xs font-bold border border-green-500/20">Deposit</span></td>
+                                    <td class="px-6 py-4">Oct 24, 10:30 AM</td>
+                                    <td class="px-6 py-4 text-right font-bold text-green-400 font-mono">+$5,000.00</td>
+                                </tr>
+                                <tr class="hover:bg-slate-800/30 transition-colors group">
+                                    <td class="px-6 py-4 font-mono text-slate-500 group-hover:text-blue-400 transition-colors">txn_8922b</td>
+                                    <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold border border-blue-500/20">Investment</span></td>
+                                    <td class="px-6 py-4">Oct 24, 11:15 AM</td>
+                                    <td class="px-6 py-4 text-right font-bold text-white font-mono">-$1,000.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASH VIEW: MARKET (LENDING) -->
+            <div id="dash-market" class="dash-view hidden-section flex-1 overflow-y-auto p-6 md:p-10 space-y-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold font-display text-white">Loan Marketplace</h2>
+                        <p class="text-slate-400 text-sm">Invest in peer-vetted opportunities.</p>
+                    </div>
+                    <button onclick="document.getElementById('loan-modal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/25 transform hover:-translate-y-0.5 transition-all">Request Funding</button>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Loan Card 1 -->
+                    <div class="glass-card p-6 rounded-2xl flex flex-col gap-5 hover:border-blue-500/50 transition-colors">
+                        <div class="flex justify-between items-start">
+                            <div class="flex gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">
+                                    <i class="ri-store-3-fill text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Small Business</span>
+                                    <h4 class="font-bold text-lg text-white">Bakery Expansion</h4>
+                                </div>
+                            </div>
+                            <div class="text-right bg-slate-900/50 px-2 py-1 rounded-lg border border-slate-700">
+                                <p class="text-lg font-bold text-green-400">8.5%</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold">APY</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 text-xs font-medium text-slate-400">
+                            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">Risk: A</span>
+                            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">Term: 12mo</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-bold text-slate-400">
+                                <span>$8,500 funded</span>
+                                <span>$10,000 Goal</span>
+                            </div>
+                            <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                                <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 w-[85%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Input Area -->
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Investment Amount</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-slate-400 text-xs">$</span>
+                                <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 pl-6 pr-3 text-sm text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-slate-600" placeholder="Min $50">
+                            </div>
+                        </div>
+
+                        <button onclick="showToast('Investment of funds initiated')" class="w-full py-3 rounded-xl border border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white transition-all text-sm font-bold shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.4)]">Fund This Loan</button>
+                    </div>
+
+                    <!-- Loan Card 2 -->
+                    <div class="glass-card p-6 rounded-2xl flex flex-col gap-5 hover:border-purple-500/50 transition-colors">
+                        <div class="flex justify-between items-start">
+                            <div class="flex gap-3">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30">
+                                    <i class="ri-bank-card-fill text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Refinance</span>
+                                    <h4 class="font-bold text-lg text-white">Debt Consolidation</h4>
+                                </div>
+                            </div>
+                            <div class="text-right bg-slate-900/50 px-2 py-1 rounded-lg border border-slate-700">
+                                <p class="text-lg font-bold text-green-400">11.2%</p>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold">APY</p>
+                            </div>
+                        </div>
+
+                         <div class="flex gap-2 text-xs font-medium text-slate-400">
+                            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">Risk: B</span>
+                            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">Term: 24mo</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs font-bold text-slate-400">
+                                <span>$1,200 funded</span>
+                                <span>$5,000 Goal</span>
+                            </div>
+                            <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                                <div class="h-full bg-gradient-to-r from-purple-500 to-pink-400 w-[24%] rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Input Area -->
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Investment Amount</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-slate-400 text-xs">$</span>
+                                <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 pl-6 pr-3 text-sm text-white focus:border-purple-500 focus:outline-none transition-all placeholder:text-slate-600" placeholder="Min $50">
+                            </div>
+                        </div>
+
+                        <button onclick="showToast('Investment of funds initiated')" class="w-full py-3 rounded-xl border border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white transition-all text-sm font-bold shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">Fund This Loan</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASH VIEW: INVEST (PORTFOLIO) -->
+            <div id="dash-invest" class="dash-view hidden-section flex-1 overflow-y-auto p-6 md:p-10">
+                <div class="glass-card p-10 rounded-3xl text-center space-y-6 max-w-lg mx-auto mt-10 border border-slate-700">
+                    <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto text-slate-500 border border-slate-700">
+                        <i class="ri-pie-chart-2-fill text-4xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold font-display text-white">Portfolio Analysis</h3>
+                    <p class="text-slate-400 text-sm">Your investments are automatically projected here from the Lending Context.</p>
+                    <div class="w-full h-[1px] bg-slate-700/50 my-6"></div>
+                    <div class="grid grid-cols-2 gap-6 text-left">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Principal Invested</p>
+                            <p class="text-2xl font-bold text-white font-mono">$12,850.00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Accrued Interest</p>
+                            <p class="text-2xl font-bold text-green-400 font-mono">+$420.55</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <!-- DASH VIEW: TEAM MANAGEMENT (NEW) -->
+             <div id="dash-team" class="dash-view hidden-section flex-1 overflow-y-auto p-6 md:p-10 max-w-5xl mx-auto w-full">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold font-display text-white">Team Management</h2>
+                        <p class="text-slate-400 text-sm">Manage user access and roles for your organization.</p>
+                    </div>
+                    <button onclick="document.getElementById('invite-modal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all hover:scale-105">
+                        <i class="ri-user-add-line text-lg"></i> Invite Member
+                    </button>
+                </div>
+
+                <div class="glass-card rounded-3xl overflow-hidden mb-8 border border-slate-700/50">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-900/50 text-xs uppercase text-slate-500 font-bold tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="px-6 py-4">User</th>
+                                    <th class="px-6 py-4">Role</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/50 text-sm text-slate-300">
+                                <tr class="hover:bg-slate-800/30 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs border border-slate-600">AM</div>
+                                            <div>
+                                                <p class="text-white font-bold">Alex Morgan</p>
+                                                <p class="text-xs text-slate-500">alex.morgan@acme.com</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 text-xs font-bold border border-purple-500/20">Admin</span></td>
+                                    <td class="px-6 py-4"><span class="flex items-center gap-2 text-green-400 text-xs font-bold"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Active</span></td>
+                                    <td class="px-6 py-4 text-right text-slate-500">
+                                        <button class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white"><i class="ri-more-2-fill"></i></button>
+                                    </td>
+                                </tr>
+                                 <tr class="hover:bg-slate-800/30 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs border border-slate-600">JS</div>
+                                            <div>
+                                                <p class="text-white font-bold">John Smith</p>
+                                                <p class="text-xs text-slate-500">john.smith@acme.com</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 text-xs font-bold border border-blue-500/20">Staff</span></td>
+                                    <td class="px-6 py-4"><span class="flex items-center gap-2 text-green-400 text-xs font-bold"><span class="w-2 h-2 rounded-full bg-green-500"></span> Active</span></td>
+                                    <td class="px-6 py-4 text-right text-slate-500">
+                                        <button class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white"><i class="ri-more-2-fill"></i></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-slate-800/30 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs border border-slate-600">ED</div>
+                                            <div>
+                                                <p class="text-white font-bold">Emma Davis</p>
+                                                <p class="text-xs text-slate-500">emma.d@acme.com</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4"><span class="px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 text-xs font-bold border border-slate-600">Viewer</span></td>
+                                    <td class="px-6 py-4"><span class="flex items-center gap-2 text-slate-400 text-xs font-bold"><span class="w-2 h-2 rounded-full bg-slate-500"></span> Offline</span></td>
+                                    <td class="px-6 py-4 text-right text-slate-500">
+                                        <button class="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white"><i class="ri-more-2-fill"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+             <!-- DASH VIEW: PROFILE -->
+             <div id="dash-profile" class="dash-view hidden-section flex-1 overflow-y-auto p-6 md:p-10 max-w-4xl mx-auto w-full">
+                <div class="glass-card p-8 rounded-3xl mb-8">
+                    <div class="flex items-center gap-6 mb-8">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border-2 border-slate-600 flex items-center justify-center text-2xl font-bold text-white shadow-xl relative">
+                            AM
+                            <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-4 border-[#0f172a]"></div>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white font-display">Alex Morgan</h2>
+                            <p class="text-slate-400">Senior Loan Officer • Acme Corp</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded text-xs font-bold uppercase">Level 3 Access</span>
+                                <span class="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded text-xs font-bold uppercase"><i class="ri-shield-check-line mr-1"></i> KYC Verified</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                                <input type="email" value="alex.morgan@acme.com" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500 transition-all" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tenant ID (Read Only)</label>
+                                <input type="text" value="tenant-01-acme" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-slate-400 cursor-not-allowed" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold text-white font-display mb-4">Security & Login</h3>
+                <div class="glass-card p-8 rounded-3xl mb-8 border border-slate-700/50">
+                    <form onsubmit="event.preventDefault(); showToast('Password Updated Successfully')">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                             <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Current Password</label>
+                                <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500 transition-all" placeholder="••••••••">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">New Password</label>
+                                <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-blue-500 transition-all" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                             <button class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold border border-slate-700 transition-all">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+
+                <h3 class="text-lg font-bold text-white font-display mb-4">Notification Preferences</h3>
+                <div class="glass-card p-6 rounded-3xl space-y-4 mb-8">
+                    <div class="flex items-center justify-between p-2">
+                        <div>
+                            <p class="text-white font-bold">Loan Funded Alerts</p>
+                            <p class="text-xs text-slate-400">Get notified when your investment is fully funded.</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle1" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-700"/>
+                            <label for="toggle1" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-700 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="w-full h-[1px] bg-slate-800"></div>
+                     <div class="flex items-center justify-between p-2">
+                        <div>
+                            <p class="text-white font-bold">Daily Digest</p>
+                            <p class="text-xs text-slate-400">A summary of all transactions at 9:00 AM.</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle2" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-700" checked/>
+                            <label for="toggle2" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-700 cursor-pointer"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASH VIEW: EVENTS (ADMIN) -->
+            <div id="dash-events" class="dash-view hidden-section flex-1 overflow-y-auto bg-[#020617] p-6 md:p-10 font-mono text-xs relative">
+                <!-- Matrix Rain Effect Overlay -->
+                <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 pointer-events-none bg-[length:100%_2px,3px_100%]"></div>
+
+                <div class="relative z-10">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-green-900/30 pb-4">
+                        <div class="flex items-center gap-3 text-green-500">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                            <span class="font-bold tracking-wider">LIVE EVENT STREAM</span>
+                        </div>
+
+                        <!-- Event Trace Controls -->
+                        <div class="flex items-center gap-3">
+                             <div class="relative">
+                                <i class="ri-search-line absolute left-3 top-2 text-slate-500"></i>
+                                <input type="text" placeholder="Filter by Stream ID (e.g. loan-101)..." class="bg-slate-900 border border-slate-700 rounded-lg py-1.5 pl-9 pr-4 text-slate-300 focus:border-green-500 focus:outline-none w-64 text-xs font-mono">
+                            </div>
+                            <select class="bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-3 text-slate-300 focus:border-green-500 focus:outline-none text-xs font-mono">
+                                <option>All Event Types</option>
+                                <option>FundsDeposited</option>
+                                <option>LoanRequested</option>
+                            </select>
+                            <button class="text-slate-400 hover:text-white"><i class="ri-pause-circle-line text-lg"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="event-stream" class="space-y-3 text-slate-500">
+                        <!-- Events will be injected here by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ================= VIEW: DESIGN SYSTEM ================= -->
+    <section id="view-design-system" class="hidden-section min-h-screen bg-[#020617] p-8 md:p-16 relative">
+         <div class="fixed top-8 right-8 z-50">
+             <button onclick="navigateTo('view-landing')" class="px-6 py-3 border border-slate-700 bg-slate-900/80 rounded-xl hover:bg-slate-800 transition-colors text-white font-bold backdrop-blur">Exit System</button>
+         </div>
+
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-20 border-b border-slate-800 pb-10">
+                <h1 class="text-5xl font-bold mb-4 font-display text-white">Design System</h1>
+                <p class="text-slate-400 text-lg">The atomic building blocks of LedgerFlow.</p>
+            </div>
+
+            <div class="grid gap-20">
+                <!-- Colors -->
+                <section>
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] mb-8">01. Color Palette</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                        <div class="space-y-3"><div class="h-24 bg-blue-500 rounded-2xl shadow-[0_10px_30px_-10px_rgba(59,130,246,0.5)]"></div><p class="text-xs font-mono text-slate-400">Brand Blue 500<br>#3b82f6</p></div>
+                        <div class="space-y-3"><div class="h-24 bg-purple-600 rounded-2xl shadow-[0_10px_30px_-10px_rgba(147,51,234,0.5)]"></div><p class="text-xs font-mono text-slate-400">Accent Purple 600<br>#9333ea</p></div>
+                        <div class="space-y-3"><div class="h-24 bg-green-500 rounded-2xl shadow-[0_10px_30px_-10px_rgba(34,197,94,0.5)]"></div><p class="text-xs font-mono text-slate-400">Success Green 500<br>#22c55e</p></div>
+                        <div class="space-y-3"><div class="h-24 bg-[#0f172a] border border-slate-700 rounded-2xl"></div><p class="text-xs font-mono text-slate-400">Surface Slate 900<br>#0f172a</p></div>
+                        <div class="space-y-3"><div class="h-24 bg-[#020617] border border-slate-700 rounded-2xl"></div><p class="text-xs font-mono text-slate-400">Bg Slate 950<br>#020617</p></div>
+                    </div>
+                </section>
+
+                <!-- Typography -->
+                <section>
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] mb-8">02. Typography</h2>
+                    <div class="space-y-8 p-8 border border-slate-800 rounded-3xl bg-slate-900/20">
+                        <div>
+                            <p class="text-7xl font-bold font-display text-white">Display Heading</p>
+                            <p class="text-xs text-slate-500 font-mono mt-2">Space Grotesk Bold 72px</p>
+                        </div>
+                        <div>
+                            <p class="text-4xl font-bold font-display text-white">Section Title</p>
+                            <p class="text-xs text-slate-500 font-mono mt-2">Space Grotesk Bold 36px</p>
+                        </div>
+                        <div>
+                            <p class="text-lg text-slate-300 leading-relaxed max-w-2xl font-sans">Body text used for descriptions and general content. Inter Regular 18px with relaxed line height for better readability on dark backgrounds.</p>
+                            <p class="text-xs text-slate-500 font-mono mt-2">Inter Regular 18px</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Components -->
+                <section>
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-[0.2em] mb-8">03. Interface Components</h2>
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <!-- Buttons -->
+                        <div class="space-y-6">
+                            <h3 class="font-medium text-slate-300">Buttons</h3>
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <button class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:scale-105 transition-transform">Primary</button>
+                                <button class="bg-slate-800 text-white border border-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-700 transition-colors">Secondary</button>
+                                <button class="glass text-white px-6 py-3 rounded-xl font-bold">Glass</button>
+                            </div>
+                        </div>
+                        <!-- Inputs -->
+                        <div class="space-y-6">
+                             <h3 class="font-medium text-slate-300">Inputs</h3>
+                             <input type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" placeholder="Standard Input">
+                             <div class="relative">
+                                <i class="ri-search-line absolute left-4 top-3.5 text-slate-500"></i>
+                                <input type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-blue-500 focus:outline-none transition-all" placeholder="With Icon">
+                             </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= MODAL: LOAN REQUEST ================= -->
+    <div id="loan-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in-up">
+        <div class="glass-card bg-[#0f172a] p-8 rounded-3xl w-full max-w-md border border-slate-700 relative shadow-2xl">
+            <button onclick="document.getElementById('loan-modal').classList.add('hidden')" class="absolute top-6 right-6 text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg transition-colors"><i class="ri-close-line text-lg"></i></button>
+            <h3 class="text-2xl font-bold mb-2 font-display text-white">Request Funding</h3>
+            <p class="text-slate-400 text-sm mb-6">Start a new loan application process.</p>
+
+            <form class="space-y-5" onsubmit="event.preventDefault(); document.getElementById('loan-modal').classList.add('hidden'); showToast('Loan Application Created');">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Loan Amount</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500">$</span>
+                        <input type="number" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-8 pr-4 text-white focus:border-blue-500 focus:outline-none transition-all" placeholder="5000">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Purpose</label>
+                    <div class="relative">
+                        <i class="ri-arrow-down-s-line absolute right-4 top-3.5 text-slate-500 pointer-events-none"></i>
+                        <select class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white appearance-none focus:border-blue-500 focus:outline-none transition-all">
+                            <option>Business Expansion</option>
+                            <option>Debt Consolidation</option>
+                            <option>Emergency Fund</option>
+                        </select>
+                    </div>
+                </div>
+                 <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description</label>
+                    <textarea class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white focus:border-blue-500 focus:outline-none transition-all resize-none" rows="3" placeholder="Briefly describe why you need this loan..."></textarea>
+                </div>
+                <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl mt-2 transition-all shadow-lg shadow-blue-500/20">Submit Application</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: INVITE MEMBER ================= -->
+    <div id="invite-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in-up">
+        <div class="glass-card bg-[#0f172a] p-8 rounded-3xl w-full max-w-md border border-slate-700 relative shadow-2xl">
+            <button onclick="document.getElementById('invite-modal').classList.add('hidden')" class="absolute top-6 right-6 text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg transition-colors"><i class="ri-close-line text-lg"></i></button>
+            <h3 class="text-2xl font-bold mb-2 font-display text-white">Invite Team Member</h3>
+            <p class="text-slate-400 text-sm mb-6">Send an invitation to join your tenant workspace.</p>
+
+            <form class="space-y-5" onsubmit="event.preventDefault(); document.getElementById('invite-modal').classList.add('hidden'); showToast('Invitation Sent Successfully');">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                    <div class="relative">
+                        <i class="ri-mail-line absolute left-4 top-3.5 text-slate-500"></i>
+                        <input type="email" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white focus:border-blue-500 focus:outline-none transition-all" placeholder="colleague@acme.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Assign Role</label>
+                    <div class="relative">
+                        <i class="ri-shield-user-line absolute left-4 top-3.5 text-slate-500"></i>
+                        <select class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white appearance-none focus:border-blue-500 focus:outline-none transition-all">
+                            <option value="admin">Admin (Full Access)</option>
+                            <option value="staff">Staff (Approve Loans)</option>
+                            <option value="viewer">Viewer (Read Only)</option>
+                        </select>
+                        <i class="ri-arrow-down-s-line absolute right-4 top-3.5 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+                <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl mt-2 transition-all shadow-lg shadow-blue-500/20">Send Invitation</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- NAVIGATION SYSTEM ---
+        function navigateTo(viewId, authMode = 'login') {
+            // Hide all main sections
+            ['view-landing', 'view-auth', 'view-dashboard-layout', 'view-design-system'].forEach(id => {
+                document.getElementById(id).classList.add('hidden-section');
+            });
+
+            // Show target
+            document.getElementById(viewId).classList.remove('hidden-section');
+            window.scrollTo(0, 0);
+
+            // Special Handling
+            if(viewId === 'view-auth') {
+                toggleAuth(authMode);
+            }
+            if(viewId === 'view-dashboard-layout') {
+                // Default to home view inside dashboard
+                switchDashView('dash-home');
+                setTimeout(() => {
+                    initCharts(); // Re-init charts after layout paint
+                }, 100);
+                startEventStream();
+                // Close mobile menu if open
+                const overlay = document.getElementById('mobile-menu-overlay');
+                const sidebarMobile = document.getElementById('sidebar-mobile');
+                if (!overlay.classList.contains('hidden')) {
+                    toggleMobileMenu();
+                }
+            }
+        }
+
+        // --- NOTIFICATION SYSTEM ---
+        function toggleNotifications() {
+            const panel = document.getElementById('notification-panel');
+            if (panel.classList.contains('hidden-section')) {
+                panel.classList.remove('hidden-section');
+
+                // Optional: Close if clicking outside logic would go here
+                // For prototype, simple toggle is sufficient
+            } else {
+                panel.classList.add('hidden-section');
+            }
+        }
+
+        // Function to inject a notification into the panel (used by Event Stream)
+        function pushNotification(type, message) {
+             const list = document.getElementById('notification-list');
+             if(!list) return;
+
+             // Colors based on type
+             let colorClass = 'bg-blue-500';
+             let shadowClass = 'shadow-[0_0_8px_rgba(59,130,246,0.5)]';
+
+             if(type === 'FundsDeposited') { colorClass = 'bg-green-500'; shadowClass = 'shadow-[0_0_8px_rgba(34,197,94,0.5)]'; }
+             if(type === 'IdentityVerified') { colorClass = 'bg-purple-500'; shadowClass = 'shadow-[0_0_8px_rgba(168,85,247,0.5)]'; }
+
+             const item = document.createElement('div');
+             item.className = 'p-4 border-b border-slate-800/50 hover:bg-white/5 transition-colors cursor-pointer group animate-fade-in-up';
+             item.innerHTML = `
+                <div class="flex gap-3">
+                    <div class="mt-1 w-2 h-2 rounded-full ${colorClass} shrink-0 ${shadowClass}"></div>
+                    <div>
+                        <p class="text-sm text-slate-300 group-hover:text-white transition-colors">${message}</p>
+                        <p class="text-xs text-slate-500 mt-1 font-mono">Just now</p>
+                    </div>
+                </div>
+             `;
+             list.prepend(item);
+
+             // Show Toast as well
+             showToast(message);
+        }
+
+        // --- AUTH SYSTEM ---
+        function toggleAuth(mode) {
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const btn = document.getElementById('auth-btn-text');
+            const fieldName = document.getElementById('field-name');
+            const fieldTenant = document.getElementById('field-tenant');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const authTabs = document.getElementById('auth-tabs');
+            const inviteBanner = document.getElementById('invite-banner');
+
+            // Inputs to modify
+            const inputTenant = document.getElementById('input-tenant');
+            const inputEmail = document.getElementById('input-email');
+            const iconLockEmail = document.getElementById('icon-lock-email');
+
+            // Reset standard styles
+            fieldTenant.classList.remove('hidden-section');
+            authTabs.classList.remove('hidden-section');
+            inviteBanner.classList.add('hidden-section');
+            inputEmail.readOnly = false;
+            inputEmail.classList.remove('text-slate-400', 'cursor-not-allowed');
+            iconLockEmail.classList.add('hidden-section');
+
+            if(mode === 'register') {
+                title.textContent = 'Create Account';
+                subtitle.textContent = 'Register a new tenant workspace.';
+                btn.textContent = 'Create Account';
+                fieldName.classList.remove('hidden-section');
+                tabRegister.classList.replace('text-slate-400', 'text-white');
+                tabRegister.classList.add('bg-slate-700', 'shadow-lg');
+                tabLogin.classList.remove('bg-slate-700', 'shadow-lg', 'text-white');
+                tabLogin.classList.add('text-slate-400');
+            } else if(mode === 'invite') {
+                // INVITE FLOW (Claim Account)
+                title.textContent = 'Accept Invitation';
+                subtitle.textContent = '';
+                btn.textContent = 'Join Team';
+
+                // Show Name field (they need to set their name)
+                fieldName.classList.remove('hidden-section');
+
+                // Hide Tenant Field (It's implied by the invite link)
+                fieldTenant.classList.add('hidden-section');
+
+                // Hide Tabs (Not relevant for invite flow)
+                authTabs.classList.add('hidden-section');
+
+                // Show Banner
+                inviteBanner.classList.remove('hidden-section');
+
+                // Lock Email (It's implied by the invite)
+                inputEmail.value = 'jane.doe@acme.com';
+                inputEmail.readOnly = true;
+                inputEmail.classList.add('text-slate-400', 'cursor-not-allowed');
+                iconLockEmail.classList.remove('hidden-section');
+
+            } else {
+                // LOGIN FLOW
+                title.textContent = 'Welcome Back';
+                subtitle.textContent = 'Enter your credentials to access the workspace.';
+                btn.textContent = 'Sign In to Dashboard';
+                fieldName.classList.add('hidden-section');
+                tabLogin.classList.replace('text-slate-400', 'text-white');
+                tabLogin.classList.add('bg-slate-700', 'shadow-lg');
+                tabRegister.classList.remove('bg-slate-700', 'shadow-lg', 'text-white');
+                tabRegister.classList.add('text-slate-400');
+            }
+        }
+
+        function handleAuthSubmit() {
+            // Fake loading state
+            const btn = document.querySelector('form button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ri-loader-4-line animate-spin text-xl inline-block"></i>';
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                navigateTo('view-dashboard-layout');
+                showToast('Successfully authenticated');
+            }, 1000);
+        }
+
+        // --- DASHBOARD NAVIGATION ---
+        function switchDashView(dashId) {
+            // Hide all dash views
+            document.querySelectorAll('.dash-view').forEach(el => el.classList.add('hidden-section'));
+            // Show target
+            document.getElementById(dashId).classList.remove('hidden-section');
+
+            // Update Sidebar Styling
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-blue-500/10', 'text-blue-400', 'border', 'border-blue-500/20', 'shadow-[0_0_15px_rgba(59,130,246,0.1)]');
+                el.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-white/5');
+            });
+
+            // Highlight both desktop and mobile nav items
+            const activeNavDesktop = document.getElementById('nav-' + dashId);
+            const activeNavMobile = document.getElementById('nav-mobile-' + dashId);
+
+            const activeClassList = ['bg-blue-500/10', 'text-blue-400', 'border', 'border-blue-500/20', 'shadow-[0_0_15px_rgba(59,130,246,0.1)]'];
+            const inactiveClassList = ['text-slate-400', 'hover:text-white', 'hover:bg-white/5'];
+
+            if(activeNavDesktop) {
+                activeNavDesktop.classList.remove(...inactiveClassList);
+                activeNavDesktop.classList.add(...activeClassList);
+            }
+            if(activeNavMobile) {
+                activeNavMobile.classList.remove(...inactiveClassList);
+                activeNavMobile.classList.add(...activeClassList);
+            }
+
+            // Update Header Title
+            const titles = {
+                'dash-home': 'Dashboard Overview',
+                'dash-wallet': 'Wallet & Banking',
+                'dash-market': 'Loan Marketplace',
+                'dash-invest': 'Investment Portfolio',
+                'dash-events': 'System Event Log',
+                'dash-profile': 'User Profile',
+                'dash-team': 'Team Management'
+            };
+            document.getElementById('page-title').textContent = titles[dashId];
+
+            // Close mobile menu if open
+            if(window.innerWidth < 768) {
+                const overlay = document.getElementById('mobile-menu-overlay');
+                if (!overlay.classList.contains('hidden')) {
+                    toggleMobileMenu();
+                }
+            }
+        }
+
+        // --- MOBILE MENU LOGIC ---
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const sidebar = document.getElementById('sidebar-mobile');
+            const contentContainer = document.getElementById('mobile-nav-content');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                // Opening
+                // Clone nav items from desktop to mobile if empty
+                if (contentContainer.innerHTML.trim() === '') {
+                     // We manually recreate the structure for simplicity and cleaner ids
+                     const desktopSidebarContent = document.querySelector('#sidebar-desktop .space-y-8');
+                     if(desktopSidebarContent) {
+                         const clonedContent = desktopSidebarContent.cloneNode(true);
+                         // Update IDs to avoid duplicates
+                         clonedContent.querySelectorAll('[id]').forEach(el => {
+                             el.id = el.id.replace('nav-', 'nav-mobile-');
+                         });
+                         // Update onclick handlers to pass dashId
+                         clonedContent.querySelectorAll('button').forEach(btn => {
+                             const originalId = btn.id.replace('nav-mobile-', ''); // Extract dash-home from nav-mobile-dash-home
+                             // The ID replacement logic above is tricky, simpler to just rely on the onclick
+                             // The cloneNode preserves onclick attributes which call switchDashView('dash-home') etc.
+                             // This works perfectly without modification.
+                         });
+                         contentContainer.appendChild(clonedContent);
+                     }
+                }
+
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                // Closing
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // --- UI UTILITIES ---
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'glass p-4 rounded-xl shadow-2xl border-l-4 border-green-500 flex items-center gap-4 min-w-[320px] animate-fade-in-up backdrop-blur-xl bg-slate-900/90';
+            toast.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                    <i class="ri-checkbox-circle-fill text-lg"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-white font-display">Success</h4>
+                    <p class="text-xs text-slate-400">${msg}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- VISUALIZATIONS ---
+        let mainChart;
+        let pieChart;
+
+        function initCharts() {
+            // 1. Line Chart
+            const chartDom = document.getElementById('mainChart');
+            if(chartDom) {
+                if (mainChart) mainChart.dispose();
+                mainChart = echarts.init(chartDom);
+                mainChart.setOption({
+                    backgroundColor: 'transparent',
+                    tooltip: {
+                        trigger: 'axis',
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        borderColor: '#334155',
+                        textStyle: { color: '#fff' },
+                        padding: 10,
+                        borderRadius: 8
+                    },
+                    grid: { top: 20, left: 10, right: 10, bottom: 0, containLabel: true },
+                    xAxis: {
+                        type: 'category',
+                        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        axisLine: {show: false},
+                        axisTick: {show: false},
+                        axisLabel: {color: '#64748b', fontFamily: 'Inter'}
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } },
+                        axisLabel: {color: '#64748b', fontFamily: 'Inter'}
+                    },
+                    series: [{
+                        data: [820, 932, 901, 934, 1290, 1330, 1320],
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { color: '#3b82f6', width: 4 },
+                        itemStyle: { color: '#3b82f6' },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                {offset: 0, color: 'rgba(59,130,246,0.3)'},
+                                {offset: 1, color: 'rgba(59,130,246,0)'}
+                            ])
+                        }
+                    }]
+                });
+            }
+
+            // 2. Pie Chart
+            const pieDom = document.getElementById('pieChart');
+            if(pieDom) {
+                if (pieChart) pieChart.dispose();
+                pieChart = echarts.init(pieDom);
+                pieChart.setOption({
+                    backgroundColor: 'transparent',
+                    tooltip: {
+                        trigger: 'item',
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        borderColor: '#334155',
+                        textStyle: { color: '#fff' }
+                    },
+                    legend: { bottom: '0', textStyle: { color: '#94a3b8' }, itemGap: 20 },
+                    series: [{
+                        type: 'pie',
+                        radius: ['50%', '80%'],
+                        center: ['50%', '45%'],
+                        itemStyle: { borderRadius: 8, borderColor: '#1e293b', borderWidth: 4 },
+                        label: { show: false },
+                        data: [
+                            { value: 1048, name: 'Low Risk', itemStyle: { color: '#3b82f6' } },
+                            { value: 735, name: 'Medium Risk', itemStyle: { color: '#8b5cf6' } },
+                            { value: 580, name: 'High Risk', itemStyle: { color: '#ec4899' } }
+                        ]
+                    }]
+                });
+            }
+
+            window.addEventListener('resize', () => { mainChart && mainChart.resize(); pieChart && pieChart.resize(); });
+        }
+
+        // --- EVENT STREAM SIMULATION ---
+        function startEventStream() {
+            const container = document.getElementById('event-stream');
+            if(!container) return;
+
+            const eventTypes = [
+                { type: 'FundsDeposited', color: 'text-green-400', msg: 'Incoming Wire Transfer detected.' },
+                { type: 'LoanRequested', color: 'text-blue-400', msg: 'New loan application for review.' },
+                { type: 'IdentityVerified', color: 'text-purple-400', msg: 'KYC check passed for user.' },
+                { type: 'InterestAccrued', color: 'text-pink-400', msg: 'Daily interest calculation complete.' }
+            ];
+
+            setInterval(() => {
+                if(document.getElementById('dash-events').classList.contains('hidden-section')) return;
+
+                const evt = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                const id = Math.random().toString(36).substr(2, 9);
+                const timestamp = new Date().toISOString();
+
+                // Add to Terminal
+                const line = document.createElement('div');
+                line.className = 'font-mono text-xs border-b border-slate-800/50 pb-2 animate-fade-in-up hover:bg-slate-900/50 p-1 rounded transition-colors cursor-default';
+                line.innerHTML = `<span class="text-slate-600 mr-2">[${timestamp}]</span> <span class="${evt.color} font-bold mr-2">${evt.type}</span> <span class="text-slate-500">{ agg_id: "${id}", v: 1 }</span>`;
+
+                container.prepend(line);
+                if(container.children.length > 18) container.lastChild.remove();
+
+                // Randomly push to notification center (20% chance)
+                if(Math.random() > 0.8) {
+                    pushNotification(evt.type, evt.msg);
+                }
+            }, 1500);
+        }
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if(window.scrollY > 50) nav.classList.add('shadow-lg', 'bg-slate-950/90');
+            else nav.classList.remove('shadow-lg', 'bg-slate-950/90');
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elixir Nexus · CYBERPUNK CMS</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Prism CSS for vibrant syntax -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        retro: {
+                            bg: '#0A0A10',
+                            surface: '#13131F',
+                            surfaceHover: '#1C1C2D',
+                            text: '#B4B4CE',
+                            heading: '#E2E8F0',
+                            cyan: '#00F0FF',
+                            magenta: '#FF003C',
+                            purple: '#8A2BE2',
+                            yellow: '#FCE205'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ========== VIBRANT SYNTAX COLORS – ELIXIR / CODE ========== */
+        code[class*="language-"], pre[class*="language-"] {
+            color: #f8f8f2 !important;
+            background: none;
+            font-family: 'Fira Code', monospace !important;
+            font-size: 0.95rem;
+            text-shadow: 0 1px rgba(0,0,0,0.3);
+        }
+        .token.comment { color: #6272a4 !important; font-style: italic; }
+        .token.prolog { color: #6272a4 !important; }
+        .token.doctype { color: #6272a4 !important; }
+        .token.cdata { color: #6272a4 !important; }
+
+        .token.punctuation { color: #f8f8f2 !important; }
+
+        .token.property { color: #ff79c6 !important; } /* pink */
+        .token.tag { color: #ff79c6 !important; }
+        .token.constant { color: #bd93f9 !important; } /* purple */
+        .token.symbol { color: #bd93f9 !important; }
+        .token.deleted { color: #ff79c6 !important; }
+
+        .token.boolean { color: #bd93f9 !important; }
+        .token.number { color: #bd93f9 !important; }
+
+        .token.selector { color: #50fa7b !important; } /* green */
+        .token.attr-name { color: #50fa7b !important; }
+        .token.string { color: #f1fa8c !important; } /* yellow */
+        .token.char { color: #f1fa8c !important; }
+        .token.builtin { color: #50fa7b !important; }
+        .token.inserted { color: #50fa7b !important; }
+
+        .token.operator { color: #ff79c6 !important; } /* pink */
+        .token.entity { color: #ff79c6 !important; cursor: help; }
+        .token.url { color: #ff79c6 !important; }
+
+        .token.atrule { color: #bd93f9 !important; }
+        .token.attr-value { color: #f1fa8c !important; }
+        .token.keyword { color: #ff79c6 !important; font-weight: 600; }
+        .token.function { color: #50fa7b !important; } /* BRIGHT GREEN for functions */
+        .token.class-name { color: #8be9fd !important; } /* cyan */
+        .token.variable { color: #f8f8f2 !important; } /* white/light */
+
+        .token.regex { color: #ffb86c !important; }
+        .token.important { color: #ff79c6 !important; font-weight: bold; }
+
+        .language-elixir .token.atom { color: #8be9fd !important; }
+        .language-elixir .token.module { color: #ff79c6 !important; }
+
+        /* ========== RETRO NEXUS AESTHETIC ========== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0A10; }
+        ::-webkit-scrollbar-thumb { background: #1C1C2D; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 100%);
+            background-size: 100% 4px;
+            pointer-events: none; z-index: 50; opacity: 0.2;
+        }
+
+        .neon-text-cyan { text-shadow: 0 0 10px rgba(0,240,255,0.5), 0 0 20px rgba(0,240,255,0.3); }
+        .neon-border-magenta { box-shadow: 0 0 10px rgba(255,0,60,0.3); }
+
+        pre[class*="language-"] {
+            background: #0D0D16 !important;
+            border: 1px solid #3A3A55;
+            border-radius: 0.75rem;
+            margin: 1.5em 0;
+            padding: 1.5em !important;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        /* Quill custom retro skin - blended from both */
+        .ql-container.ql-snow {
+            border: 1px solid #2A2A40;
+            background: #0C0C14;
+            font-family: 'Fira Code', 'Inter', monospace;
+            font-size: 0.95rem;
+            color: #E2E8F0;
+            border-radius: 0 0 0.75rem 0.75rem;
+            min-height: 400px;
+        }
+        .ql-toolbar.ql-snow {
+            background: #13131F;
+            border: 1px solid #2A2A40;
+            border-radius: 0.75rem 0.75rem 0 0;
+            border-bottom: none;
+        }
+        .ql-toolbar.ql-snow .ql-stroke { stroke: #B4B4CE; }
+        .ql-toolbar.ql-snow .ql-fill { fill: #B4B4CE; }
+        .ql-toolbar.ql-snow .ql-picker { color: #B4B4CE; }
+        .ql-toolbar.ql-snow .ql-picker-options { background: #13131F; border-color: #2A2A40; }
+        .ql-toolbar.ql-snow button:hover .ql-stroke,
+        .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: #00F0FF; }
+        .ql-toolbar.ql-snow button:hover .ql-fill,
+        .ql-toolbar.ql-snow button.ql-active .ql-fill { fill: #00F0FF; }
+
+        .ql-editor {
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            color: #E2E8F0;
+            background: #0C0C14;
+        }
+        .ql-editor h2 { color: #8A2BE2; font-family: 'Space Grotesk'; }
+        .ql-editor h3 { color: #00F0FF; }
+        .ql-editor pre { background: #0A0A10 !important; border-left: 4px solid #FF003C; border-radius: 0.5rem; }
+        .ql-editor code { background: #1C1C2D; color: #00F0FF; padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
+
+        /* TOC active link */
+        .toc-link.active {
+            color: #00F0FF;
+            border-left-color: #00F0FF;
+            background: rgba(0, 240, 255, 0.08);
+        }
+        .transition-all-custom { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+
+        /* PREVIEW PANEL – blended retro */
+        .preview-panel {
+            background: #0D0D16;
+            border: 1px solid #8A2BE2;
+            box-shadow: 0 0 30px rgba(138,43,226,0.25);
+            border-radius: 1rem;
+        }
+
+        /* Custom retro card effects */
+        .retro-card {
+            background: rgba(19, 19, 31, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(42, 42, 64, 0.8);
+        }
+
+        .glitch-text {
+            text-shadow: 2px 0 0 rgba(255,0,60,0.3), -2px 0 0 rgba(0,240,255,0.3);
+        }
+    </style>
+</head>
+<body class="bg-retro-bg text-retro-text font-sans antialiased relative overflow-x-hidden selection:bg-retro-purple selection:text-white">
+
+    <!-- Scanlines overlay (signature retro) -->
+    <div class="scanlines"></div>
+
+    <!-- Progress Bar -->
+    <div id="progress-container" class="fixed top-0 left-0 w-full h-1 bg-retro-surface z-50">
+        <div id="progress-bar" class="h-full bg-retro-cyan shadow-[0_0_10px_#00F0FF] w-0 transition-all duration-150"></div>
+    </div>
+
+    <!-- =============== UNIFIED APPLICATION =============== -->
+    <!-- Beautiful blend: dedicated CMS page + blog, consistent retro theme -->
+    <div id="app" class="flex flex-col min-h-screen">
+
+        <!-- NAVIGATION BAR: refined retro aesthetic with scanline base -->
+        <nav class="sticky top-0 z-40 bg-retro-bg/90 backdrop-blur-md border-b border-retro-surface/70">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-6">
+                    <a href="#" id="logo-link" class="text-2xl font-display font-bold text-retro-heading flex items-center gap-2 group">
+                        <span class="text-retro-cyan group-hover:neon-text-cyan transition-all-custom text-3xl">λ</span>
+                        <span>Elixir<span class="text-retro-magenta">Nexus</span></span>
+                    </a>
+                    <!-- View Toggle: Blog / CMS – retro toggle -->
+                    <div class="flex bg-retro-surface/90 rounded-lg p-1 border border-retro-surfaceHover backdrop-blur-sm">
+                        <button id="switch-blog-view" class="px-5 py-1.5 text-xs font-mono uppercase tracking-wider rounded transition-all bg-retro-cyan/20 text-retro-cyan border-r border-retro-surfaceHover">📡 Blog</button>
+                        <button id="switch-cms-view" class="px-5 py-1.5 text-xs font-mono uppercase tracking-wider rounded transition-all text-retro-text/80 hover:text-retro-yellow">⚡ Studio</button>
+                    </div>
+                </div>
+
+                <!-- Global stats with retro styling -->
+                <div class="hidden md:flex gap-4 items-center">
+                    <span id="stats-posts" class="text-retro-cyan text-xs bg-retro-surface/80 px-3 py-1.5 rounded-full border border-retro-cyan/30 font-mono tracking-wider">3 posts</span>
+                    <span id="stats-tags" class="text-retro-purple text-xs bg-retro-surface/80 px-3 py-1.5 rounded-full border border-retro-purple/30 font-mono">8 tags</span>
+                </div>
+
+                <!-- Search (blog only) with retro terminal feel -->
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="> FILTER_POSTS..." class="w-40 lg:w-56 bg-[#0A0A10] border border-retro-surfaceHover text-retro-text px-4 py-1.5 rounded-full focus:outline-none focus:border-retro-cyan font-mono text-xs placeholder:text-retro-text/40 tracking-wider">
+                    <svg class="absolute right-3 top-2 w-4 h-4 text-retro-text/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+            </div>
+        </nav>
+
+        <!-- =============== DEDICATED CMS PAGE =============== -->
+        <!-- Full dedicated page – no modal, no black background bleed, pure retro -->
+        <div id="cms-page" class="hidden w-full flex-1 bg-retro-bg">
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                <!-- Header with retro gradient -->
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl md:text-4xl font-display font-bold">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-retro-cyan via-retro-purple to-retro-magenta">
+                            ⚡ NEXUS CONTENT STUDIO
+                        </span>
+                        <span class="text-sm font-mono text-retro-text/50 ml-4 border border-retro-surfaceHover px-3 py-1 rounded-full">v4.0</span>
+                    </h1>
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-2 text-xs font-mono text-retro-yellow border border-retro-yellow/40 px-4 py-2 rounded-full bg-retro-surface/20">
+                            <span class="w-2 h-2 bg-retro-yellow rounded-full animate-pulse"></span>
+                            PREVIEW READY
+                        </span>
+                    </div>
+                </div>
+
+                <!-- CMS MAIN GRID: COMPOSER + PREVIEW (two column) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                    <!-- LEFT: RICH TEXT EDITOR & METADATA – retro card style -->
+                    <div class="space-y-6">
+                        <div class="retro-card rounded-2xl p-6 border border-retro-surface/80 shadow-lg">
+                            <h3 class="font-display text-retro-heading text-xl mb-6 flex items-center gap-3 border-b border-retro-surface/80 pb-3">
+                                <span class="w-3 h-3 bg-retro-magenta rounded-full shadow-[0_0_10px_#FF003C]"></span>
+                                COMPOSE TRANSMISSION
+                                <span class="text-xs font-mono text-retro-cyan ml-auto">ENCRYPTED</span>
+                            </h3>
+
+                            <!-- Metadata fields – refined retro inputs -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                                <div>
+                                    <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider flex items-center gap-1">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4"/></svg>
+                                        Title
+                                    </label>
+                                    <input type="text" id="cms-title" placeholder="e.g. GenServer internals" class="w-full bg-[#0C0C14] border border-retro-surfaceHover text-retro-heading px-4 py-3 rounded-xl focus:border-retro-cyan focus:ring-1 focus:ring-retro-cyan/50 font-mono text-sm transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Author</label>
+                                    <input type="text" id="cms-author" value="Case_Zero" class="w-full bg-[#0C0C14] border border-retro-surfaceHover px-4 py-3 rounded-xl text-retro-text font-mono text-sm focus:border-retro-cyan">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Read Time</label>
+                                    <input type="number" id="cms-readtime" value="7" class="w-full bg-[#0C0C14] border border-retro-surfaceHover px-4 py-3 rounded-xl text-retro-text font-mono text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-retro-cyan mb-1 uppercase tracking-wider">Tags (comma)</label>
+                                    <input type="text" id="cms-tags" value="Elixir, OTP, GenServer" class="w-full bg-[#0C0C14] border border-retro-surfaceHover px-4 py-3 rounded-xl text-retro-text font-mono text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Rich Text Editor (Quill) -->
+                            <div>
+                                <label class="block text-xs font-mono text-retro-purple mb-3 uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 bg-retro-purple rounded-full"></span>
+                                    BODY CONTENT – RICH TEXT / CODE
+                                </label>
+                                <div id="cms-editor-container" class="h-[450px] rounded-xl overflow-hidden border border-retro-surfaceHover"></div>
+                                <p class="text-xs text-retro-text/40 mt-3 font-mono flex items-center gap-1">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                                    Elixir syntax highlighted in preview & blog.
+                                </p>
+                            </div>
+
+                            <!-- Action buttons: PREVIEW + PUBLISH – retro neon -->
+                            <div class="flex justify-end gap-5 mt-8">
+                                <button id="cms-preview-btn" class="px-6 py-3 border border-retro-cyan text-retro-cyan hover:bg-retro-cyan/10 font-mono text-sm rounded-xl transition-all flex items-center gap-2 group">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="group-hover:scale-110"><circle cx="12" cy="12" r="3"/><path d="M22 12c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10z"/></svg>
+                                    PREVIEW
+                                </button>
+                                <button id="cms-publish-btn" class="px-8 py-3 bg-retro-magenta text-white font-bold rounded-xl hover:shadow-[0_0_25px_#FF003C] transition-all font-display flex items-center gap-2 group">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:translate-x-1"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                                    PUBLISH
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: LIVE PREVIEW PANEL – beautiful retro terminal style -->
+                    <div class="preview-panel rounded-2xl p-6 overflow-y-auto max-h-[900px] sticky top-24 backdrop-blur-sm bg-retro-surface/30 border border-retro-purple/50 shadow-[0_0_40px_rgba(138,43,226,0.2)]">
+                        <div class="flex items-center justify-between mb-5 border-b border-retro-purple/30 pb-3">
+                            <h3 class="font-display text-retro-yellow text-2xl flex items-center gap-2">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                PREVIEW
+                            </h3>
+                            <span class="text-[10px] font-mono bg-retro-surface px-3 py-1.5 rounded-full text-retro-cyan border border-retro-cyan/30">⏻ LIVE</span>
+                        </div>
+                        <!-- Preview article render target -->
+                        <div id="preview-article" class="prose prose-invert max-w-none">
+                            <div class="text-retro-text/60 italic text-center py-12 border-2 border-dashed border-retro-surfaceHover rounded-xl bg-retro-surface/20">
+                                <span class="text-retro-cyan text-lg block mb-2">⎇</span>
+                                ↟ Click "PREVIEW" to see your formatted post with vibrant syntax colors ↟
+                            </div>
+                        </div>
+                        <div id="preview-tags" class="mt-8 flex flex-wrap gap-2 border-t border-retro-surface/80 pt-6">
+                            <!-- preview tags appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =============== BLOG VIEW (DEFAULT) =============== -->
+        <div id="blog-view" class="w-full">
+            <div class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                <!-- LEFT TOC – retro styled -->
+                <aside class="hidden lg:block lg:col-span-3">
+                    <div class="sticky top-24 retro-card p-4 rounded-xl">
+                        <h4 class="font-display font-bold text-retro-heading uppercase tracking-widest mb-6 text-sm flex items-center gap-2 border-b border-retro-surface/70 pb-3">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                            <span id="toc-headline">INDEX</span>
+                        </h4>
+                        <nav id="toc" class="flex flex-col text-sm border-l-2 border-retro-surfaceHover min-h-[200px] pl-2"></nav>
+                    </div>
+                </aside>
+
+                <!-- MAIN BLOG POST -->
+                <main class="lg:col-span-6">
+                    <article id="active-article" class="prose-custom"></article>
+                    <div id="tag-cloud-container" class="mt-10 pt-6 border-t border-retro-surface/70 flex flex-wrap gap-3"></div>
+                </main>
+
+                <!-- RIGHT SIDEBAR: post list & CMS trigger -->
+                <aside class="hidden xl:block xl:col-span-3">
+                    <div class="sticky top-24 space-y-8">
+                        <div class="retro-card p-5 rounded-xl border border-retro-surface/80">
+                            <h4 class="font-display font-bold text-retro-heading text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-retro-magenta rounded-full animate-pulse shadow-[0_0_8px_#FF003C]"></span>
+                                TERMINAL LOGS
+                            </h4>
+                            <div id="post-list-sidebar" class="space-y-2 max-h-[320px] overflow-y-auto pr-1"></div>
+                            <button id="go-to-cms-from-blog" class="mt-5 w-full py-2.5 border border-retro-cyan/60 text-retro-cyan hover:bg-retro-cyan/20 font-mono text-xs transition-colors rounded-lg flex items-center justify-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
+                                OPEN CMS STUDIO
+                            </button>
+                        </div>
+                        <div class="retro-card p-6 rounded-xl border border-retro-surface/80 bg-gradient-to-br from-retro-surface/40 to-retro-bg">
+                            <h4 class="font-display font-bold text-retro-heading text-sm uppercase tracking-widest mb-4">⚡ NEXUS v4.0</h4>
+                            <p class="text-xs text-retro-text/70 font-mono leading-relaxed">
+                                Dedicated CMS with live preview. <span class="text-retro-cyan">Functions (green)</span>, <span class="text-retro-magenta">keywords (pink)</span>, <span class="text-retro-purple">atoms (cyan)</span>. Full retro aesthetic.
+                            </p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- FOOTER – retro terminal line -->
+        <footer class="border-t border-retro-surface/70 bg-retro-surface/20 mt-12">
+            <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center text-xs font-mono text-retro-text/40">
+                <span>© 2042 Elixir Nexus · CYBERPUNK CMS</span>
+                <span id="footer-timestamp" class="text-retro-cyan/60 flex items-center gap-2">
+                    <span class="w-1 h-1 bg-retro-cyan rounded-full"></span>
+                    SYSTEM ONLINE
+                </span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-elixir.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <script>
+        (function(){
+            "use strict";
+
+            // ========== SEED POSTS WITH VIBRANT ELIXIR CODE ==========
+            let posts = [
+                {
+                    id: 'p1',
+                    title: 'Architecting Fault-Tolerant State Machines with GenServer',
+                    author: 'Case_Zero',
+                    readTime: 8,
+                    tags: ['GenServer','OTP','Elixir','Architecture'],
+                    content: `<h2 id="the-problem-with-shared-state">The Problem with Shared State</h2>
+<p>In traditional OOP, locks and mutexes. Elixir uses Actor model.</p>
+<h2 id="genserver-anatomy">Anatomy of a GenServer</h2>
+<pre><code class="language-elixir">defmodule Nexus.TelemetryWorker do
+  use GenServer
+  require Logger
+
+  def start_link(initial_state) do
+    GenServer.start_link(__MODULE__, initial_state, name: __MODULE__)
+  end
+
+  def push_data(data) do
+    GenServer.cast(__MODULE__, {:process_data, data})
+  end
+
+  def handle_cast({:process_data, data}, state) do
+    new_state = Map.update(state, :count, 1, &(&1 + 1))
+    {:noreply, new_state}
+  end
+
+  defp helper_function(param) do
+    param * 42
+  end
+end</code></pre>
+<h2 id="conclusion">Conclusion</h2><p>Let it crash philosophy.</p>`
+                },
+                {
+                    id: 'p2',
+                    title: 'Nx + Axon: Cyberpunk Inference Pipelines',
+                    author: 'TensoriX',
+                    readTime: 7,
+                    tags: ['Nx','Axon','ML','Elixir'],
+                    content: `<h2>Numerical Elixir</h2><p>Nx brings tensors to the BEAM.</p>
+<h2>Axon quickstart</h2>
+<pre><code class="language-elixir">model =
+  Axon.input("data")
+  |> Axon.dense(128, activation: :relu)
+  |> Axon.dense(10, activation: :softmax)</code></pre>`
+                },
+                {
+                    id: 'p3',
+                    title: 'Distributed Process Registry: Horde & ETS',
+                    author: 'CryptoKami',
+                    readTime: 12,
+                    tags: ['Distributed','Horde','ETS','OTP'],
+                    content: `<h2>The Registry Gap</h2><p>Built-in local registry is insufficient for multi-node.</p>
+<h2>Horde.UniformRegistry</h2>
+<pre><code class="language-elixir">children = [
+  {Horde.Registry, name: MyApp.Registry, keys: :unique},
+  {Horde.DynamicSupervisor, name: MyApp.Supervisor, strategy: :one_for_one}
+]</code></pre>`
+                }
+            ];
+
+            let currentPostId = 'p1';
+            let quillCMS = null;
+
+            // ----- DOM elements -----
+            const blogView = document.getElementById('blog-view');
+            const cmsPage = document.getElementById('cms-page');
+            const switchBlog = document.getElementById('switch-blog-view');
+            const switchCMS = document.getElementById('switch-cms-view');
+            const goToCmsBtn = document.getElementById('go-to-cms-from-blog');
+
+            // CMS inputs
+            const cmsTitle = document.getElementById('cms-title');
+            const cmsAuthor = document.getElementById('cms-author');
+            const cmsReadtime = document.getElementById('cms-readtime');
+            const cmsTags = document.getElementById('cms-tags');
+            const cmsPreviewBtn = document.getElementById('cms-preview-btn');
+            const cmsPublishBtn = document.getElementById('cms-publish-btn');
+            const previewArticle = document.getElementById('preview-article');
+            const previewTags = document.getElementById('preview-tags');
+
+            // Blog components
+            const articleContainer = document.getElementById('active-article');
+            const tocContainer = document.getElementById('toc');
+            const postListSidebar = document.getElementById('post-list-sidebar');
+            const tagCloudContainer = document.getElementById('tag-cloud-container');
+            const statsPostsSpan = document.getElementById('stats-posts');
+            const statsTagsSpan = document.getElementById('stats-tags');
+            const searchInput = document.getElementById('search-input');
+            const tocHeadline = document.getElementById('toc-headline');
+
+            // ========== INIT QUILL ==========
+            function initCMSEditor() {
+                if (!quillCMS) {
+                    quillCMS = new Quill('#cms-editor-container', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'code'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['code-block', 'link', 'clean']
+                            ]
+                        },
+                        placeholder: 'Write your deep dive on OTP, distributed systems...',
+                    });
+                    quillCMS.root.innerHTML = `<h2>GenServer.call vs cast</h2>
+<p><code>handle_call</code> is synchronous, <code>handle_cast</code> is async.</p>
+<pre><code class="language-elixir">def handle_call(:get, _from, state) do
+  {:reply, state, state}
+end</code></pre>`;
+                }
+            }
+
+            // ========== VIEW TOGGLES ==========
+            function showBlog() {
+                blogView.classList.remove('hidden');
+                cmsPage.classList.add('hidden');
+                switchBlog.classList.add('bg-retro-cyan/20', 'text-retro-cyan');
+                switchCMS.classList.remove('bg-retro-cyan/20', 'text-retro-cyan');
+                renderPost(currentPostId);
+                renderPostList(searchInput.value);
+            }
+            function showCMS() {
+                blogView.classList.add('hidden');
+                cmsPage.classList.remove('hidden');
+                switchCMS.classList.add('bg-retro-cyan/20', 'text-retro-cyan');
+                switchBlog.classList.remove('bg-retro-cyan/20', 'text-retro-cyan');
+                initCMSEditor();
+            }
+
+            switchBlog.addEventListener('click', showBlog);
+            switchCMS.addEventListener('click', showCMS);
+            goToCmsBtn.addEventListener('click', showCMS);
+
+            // ========== PREVIEW FUNCTION ==========
+            function updatePreview() {
+                const title = cmsTitle.value.trim() || 'Untitled Transmission';
+                const author = cmsAuthor.value.trim() || 'Anonymous';
+                const readTime = parseInt(cmsReadtime.value) || 5;
+                const tagsStr = cmsTags.value.trim();
+                const tagArray = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t.length) : ['draft'];
+
+                let contentHTML = quillCMS ? quillCMS.root.innerHTML : '<p>Write something...</p>';
+
+                let previewHtml = `<header class="mb-6 border-b border-retro-surface/60 pb-4">
+                    <h1 class="text-3xl font-display font-bold text-retro-heading">${title}</h1>
+                    <div class="flex gap-3 mt-2 text-xs font-mono text-retro-text/70">
+                        <span class="text-retro-cyan">${author}</span> · <span>${readTime} min</span>
+                    </div>
+                </header>
+                <div class="blog-content">${contentHTML}</div>`;
+
+                previewArticle.innerHTML = previewHtml;
+                previewTags.innerHTML = '';
+                tagArray.forEach(tag => {
+                    let span = document.createElement('span');
+                    span.className = 'px-3 py-1 bg-retro-surface text-retro-cyan border border-retro-cyan/30 rounded-full text-xs font-mono';
+                    span.textContent = `#${tag}`;
+                    previewTags.appendChild(span);
+                });
+
+                setTimeout(() => Prism.highlightAllUnder(previewArticle), 20);
+            }
+
+            // ========== PUBLISH ==========
+            function publishPost() {
+                const title = cmsTitle.value.trim() || 'Untitled';
+                const author = cmsAuthor.value.trim() || 'Case_Zero';
+                const readTime = parseInt(cmsReadtime.value) || 5;
+                const tagsStr = cmsTags.value.trim();
+                const tagArray = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t.length) : ['draft'];
+                let contentHTML = quillCMS ? quillCMS.root.innerHTML : '<p>No content</p>';
+
+                const newId = 'post_' + Date.now();
+                const newPost = {
+                    id: newId,
+                    title: title,
+                    author: author,
+                    readTime: readTime,
+                    tags: tagArray,
+                    content: contentHTML
+                };
+                posts.push(newPost);
+                showBlog();
+                renderPost(newId);
+                renderPostList('');
+            }
+
+            // ========== BLOG RENDER ==========
+            function renderPost(postId) {
+                const post = posts.find(p => p.id === postId);
+                if (!post) return;
+                currentPostId = post.id;
+                let html = `<header class="mb-8"><div class="flex gap-2 text-xs font-mono mb-4">`;
+                post.tags.slice(0,3).forEach(t => html += `<span class="bg-retro-purple/10 border border-retro-purple/30 px-2 py-1 rounded-full">${t}</span>`);
+                html += `<span class="text-retro-text/60">${post.readTime} min</span>`;
+                html += `</div><h1 class="text-4xl font-display font-bold text-retro-heading mb-4 leading-tight">${post.title}</h1>`;
+                html += `<div class="flex items-center gap-3 border-t border-retro-surface/70 pt-5"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=${post.author}" class="w-11 h-11 rounded-full border-2 border-retro-cyan/60"><span class="font-mono text-retro-cyan">${post.author}</span></div></header>`;
+                html += `<div class="blog-content">${post.content}</div>`;
+                articleContainer.innerHTML = html;
+                Prism.highlightAll();
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = post.content;
+                const headings = tempDiv.querySelectorAll('h2, h3');
+                tocContainer.innerHTML = '';
+                headings.forEach(h => {
+                    let id = h.innerText.toLowerCase().replace(/[^\w]+/g, '-');
+                    let link = document.createElement('a');
+                    link.href = `#${id}`;
+                    link.textContent = h.innerText;
+                    link.className = `toc-link block py-1.5 px-3 text-retro-text/70 hover:text-retro-cyan border-l-2 border-transparent hover:border-retro-cyan transition-all ${h.tagName==='H3'?'ml-4 text-xs':''}`;
+                    tocContainer.appendChild(link);
+                });
+
+                tagCloudContainer.innerHTML = '';
+                post.tags.forEach(t => {
+                    let span = document.createElement('span');
+                    span.className = 'px-3 py-1.5 bg-retro-surface hover:bg-retro-surfaceHover rounded-full text-sm cursor-pointer transition-all border border-transparent hover:border-retro-cyan/30';
+                    span.textContent = `#${t}`;
+                    span.onclick = () => { searchInput.value = t; renderPostList(t); };
+                    tagCloudContainer.appendChild(span);
+                });
+                tocHeadline.innerText = `INDEX: ${post.title.substring(0,22)}…`;
+            }
+
+            function renderPostList(filter = '') {
+                const filtered = posts.filter(p => p.title.toLowerCase().includes(filter.toLowerCase()) || p.tags.some(t => t.toLowerCase().includes(filter.toLowerCase())));
+                postListSidebar.innerHTML = '';
+                filtered.forEach(post => {
+                    const btn = document.createElement('button');
+                    btn.className = `w-full text-left px-3 py-2.5 rounded-lg text-sm font-mono transition-all ${currentPostId === post.id ? 'bg-retro-cyan/20 border-l-4 border-retro-cyan text-retro-cyan' : 'hover:bg-retro-surfaceHover text-retro-text/80 border-l-4 border-transparent'}`;
+                    btn.innerHTML = `<span class="block truncate font-medium">${post.title}</span><span class="text-[10px] text-retro-purple/70">${post.readTime}min · ${post.author}</span>`;
+                    btn.onclick = () => { renderPost(post.id); renderPostList(searchInput.value); };
+                    postListSidebar.appendChild(btn);
+                });
+                statsPostsSpan.innerText = `${posts.length} posts`;
+                const allTags = new Set(); posts.forEach(p => p.tags.forEach(t => allTags.add(t)));
+                statsTagsSpan.innerText = `${allTags.size} tags`;
+            }
+
+            // Search
+            searchInput.addEventListener('input', (e) => renderPostList(e.target.value));
+
+            // Preview & Publish
+            cmsPreviewBtn.addEventListener('click', updatePreview);
+            cmsPublishBtn.addEventListener('click', publishPost);
+
+            // Progress bar
+            window.addEventListener('scroll', function() {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                document.getElementById('progress-bar').style.width = (winScroll / height) * 100 + '%';
+            });
+
+            // Footer timestamp
+            document.getElementById('footer-timestamp').innerHTML = `⏚ ${new Date().toLocaleDateString()} ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,'0')} UTC`;
+
+            // Initial state
+            showBlog();
+            renderPost('p1');
+            renderPostList('');
+
+            // Set default CMS fields
+            cmsTitle.value = 'Exploring GenServer internals';
+            cmsAuthor.value = 'Case_Zero';
+            cmsReadtime.value = 10;
+            cmsTags.value = 'Elixir, OTP, GenServer, BEAM';
+
+            // Scrollspy for TOC
+            function observeHeadings() {
+                const headings = document.querySelectorAll('.blog-content h2, .blog-content h3');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+                            const activeLink = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+                            if (activeLink) activeLink.classList.add('active');
+                        }
+                    });
+                }, { rootMargin: '0px 0px -80% 0px', threshold: 0.5 });
+                headings.forEach(h => observer.observe(h));
+            }
+            setTimeout(observeHeadings, 300);
+        })();
+    </script>
+</body>
+</html>

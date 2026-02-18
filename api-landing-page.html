@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherMesh - Real-time Edge API</title>
+    <!-- Three.js for the Globe -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Prism for Syntax Highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <style>
+        :root {
+            /* --- Dark Mode (Default) --- */
+            --bg-glass: rgba(18, 18, 23, 0.75);
+            --bg-glass-heavy: rgba(10, 10, 12, 0.85);
+            --bg-glass-border: rgba(255, 255, 255, 0.08);
+            --window-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --dock-bg: rgba(20, 20, 20, 0.6);
+            --accent-glow: rgba(168, 85, 247, 0.15);
+
+            /* Brand Colors */
+            --brand-primary: #a855f7; /* Purple */
+            --brand-secondary: #ec4899; /* Pink */
+            --brand-accent: #06b6d4; /* Cyan */
+            --success: #22c55e;
+
+            /* UI Metrics */
+            --dock-height: 70px;
+            --top-bar-height: 40px; /* Slightly taller for cleaner nav */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+            --font-mono: "JetBrains Mono", "Fira Code", monospace;
+        }
+
+        /* --- Light Mode Overrides --- */
+        [data-theme="light"] {
+            --bg-glass: rgba(255, 255, 255, 0.65);
+            --bg-glass-heavy: rgba(240, 240, 245, 0.85);
+            --bg-glass-border: rgba(0, 0, 0, 0.06);
+            --window-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            --text-main: #1e1b4b;
+            --text-muted: #64748b;
+            --dock-bg: rgba(255, 255, 255, 0.5);
+            --accent-glow: rgba(59, 130, 246, 0.1);
+
+            --brand-primary: #6366f1; /* Indigo for better contrast on light */
+            --brand-secondary: #d946ef;
+        }
+
+        * { box-sizing: border-box; }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-stack);
+            background: #000;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            transition: color 0.3s ease;
+        }
+
+        /* --- 3D Background Wrapper --- */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            /* Default Dark Gradient */
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #000000 100%);
+            transition: background 0.5s ease;
+        }
+
+        [data-theme="light"] #canvas-container {
+            /* Light Mode Gradient */
+            background: radial-gradient(circle at 50% 50%, #e0e7ff 0%, #ffffff 100%);
+        }
+
+        /* --- Modern Top Bar --- */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: var(--top-bar-height);
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+            border-bottom: 1px solid var(--bg-glass-border);
+            user-select: none;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .top-bar-left { display: flex; align-items: center; gap: 32px; }
+        .logo-area {
+            display: flex; align-items: center; gap: 8px;
+            font-weight: 700; font-size: 15px; letter-spacing: -0.02em;
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-item {
+            cursor: pointer; opacity: 0.7; transition: all 0.2s; position: relative;
+        }
+        .nav-item:hover { opacity: 1; }
+        .nav-item.active { opacity: 1; color: var(--brand-primary); }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: -13px; left: 0; width: 100%; height: 2px;
+            background: var(--brand-primary); border-radius: 2px 2px 0 0;
+        }
+
+        .top-bar-right { display: flex; gap: 16px; align-items: center; }
+
+        .theme-toggle {
+            cursor: pointer;
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: rgba(128,128,128,0.1);
+            transition: 0.2s;
+        }
+        .theme-toggle:hover { background: rgba(128,128,128,0.2); }
+
+        /* --- Desktop Environment --- */
+        .desktop {
+            position: absolute;
+            top: var(--top-bar-height);
+            left: 0;
+            width: 100%;
+            height: calc(100% - var(--top-bar-height));
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* --- Windows System --- */
+        .window {
+            position: absolute;
+            background: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 16px;
+            box-shadow: var(--window-shadow);
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s, background 0.3s, border-color 0.3s;
+            opacity: 0;
+            transform: scale(0.95) translateY(15px);
+            visibility: hidden;
+            overflow: hidden;
+        }
+
+        .window.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            visibility: visible;
+        }
+
+        .window.minimized {
+            opacity: 0;
+            transform: scale(0.8) translateY(200px);
+            pointer-events: none;
+        }
+
+        .window-header {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            /* Subtle gradient for header */
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border-bottom: 1px solid var(--bg-glass-border);
+            cursor: default;
+        }
+
+        [data-theme="light"] .window-header {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+        }
+
+        .traffic-lights { display: flex; gap: 8px; z-index: 2; }
+        .light { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: transform 0.1s; }
+        .light:active { transform: scale(0.9); }
+        .light.red { background: #ff5f57; border: 1px solid rgba(0,0,0,0.1); }
+        .light.yellow { background: #febc2e; border: 1px solid rgba(0,0,0,0.1); }
+        .light.green { background: #28c840; border: 1px solid rgba(0,0,0,0.1); }
+
+        .window-title {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .window-body {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+        }
+
+        /* --- App: Browser (Marketing) --- */
+        .browser-toolbar {
+            height: 44px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            border-bottom: 1px solid var(--bg-glass-border);
+        }
+        .url-bar {
+            flex: 1;
+            background: rgba(128,128,128,0.1);
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .url-bar:hover { background: rgba(128,128,128,0.15); }
+
+        .browser-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background: transparent; /* Allows glass effect to shine through */
+        }
+
+        /* Inner Content Styling */
+        .hero-section {
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Subtle glow behind text */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px; height: 300px;
+            background: var(--brand-primary);
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            color: var(--text-main);
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .btn-primary {
+            background: var(--brand-primary);
+            color: white;
+            box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(128,128,128,0.1);
+            color: var(--text-main);
+            border: 1px solid var(--bg-glass-border);
+        }
+        .btn-secondary:hover { background: rgba(128,128,128,0.15); }
+
+        /* Modern Feature Cards - REDESIGNED */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            padding: 20px 60px 60px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--bg-glass-border);
+            padding: 32px 24px;
+            border-radius: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+        }
+
+        [data-theme="light"] .feature-card {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 15px 35px -10px rgba(168, 85, 247, 0.15);
+        }
+
+        [data-theme="light"] .feature-card:hover {
+            background: rgba(255,255,255,0.85);
+            box-shadow: 0 15px 35px -10px rgba(99, 102, 241, 0.2);
+        }
+
+        .feature-icon-box {
+            width: 64px; height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            color: var(--brand-primary);
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.15);
+            transition: 0.4s ease;
+        }
+
+        .feature-card:hover .feature-icon-box {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+            color: white;
+            transform: scale(1.1) rotate(6deg);
+            box-shadow: 0 8px 16px rgba(168, 85, 247, 0.3);
+        }
+
+        .feature-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .feature-card p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 280px;
+        }
+
+        /* --- App: Terminal --- */
+        .terminal-body {
+            background: #0f0f12; /* Terminal always dark */
+            font-family: var(--font-mono);
+            padding: 20px;
+            font-size: 13px;
+            color: #d4d4d4;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        [data-theme="light"] .terminal-body {
+            background: #1e1e24; /* Slightly lighter dark for contrast */
+        }
+
+        .term-line { margin-bottom: 6px; line-height: 1.5; }
+        .term-prompt { color: var(--success); margin-right: 8px; }
+        .term-input {
+            background: transparent; border: none; color: white;
+            font-family: var(--font-mono); font-size: 13px; flex: 1; outline: none;
+        }
+
+        /* --- App: Docs --- */
+        .docs-sidebar {
+            width: 240px;
+            background: rgba(0,0,0,0.05);
+            border-right: 1px solid var(--bg-glass-border);
+            padding: 24px 16px;
+        }
+        .docs-category {
+            padding: 8px 12px; font-size: 11px; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-top: 12px;
+        }
+        .docs-link {
+            padding: 8px 12px; font-size: 14px; color: var(--text-main);
+            cursor: pointer; border-radius: 6px; transition: 0.15s; margin-bottom: 2px;
+        }
+        .docs-link:hover { background: rgba(128,128,128,0.1); }
+        .docs-link.active {
+            background: var(--accent-glow);
+            color: var(--brand-primary);
+            font-weight: 500;
+        }
+        .docs-content {
+            flex: 1; padding: 48px; overflow-y: auto;
+            background: transparent;
+        }
+        .docs-content h1 { margin-top: 0; font-size: 28px; }
+        .docs-content p { line-height: 1.7; color: var(--text-muted); }
+        .docs-content code {
+            background: rgba(128,128,128,0.15); padding: 2px 6px;
+            border-radius: 4px; font-family: var(--font-mono); font-size: 0.9em;
+            color: var(--brand-secondary);
+        }
+        pre { border-radius: 12px; margin: 24px 0; background: #1e1e1e !important; }
+
+        /* --- Dock --- */
+        .dock-wrapper {
+            position: fixed; bottom: 24px; left: 0; width: 100%;
+            display: flex; justify-content: center; z-index: 1000;
+            pointer-events: none;
+        }
+        .dock {
+            pointer-events: auto;
+            background: var(--dock-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--bg-glass-border);
+            padding: 12px;
+            border-radius: 24px;
+            display: flex; gap: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: background 0.3s;
+        }
+        .dock-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            background: #333; display: flex; align-items: center; justify-content: center;
+            font-size: 30px; color: white; cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .dock-icon:hover {
+            transform: translateY(-12px) scale(1.1);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+        }
+        .dock-icon::after {
+            content: ''; position: absolute; bottom: -8px; width: 4px; height: 4px;
+            border-radius: 50%; background: var(--text-main); opacity: 0;
+        }
+        .dock-icon.open::after { opacity: 1; }
+
+        .icon-browser { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .icon-terminal { background: #1f2937; border: 1px solid #374151; }
+        .icon-docs { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+        .icon-settings { background: linear-gradient(135deg, #71717a, #52525b); }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.3); }
+
+        @media (max-width: 800px) {
+            .window { width: 94% !important; left: 3% !important; top: 70px !important; height: 80% !important; }
+            .feature-grid { grid-template-columns: 1fr; }
+            .docs-sidebar { display: none; }
+            .nav-links { display: none; } /* Hide Nav on mobile for simplicity */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="logo-area">
+                <i class="ph-fill ph-planet" style="color: var(--brand-primary); font-size: 20px;"></i>
+                AetherMesh
+            </div>
+            <div class="nav-links">
+                <div class="nav-item active">Products</div>
+                <div class="nav-item">Developers</div>
+                <div class="nav-item">Enterprise</div>
+                <div class="nav-item">Pricing</div>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <div class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Toggle Theme">
+                <i class="ph-fill ph-moon"></i>
+            </div>
+            <div style="width: 1px; height: 16px; background: var(--bg-glass-border);"></div>
+            <div class="top-bar-item" id="clock">12:00 PM</div>
+            <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #a855f7, #ec4899); border-radius: 50%; border: 2px solid var(--bg-glass-border);"></div>
+        </div>
+    </div>
+
+    <div class="desktop">
+
+        <!-- 1. Browser Window (Marketing) -->
+        <div class="window" id="win-browser" style="width: 1000px; height: 680px; top: 6%; left: 15%; z-index: 5;">
+            <div class="window-header">
+                <div class="traffic-lights">
+                    <div class="light red" onclick="closeWindow('win-browser')"></div>
+                    <div class="light yellow" onclick="minimizeWindow('win-browser')"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="window-title">AetherMesh - Edge Platform</div>
+            </div>
+            <div class="browser-toolbar">
+                <div style="display: flex; gap: 8px;">
+                    <i class="ph ph-arrow-left" style="opacity:0.5; font-size: 14px;"></i>
+                    <i class="ph ph-arrow-right" style="opacity:0.5; font-size: 14px;"></i>
+                    <i class="ph ph-arrow-clockwise" style="font-size: 14px;"></i>
+                </div>
+                <div class="url-bar">
+                    <i class="ph-fill ph-lock-key" style="font-size:10px; margin-right:6px; color: var(--success);"></i>
+                    aethermesh.io
+                </div>
+                <i class="ph ph-dots-three" style="font-size: 18px; opacity: 0.7;"></i>
+            </div>
+            <div class="window-body browser-content">
+                <div class="hero-section">
+                    <h1 class="hero-title">Sync the World in <br><span style="color: var(--brand-primary)">Real-Time.</span></h1>
+                    <p class="hero-sub">
+                        The distributed edge mesh API for instant state synchronization.
+                        Scale to millions of concurrent connections with sub-millisecond latency.
+                    </p>
+                    <div class="cta-group">
+                        <button class="btn btn-primary" onclick="launchTerminalDemo()">
+                            <i class="ph-bold ph-terminal-window" style="margin-right: 6px; vertical-align: middle;"></i>
+                            Run Demo
+                        </button>
+                        <button class="btn btn-secondary" onclick="openWindow('win-docs')">Documentation</button>
+                    </div>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="ph-fill ph-lightning"></i>
+                        </div>
+                        <h3>Instant Sync</h3>
+                        <p>Powered by Phoenix Channels. Push updates to 1M+ clients over WebSockets efficiently.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="ph-fill ph-users-three"></i>
+                        </div>
+                        <h3>Presence</h3>
+                        <p>Track who is online across the cluster automatically with CRDT-backed presence tracking.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="ph-fill ph-globe-hemisphere-west"></i>
+                        </div>
+                        <h3>Edge Mesh</h3>
+                        <p>Distributed Erlang nodes connected in a global mesh. Data lives close to your users.</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center; padding: 40px; border-top: 1px solid var(--bg-glass-border);">
+                    <p style="font-size: 13px; color: var(--text-muted);">Trusted by forward-thinking engineering teams</p>
+                    <div style="display: flex; gap: 30px; justify-content: center; opacity: 0.5; margin-top: 20px; font-weight: 700;">
+                        <span>ACME Corp</span>
+                        <span>Stark Ind</span>
+                        <span>Wayne Ent</span>
+                        <span>Cyberdyne</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Terminal Window -->
+        <div class="window" id="win-terminal" style="width: 700px; height: 450px; top: 18%; left: 25%; z-index: 6;">
+            <div class="window-header" style="background: #1f1f1f; border-bottom: 1px solid #333;">
+                <div class="traffic-lights">
+                    <div class="light red" onclick="closeWindow('win-terminal')"></div>
+                    <div class="light yellow" onclick="minimizeWindow('win-terminal')"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="window-title" style="color: #888;">Terminal - zsh</div>
+            </div>
+            <div class="window-body terminal-body" id="terminal-output">
+                <div class="term-line">AetherMesh CLI v2.1.0</div>
+                <div class="term-line">Type 'help' for available commands.</div>
+                <br>
+                <div class="term-input-line">
+                    <span class="term-prompt">➜</span>
+                    <span style="color: var(--brand-accent); margin-right: 8px;">~</span>
+                    <input type="text" class="term-input" id="term-input" autocomplete="off" spellcheck="false">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Documentation Window -->
+        <div class="window" id="win-docs" style="width: 900px; height: 600px; top: 12%; left: 20%; z-index: 4;">
+            <div class="window-header">
+                <div class="traffic-lights">
+                    <div class="light red" onclick="closeWindow('win-docs')"></div>
+                    <div class="light yellow" onclick="minimizeWindow('win-docs')"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="window-title">Documentation</div>
+            </div>
+            <div class="window-body">
+                <div class="docs-sidebar">
+                    <div class="docs-category">Getting Started</div>
+                    <div class="docs-link active" onclick="loadDoc('intro', this)">Introduction</div>
+                    <div class="docs-link" onclick="loadDoc('install', this)">Installation</div>
+                    <div class="docs-category">Core Concepts</div>
+                    <div class="docs-link" onclick="loadDoc('channels', this)">Channels</div>
+                    <div class="docs-link" onclick="loadDoc('presence', this)">Presence</div>
+                    <div class="docs-link" onclick="loadDoc('pubsub', this)">PubSub</div>
+                </div>
+                <div class="docs-content" id="doc-viewer">
+                    <!-- Content Injected via JS -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Dock -->
+    <div class="dock-wrapper">
+        <div class="dock">
+            <div class="dock-icon icon-browser open" onclick="openWindow('win-browser')" id="icon-win-browser" title="Browser">
+                <i class="ph-fill ph-globe"></i>
+            </div>
+            <div class="dock-icon icon-terminal" onclick="openWindow('win-terminal')" id="icon-win-terminal" title="Terminal">
+                <i class="ph-bold ph-terminal-window"></i>
+            </div>
+            <div class="dock-icon icon-docs" onclick="openWindow('win-docs')" id="icon-win-docs" title="Documentation">
+                <i class="ph-fill ph-book-bookmark"></i>
+            </div>
+            <div class="dock-icon icon-settings" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="ph-fill ph-moon-stars"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Window & UI Logic ---
+        let zIndexCounter = 100;
+
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+
+            if (win.classList.contains('minimized')) {
+                win.classList.remove('minimized');
+            }
+            win.classList.add('active');
+            win.style.zIndex = ++zIndexCounter;
+            if (icon) icon.classList.add('open');
+            if(id === 'win-terminal') document.getElementById('term-input').focus();
+        }
+
+        function closeWindow(id) {
+            document.getElementById(id).classList.remove('active');
+            const icon = document.getElementById('icon-' + id);
+            if (icon) icon.classList.remove('open');
+        }
+
+        function minimizeWindow(id) {
+            document.getElementById(id).classList.add('minimized');
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Draggable Logic
+        document.querySelectorAll('.window').forEach(win => {
+            const header = win.querySelector('.window-header');
+            win.addEventListener('mousedown', () => win.style.zIndex = ++zIndexCounter);
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('light')) return;
+                let isDragging = true;
+                const startX = e.clientX - win.offsetLeft;
+                const startY = e.clientY - win.offsetTop;
+                function onMouseMove(e) {
+                    if (!isDragging) return;
+                    win.style.left = `${e.clientX - startX}px`;
+                    win.style.top = `${e.clientY - startY}px`;
+                }
+                function onMouseUp() {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                }
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+
+        // --- 2. Theme Logic ---
+        // Global variables for ThreeJS materials to access
+        let globeSphereMat, globePointsMat, globeParticlesMat;
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', target);
+
+            // Update Icon
+            const btn = document.getElementById('theme-btn');
+            btn.innerHTML = target === 'dark' ? '<i class="ph-fill ph-moon"></i>' : '<i class="ph-fill ph-sun"></i>';
+
+            // Update ThreeJS Colors
+            if(target === 'light') {
+                globeSphereMat.color.setHex(0x3b82f6); // Blue
+                globePointsMat.color.setHex(0x6366f1); // Indigo
+                globePointsMat.opacity = 0.6;
+                globeParticlesMat.color.setHex(0x000000); // Black particles
+            } else {
+                globeSphereMat.color.setHex(0x4c1d95); // Deep Purple
+                globePointsMat.color.setHex(0xa855f7); // Light Purple
+                globePointsMat.opacity = 0.8;
+                globeParticlesMat.color.setHex(0x06b6d4); // Cyan particles
+            }
+        }
+
+        // --- 3. Terminal Logic ---
+        const termInput = document.getElementById('term-input');
+        const termOutput = document.getElementById('terminal-output');
+
+        termInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = termInput.value.trim();
+                const line = document.createElement('div');
+                line.className = 'term-line';
+                line.innerHTML = `<span class="term-prompt">➜</span> <span style="color:var(--brand-accent)">~</span> ${cmd}`;
+                termOutput.insertBefore(line, termInput.parentElement);
+
+                if (cmd === 'clear') {
+                    while(termOutput.firstChild !== termInput.parentElement) termOutput.removeChild(termOutput.firstChild);
+                } else if (cmd === 'help') {
+                    addOutput("Commands: help, status, connect, subscribe, benchmark, clear");
+                } else if (cmd !== '') {
+                    setTimeout(() => addOutput(`Executed: ${cmd} (Simulated)`), 200);
+                }
+                termInput.value = '';
+                termOutput.scrollTop = termOutput.scrollHeight;
+            }
+        });
+        function addOutput(html) {
+            const line = document.createElement('div');
+            line.className = 'term-line';
+            line.innerHTML = html;
+            termOutput.insertBefore(line, termInput.parentElement);
+            termOutput.scrollTop = termOutput.scrollHeight;
+        }
+        function launchTerminalDemo() {
+            openWindow('win-terminal');
+            termInput.focus();
+            addOutput("Initiating interactive demo...");
+        }
+
+        // --- 4. Docs Logic ---
+        const docsContent = {
+            intro: `<h1>Introduction</h1><p>AetherMesh is the distributed, real-time edge synchronization layer.</p><p>We solve the "hard parts" of WebSocket scaling.</p>`,
+            install: `<h1>Installation</h1><pre><code class="language-elixir">{:aether_mesh, "~> 2.1.0"}</code></pre>`,
+            channels: `<h1>Channels</h1><p>Channels are the core abstraction for real-time communication.</p>`,
+            presence: `<h1>Presence</h1><p>CRDT-backed presence tracking across clusters.</p>`,
+            pubsub: `<h1>PubSub</h1><p>Internal PubSub allows decoupling of producers and consumers.</p>`
+        };
+        function loadDoc(key, el) {
+            document.querySelectorAll('.docs-link').forEach(d => d.classList.remove('active'));
+            if(el) el.classList.add('active');
+            document.getElementById('doc-viewer').innerHTML = docsContent[key];
+            if(window.Prism) Prism.highlightAllUnder(document.getElementById('doc-viewer'));
+        }
+        loadDoc('intro', document.querySelector('.docs-link.active'));
+
+        // --- 5. Clock ---
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+        // --- 6. ThreeJS Globe ---
+        function initGlobe() {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 4, 16);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const group = new THREE.Group();
+            scene.add(group);
+
+            // Save material refs for theming
+            globeSphereMat = new THREE.MeshBasicMaterial({ color: 0x4c1d95, wireframe: true, transparent: true, opacity: 0.15 });
+            globePointsMat = new THREE.PointsMaterial({ color: 0xa855f7, size: 0.08, transparent: true, opacity: 0.8 });
+            globeParticlesMat = new THREE.PointsMaterial({ color: 0x06b6d4, size: 0.05, transparent: true, opacity: 0.5 });
+
+            // Sphere
+            const geometry = new THREE.IcosahedronGeometry(6, 2);
+            group.add(new THREE.Mesh(geometry, globeSphereMat));
+
+            // Points
+            const ptsGeo = new THREE.IcosahedronGeometry(6, 2);
+            group.add(new THREE.Points(ptsGeo, globePointsMat));
+
+            // Inner Blocker
+            const innerGeo = new THREE.SphereGeometry(5.95, 32, 32);
+            const innerMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); // Black core always
+            // We want inner sphere to change color in light mode? Maybe just white?
+            // Actually, keep it simple: clear core or dark core.
+            group.add(new THREE.Mesh(innerGeo, innerMat));
+
+            // Particles
+            const pGeo = new THREE.BufferGeometry();
+            const pPos = new Float32Array(900);
+            for(let i=0; i<300; i++) {
+                const r = 7 + Math.random() * 5;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                pPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+                pPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+                pPos[i*3+2] = r * Math.cos(phi);
+            }
+            pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+            const particles = new THREE.Points(pGeo, globeParticlesMat);
+            group.add(particles);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                group.rotation.y += 0.001;
+                particles.rotation.y -= 0.002;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Parallax
+            document.addEventListener('mousemove', (e) => {
+                group.rotation.x = (e.clientY - window.innerHeight/2) * 0.00005;
+                group.rotation.y += (e.clientX - window.innerWidth/2) * 0.00005;
+            });
+        }
+
+        window.onload = function() {
+            initGlobe();
+            setTimeout(() => openWindow('win-browser'), 400);
+        };
+    </script>
+</body>
+</html>

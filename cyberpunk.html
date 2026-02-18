@@ -1,0 +1,2856 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS Prime | Lifestyle Banking</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ECharts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#050507',
+                            800: '#0a0a0f',
+                            700: '#13131f',
+                            600: '#1c1c2e',
+                        },
+                        nexus: {
+                            purple: '#7c3aed',
+                            cyan: '#06b6d4',
+                            green: '#10b981',
+                            pink: '#f43f5e',
+                            gold: '#fbbf24',
+                            blue: '#3b82f6'
+                        }
+                    },
+                    backgroundImage: {
+                        'subtle-grid': "url('data:image/svg+xml,%3Csvg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M0 40L40 0H20L0 20M40 40V20L20 40\" stroke=\"%23ffffff\" stroke-opacity=\"0.03\" fill=\"none\"/%3E%3C/svg%3E')",
+                        'gradient-radial': 'radial-gradient(circle at center, var(--tw-gradient-stops))',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shimmer': 'shimmer 2s infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200px 0' },
+                            '100%': { backgroundPosition: '200px 0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #050507; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(45deg, #7c3aed, #06b6d4); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(45deg, #06b6d4, #7c3aed); }
+
+        .glass {
+            background: rgba(19, 19, 31, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-panel {
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(45deg, #7c3aed, #06b6d4, #f43f5e);
+            border-radius: 12px;
+            padding: 2px;
+        }
+        .gradient-border > div {
+            background: #0a0a0f;
+            border-radius: 10px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .loader {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 2px solid #06b6d4;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #7c3aed;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #7c3aed;
+        }
+
+        .shimmer-bg {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #7c3aed;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #7c3aed }
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-300 font-sans selection:bg-nexus-purple selection:text-white overflow-x-hidden">
+
+    <!-- App Root -->
+    <div id="app" class="min-h-screen relative"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // --- ENHANCED DATA & STATE ---
+        const state = {
+            view: 'landing',
+            user: {
+                name: 'Sarah Jenkins',
+                email: 'sarah.j@nexus.bank',
+                phone: '+1 (555) 012-3456',
+                address: '128 Nexus Blvd, Seattle, WA',
+                totalLiquidity: 42580.45,
+                monthlySpending: 2450.00,
+                monthlyBudget: 3500.00,
+                avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+                tier: 'Metal',
+                memberSince: '2021',
+                loyaltyPoints: 12500,
+                creditScore: 780
+            },
+            accounts: [
+                { id: 'chk_01', type: 'Checking', name: 'Primary Checking', balance: 8450.20, number: '**** 4589', color: 'from-gray-700 to-gray-900', icon: 'fa-money-check-dollar' },
+                { id: 'svg_01', type: 'Savings', name: 'High Yield Savings', balance: 32000.00, number: '**** 9921', color: 'from-nexus-cyan to-nexus-blue', apy: '4.5%', icon: 'fa-piggy-bank' },
+                { id: 'inv_01', type: 'Investment', name: 'Wealth Builder', balance: 12500.50, number: '**** 3345', color: 'from-nexus-green to-emerald-700', icon: 'fa-chart-line' },
+            ],
+            cards: [
+                { id: 'crd_01', type: 'Metal', name: 'Nexus Metal', number: '**** **** **** 4589', expiry: '12/28', brand: 'visa', status: 'Active', color: 'bg-gradient-to-br from-slate-700 via-slate-800 to-black', creditLimit: 25000, usedCredit: 4500 },
+                { id: 'crd_02', type: 'Virtual', name: 'Online Shopping', number: '**** **** **** 8842', expiry: '09/26', brand: 'mastercard', status: 'Frozen', color: 'bg-gradient-to-br from-nexus-purple to-indigo-900' },
+                { id: 'crd_03', type: 'Travel', name: 'Nexus Travel', number: '**** **** **** 2231', expiry: '05/27', brand: 'visa', status: 'Active', color: 'bg-gradient-to-br from-amber-600 to-orange-700', benefits: ['Lounge Access', 'Travel Insurance'] }
+            ],
+            transactions: [
+                { id: 1, merchant: 'Uber Technologies', category: 'Transport', amount: -24.50, date: 'Today, 2:30 PM', icon: 'fa-car', type: 'debit', status: 'completed' },
+                { id: 2, merchant: 'Starbucks Coffee', category: 'Food & Drink', amount: -6.45, date: 'Today, 8:15 AM', icon: 'fa-mug-hot', type: 'debit', status: 'completed' },
+                { id: 3, merchant: 'Tech Solutions Inc.', category: 'Income', amount: 3200.00, date: 'Yesterday', icon: 'fa-briefcase', type: 'credit', status: 'completed' },
+                { id: 4, merchant: 'Amazon Marketplace', category: 'Shopping', amount: -89.99, date: 'Yesterday', icon: 'fa-shopping-cart', type: 'debit', status: 'pending' },
+                { id: 5, merchant: 'Spotify Premium', category: 'Entertainment', amount: -10.99, date: 'Oct 15', icon: 'fa-music', type: 'debit', status: 'completed' },
+            ],
+            stocks: [
+                { symbol: 'AAPL', name: 'Apple Inc.', price: 178.45, change: 1.2, shares: 10, chartColor: '#10b981', value: 1784.50 },
+                { symbol: 'TSLA', name: 'Tesla, Inc.', price: 245.30, change: -0.8, shares: 5, chartColor: '#f43f5e', value: 1226.50 },
+                { symbol: 'MSFT', name: 'Microsoft', price: 330.10, change: 0.5, shares: 12, chartColor: '#10b981', value: 3961.20 },
+                { symbol: 'NVDA', name: 'Nvidia', price: 460.50, change: 2.1, shares: 4, chartColor: '#10b981', value: 1842.00 },
+                { symbol: 'GOOGL', name: 'Alphabet', price: 135.25, change: 0.3, shares: 8, chartColor: '#10b981', value: 1082.00 },
+            ],
+            contacts: [
+                { id: 1, name: 'Mike Ross', avatar: 'https://i.pravatar.cc/100?u=11', phone: '+1 (555) 123-4567' },
+                { id: 2, name: 'Jessica P.', avatar: 'https://i.pravatar.cc/100?u=12', phone: '+1 (555) 234-5678' },
+                { id: 3, name: 'Harvey S.', avatar: 'https://i.pravatar.cc/100?u=13', phone: '+1 (555) 345-6789' },
+                { id: 4, name: 'Rachel Z.', avatar: 'https://i.pravatar.cc/100?u=14', phone: '+1 (555) 456-7890' },
+            ],
+            savingsGoals: [
+                { id: 1, name: 'Tesla Model 3', target: 45000, current: 12500, color: 'text-nexus-cyan', bg: 'bg-nexus-cyan', icon: 'fa-car', deadline: '2024-06-30' },
+                { id: 2, name: 'Japan Trip', target: 5000, current: 3200, color: 'text-nexus-pink', bg: 'bg-nexus-pink', icon: 'fa-plane', deadline: '2023-12-15' },
+                { id: 3, name: 'Emergency Fund', target: 15000, current: 8000, color: 'text-nexus-green', bg: 'bg-nexus-green', icon: 'fa-shield', deadline: '2023-11-30' }
+            ],
+            upcomingBills: [
+                { id: 1, name: 'Netflix', date: 'Tomorrow', amount: 15.99, icon: 'fa-film', category: 'Entertainment', autoPay: true },
+                { id: 2, name: 'Electric Bill', date: 'Oct 24', amount: 142.50, icon: 'fa-bolt', category: 'Utilities', autoPay: true },
+                { id: 3, name: 'Mortgage', date: 'Nov 1', amount: 2100.00, icon: 'fa-home', category: 'Housing', autoPay: true },
+                { id: 4, name: 'Gym Membership', date: 'Oct 28', amount: 29.99, icon: 'fa-dumbbell', category: 'Health', autoPay: false },
+            ],
+            marketplaceServices: [
+                { id: 1, name: 'Spotify Premium', category: 'Music', price: 10.99, icon: 'fa-music', subscribed: true, color: 'from-green-500 to-green-700' },
+                { id: 2, name: 'Netflix', category: 'Streaming', price: 15.99, icon: 'fa-film', subscribed: true, color: 'from-red-500 to-red-700' },
+                { id: 3, name: 'Adobe Creative', category: 'Productivity', price: 52.99, icon: 'fa-palette', subscribed: false, color: 'from-pink-500 to-red-600' },
+                { id: 4, name: 'Microsoft 365', category: 'Productivity', price: 6.99, icon: 'fa-windows', subscribed: true, color: 'from-blue-500 to-blue-700' },
+                { id: 5, name: 'Amazon Prime', category: 'Shopping', price: 14.99, icon: 'fa-amazon', subscribed: false, color: 'from-yellow-500 to-orange-600' },
+            ],
+            notifications: [
+                { id: 1, title: 'Payment Received', message: 'Salary deposit from Tech Solutions Inc.', time: '2 hours ago', read: false, type: 'success' },
+                { id: 2, title: 'Unusual Activity', message: 'Login from new device detected', time: 'Yesterday', read: true, type: 'warning' },
+                { id: 3, title: 'Investment Opportunity', message: 'New AI Tech ETF available', time: '2 days ago', read: false, type: 'info' },
+            ],
+            subscriptions: {
+                current: 'Metal',
+                plans: [
+                    { name: 'Standard', price: 0, features: ['Basic Banking', 'Virtual Card', '1% Cashback', 'Standard Support'], active: false },
+                    { name: 'Premium', price: 9.99, features: ['All Standard Features', 'Metal Card', '3% Cashback', 'Priority Support', 'Travel Insurance'], active: false },
+                    { name: 'Metal', price: 29.99, features: ['All Premium Features', 'Airport Lounge Access', '5% Cashback', '24/7 Concierge', 'Investment Tools'], active: true },
+                ]
+            },
+            analytics: {
+                spendingByCategory: [
+                    { category: 'Housing', amount: 1200, percentage: 35, color: '#7c3aed' },
+                    { category: 'Food & Dining', amount: 450, percentage: 13, color: '#06b6d4' },
+                    { category: 'Transportation', amount: 200, percentage: 6, color: '#10b981' },
+                    { category: 'Entertainment', amount: 180, percentage: 5, color: '#f43f5e' },
+                    { category: 'Shopping', amount: 420, percentage: 12, color: '#fbbf24' },
+                ],
+                monthlyTrend: [3200, 2800, 3100, 2900, 2450, 2700, 3000]
+            }
+        };
+
+        // --- UTILITIES ---
+        const formatCurrency = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+        const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let borderClass = type === 'success' ? 'border-nexus-green' :
+                            type === 'error' ? 'border-nexus-pink' :
+                            type === 'warning' ? 'border-nexus-gold' : 'border-nexus-cyan';
+            let iconClass = type === 'success' ? 'fa-check-circle text-nexus-green' :
+                          type === 'error' ? 'fa-exclamation-circle text-nexus-pink' :
+                          type === 'warning' ? 'fa-exclamation-triangle text-nexus-gold' : 'fa-info-circle text-nexus-cyan';
+
+            toast.className = `glass-panel p-4 rounded-lg border-l-4 ${borderClass} flex items-center gap-3 transform transition-all duration-300 translate-x-10 opacity-0 min-w-[300px] pointer-events-auto z-50`;
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-lg"></i>
+                <div class="flex-1">
+                    <div class="text-sm font-medium text-white">${message}</div>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-10', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('translate-x-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4000);
+        }
+
+        function navigate(viewName) {
+            state.view = viewName;
+            render();
+            window.scrollTo(0, 0);
+        }
+
+        // --- CHART FUNCTIONS ---
+        function initSpendingChart() {
+            const el = document.getElementById('spendingChart');
+            if (!el) return;
+
+            const chart = echarts.init(el);
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'item',
+                    backgroundColor: 'rgba(10, 10, 15, 0.9)',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    textStyle: { color: '#fff' },
+                    formatter: '{b}: {c} ({d}%)'
+                },
+                legend: {
+                    show: false
+                },
+                series: [{
+                    type: 'pie',
+                    radius: ['50%', '75%'],
+                    center: ['50%', '50%'],
+                    itemStyle: {
+                        borderRadius: 6,
+                        borderColor: '#0a0a0f',
+                        borderWidth: 3
+                    },
+                    label: {
+                        show: false
+                    },
+                    emphasis: {
+                        scale: true,
+                        scaleSize: 10
+                    },
+                    data: state.analytics.spendingByCategory.map(item => ({
+                        value: item.amount,
+                        name: item.category,
+                        itemStyle: { color: item.color }
+                    }))
+                }]
+            };
+            chart.setOption(option);
+
+            // Handle window resize
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        function initInvestChart() {
+            const el = document.getElementById('investChart');
+            if (!el) return;
+
+            const chart = echarts.init(el);
+
+            // Generate mock portfolio data
+            const dates = [];
+            const portfolioValues = [];
+            let value = 10000;
+
+            for (let i = 30; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+
+                // Random walk with upward bias
+                value += (Math.random() - 0.3) * 200;
+                portfolioValues.push(Math.max(9000, value));
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: dates,
+                    axisLine: {
+                        show: false
+                    },
+                    axisTick: {
+                        show: false
+                    },
+                    axisLabel: {
+                        color: '#666',
+                        fontSize: 11
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#666',
+                        formatter: '${value}'
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(10, 10, 15, 0.9)',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    textStyle: { color: '#fff' },
+                    formatter: (params) => {
+                        const date = params[0].axisValue;
+                        const value = params[0].value;
+                        return `<div class="font-bold">${date}</div><div>Portfolio: ${formatCurrency(value)}</div>`;
+                    }
+                },
+                series: [{
+                    name: 'Portfolio Value',
+                    type: 'line',
+                    smooth: true,
+                    showSymbol: false,
+                    lineStyle: {
+                        width: 3,
+                        color: '#10b981'
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(16, 185, 129, 0.3)' },
+                            { offset: 1, color: 'rgba(16, 185, 129, 0)' }
+                        ])
+                    },
+                    data: portfolioValues
+                }]
+            };
+
+            chart.setOption(option);
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        function initMonthlyTrendChart() {
+            const el = document.getElementById('monthlyTrendChart');
+            if (!el) return;
+
+            const chart = echarts.init(el);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+
+            const option = {
+                backgroundColor: 'transparent',
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    top: '10%'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: months,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { color: '#666' }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
+                    axisLabel: { color: '#666', formatter: '${value}' }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(10, 10, 15, 0.9)',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    textStyle: { color: '#fff' }
+                },
+                series: [{
+                    data: state.analytics.monthlyTrend,
+                    type: 'bar',
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: '#7c3aed' },
+                            { offset: 1, color: '#06b6d4' }
+                        ])
+                    },
+                    barWidth: '60%'
+                }]
+            };
+
+            chart.setOption(option);
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        // --- PAYMENT FUNCTIONS ---
+        function initiateTransfer(amount, recipient, note = '') {
+            // Simulate API call
+            showToast(`Transferring ${formatCurrency(amount)} to ${recipient}...`, 'info');
+
+            setTimeout(() => {
+                showToast(`Success! ${formatCurrency(amount)} sent to ${recipient}`, 'success');
+
+                // Add to transactions
+                const newTransaction = {
+                    id: Date.now(),
+                    merchant: recipient,
+                    category: 'Transfer',
+                    amount: -amount,
+                    date: 'Just now',
+                    icon: 'fa-paper-plane',
+                    type: 'debit',
+                    status: 'completed'
+                };
+
+                state.transactions.unshift(newTransaction);
+                state.user.totalLiquidity -= amount;
+
+                // Update UI if we're on dashboard
+                if (state.view === 'dashboard') {
+                    renderDashboardContent();
+                }
+            }, 1500);
+        }
+
+        function payBill(billId) {
+            const bill = state.upcomingBills.find(b => b.id === billId);
+            if (!bill) return;
+
+            showToast(`Paying ${bill.name} bill...`, 'info');
+
+            setTimeout(() => {
+                showToast(`${bill.name} bill paid successfully!`, 'success');
+
+                // Update bill
+                const nextDate = new Date();
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                bill.date = nextDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                // Add transaction
+                state.transactions.unshift({
+                    id: Date.now(),
+                    merchant: bill.name,
+                    category: bill.category,
+                    amount: -bill.amount,
+                    date: 'Just now',
+                    icon: bill.icon,
+                    type: 'debit',
+                    status: 'completed'
+                });
+
+                state.user.monthlySpending += bill.amount;
+
+                if (state.view === 'dashboard') {
+                    renderDashboardContent();
+                }
+            }, 1500);
+        }
+
+        function toggleCardStatus(cardId) {
+            const card = state.cards.find(c => c.id === cardId);
+            if (!card) return;
+
+            const newStatus = card.status === 'Active' ? 'Frozen' : 'Active';
+            card.status = newStatus;
+
+            showToast(`${card.name} card ${newStatus.toLowerCase()}`, newStatus === 'Active' ? 'success' : 'warning');
+
+            if (state.view === 'accounts') {
+                renderAccountsContent();
+            }
+        }
+
+        // --- RENDER ENGINE ---
+        function render() {
+            const app = document.getElementById('app');
+            app.innerHTML = '';
+
+            switch(state.view) {
+                case 'landing':
+                    app.innerHTML = renderLanding();
+                    break;
+                case 'auth':
+                    app.innerHTML = renderAuth();
+                    break;
+                default:
+                    app.innerHTML = `
+                        <div class="flex h-screen overflow-hidden bg-dark-900 bg-subtle-grid">
+                            ${renderSidebar()}
+                            <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+                                ${renderHeader()}
+                                <main class="w-full grow p-4 md:p-6 fade-in pb-24 lg:pb-10 max-w-7xl mx-auto">
+                                    ${renderMainContent()}
+                                </main>
+                            </div>
+                            ${renderModals()}
+                        </div>
+                    `;
+
+                    // Initialize charts based on view
+                    setTimeout(() => {
+                        if (state.view === 'dashboard') {
+                            initSpendingChart();
+                            initMonthlyTrendChart();
+                        }
+                        if (state.view === 'invest') initInvestChart();
+                    }, 100);
+                    break;
+            }
+        }
+
+        function renderMainContent() {
+            switch(state.view) {
+                case 'dashboard': return renderDashboard();
+                case 'accounts': return renderAccounts();
+                case 'payments': return renderPayments();
+                case 'invest': return renderInvest();
+                case 'marketplace': return renderMarketplace();
+                case 'settings': return renderSettings();
+                default: return renderDashboard();
+            }
+        }
+
+        // --- ENHANCED LANDING PAGE ---
+        function renderLanding() {
+            return `
+            <div class="min-h-screen bg-dark-900 text-white overflow-hidden relative">
+                <!-- Navigation -->
+                <nav class="fixed top-0 w-full z-50 bg-dark-900/90 backdrop-blur-xl border-b border-white/5">
+                    <div class="container mx-auto px-4 md:px-8 h-16 md:h-20 flex justify-between items-center">
+                        <div class="text-2xl font-display font-bold flex items-center gap-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-nexus-purple to-nexus-cyan rounded-lg flex items-center justify-center">
+                                <i class="fa-solid fa-layer-group text-white text-sm"></i>
+                            </div>
+                            NEXUS <span class="text-nexus-cyan text-sm self-end mb-1 font-mono">PRIME</span>
+                        </div>
+                        <div class="hidden lg:flex gap-8 text-sm font-medium text-gray-400">
+                            <a href="#features" class="hover:text-white transition-colors">Features</a>
+                            <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+                            <a href="#testimonials" class="hover:text-white transition-colors">Testimonials</a>
+                            <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="navigate('auth')" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">Log In</button>
+                            <button onclick="navigate('auth')" class="px-5 py-2 bg-white text-black rounded-full hover:bg-gray-200 transition-all text-sm font-bold shadow-lg shadow-white/10">
+                                Open Account
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Hero Section -->
+                <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 container mx-auto px-4 md:px-8">
+                    <div class="absolute top-20 right-[-10%] w-[600px] h-[600px] bg-nexus-purple/20 blur-[150px] rounded-full"></div>
+                    <div class="absolute bottom-20 left-[-10%] w-[600px] h-[600px] bg-nexus-cyan/10 blur-[150px] rounded-full"></div>
+
+                    <div class="flex flex-col lg:flex-row items-center gap-16">
+                        <div class="lg:w-1/2 space-y-8 z-10">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-nexus-cyan">
+                                <span class="w-2 h-2 rounded-full bg-nexus-cyan animate-pulse"></span>
+                                THE FUTURE OF LIFESTYLE BANKING
+                            </div>
+                            <h1 class="text-4xl md:text-5xl lg:text-7xl font-display font-bold leading-tight">
+                                Your Money.<br>
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-nexus-cyan via-white to-nexus-purple">Unlimited.</span>
+                            </h1>
+                            <p class="text-gray-400 text-lg max-w-xl leading-relaxed">
+                                Nexus Prime combines premium banking with lifestyle perks. Get metal cards, investment tools, and exclusive rewards—all in one app.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                                <button onclick="navigate('auth')" class="px-8 py-4 bg-gradient-to-r from-nexus-purple to-nexus-cyan text-white font-bold rounded-xl transition-all shadow-[0_0_30px_rgba(124,58,237,0.4)] hover:shadow-[0_0_40px_rgba(124,58,237,0.6)] flex items-center justify-center gap-2">
+                                    Get Nexus Free <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                                <div class="flex items-center gap-4 px-4">
+                                    <div class="flex -space-x-3">
+                                        ${[1,2,3,4].map(i => `
+                                            <img class="w-10 h-10 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?u=${i}" alt="User">
+                                        `).join('')}
+                                    </div>
+                                    <div class="text-sm text-gray-400">
+                                        <span class="text-white font-bold">2M+</span> Members Worldwide
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:w-1/2 relative">
+                            <div class="relative w-[340px] h-[580px] mx-auto bg-black rounded-[40px] border-8 border-gray-800 shadow-2xl animate-float overflow-hidden">
+                                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-20"></div>
+                                <div class="w-full h-full bg-dark-800 flex flex-col pt-10 px-4 pb-4">
+                                    <!-- App Preview Content -->
+                                    <div class="flex justify-between items-center mb-6 px-2">
+                                        <div class="font-bold text-lg">NEXUS</div>
+                                        <div class="text-xs text-gray-400">4:20 PM</div>
+                                    </div>
+
+                                    <!-- Balance Card -->
+                                    <div class="w-full aspect-[1.586] rounded-2xl bg-gradient-to-br from-slate-800 to-black p-5 text-white shadow-lg mb-6 relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-nexus-purple/20 to-nexus-cyan/20"></div>
+                                        <div class="relative z-10">
+                                            <div class="flex justify-between items-start mb-8">
+                                                <i class="fa-brands fa-cc-visa text-2xl"></i>
+                                                <div class="text-xs font-bold bg-white/10 px-2 py-1 rounded">METAL</div>
+                                            </div>
+                                            <div class="font-mono text-xl tracking-widest mb-2">**** 4589</div>
+                                            <div class="flex justify-between items-end">
+                                                <div>
+                                                    <div class="text-xs opacity-70">SARAH JENKINS</div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-xs opacity-70">Expires 12/28</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Actions -->
+                                    <div class="grid grid-cols-4 gap-3 mb-6">
+                                        ${['fa-paper-plane', 'fa-qrcode', 'fa-chart-line', 'fa-wallet'].map(icon => `
+                                            <div class="flex flex-col items-center">
+                                                <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-nexus-cyan mb-1">
+                                                    <i class="fa-solid ${icon}"></i>
+                                                </div>
+                                                <span class="text-[10px] text-gray-400">${icon.split('-')[1]}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+
+                                    <!-- Recent Transactions -->
+                                    <div class="space-y-3">
+                                        ${state.transactions.slice(0, 2).map(tx => `
+                                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 rounded-full ${tx.type === 'credit' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'} flex items-center justify-center">
+                                                        <i class="fa-solid ${tx.icon}"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-sm font-bold text-white">${tx.merchant}</div>
+                                                        <div class="text-xs text-gray-500">${tx.date}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="font-bold text-sm ${tx.type === 'credit' ? 'text-green-400' : 'text-white'}">
+                                                    ${tx.type === 'credit' ? '+' : '-'}${formatCurrency(Math.abs(tx.amount))}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Floating Elements -->
+                            <div class="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-nexus-purple to-pink-600 rounded-2xl rotate-12 shadow-xl shadow-purple-500/30"></div>
+                            <div class="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-nexus-cyan to-blue-600 rounded-2xl -rotate-12 shadow-xl shadow-cyan-500/30"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Features Section -->
+                <section id="features" class="py-20 container mx-auto px-4 md:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+                            Premium Features for <span class="text-nexus-cyan">Modern Life</span>
+                        </h2>
+                        <p class="text-gray-400 max-w-2xl mx-auto">
+                            Everything you need to manage your finances and lifestyle in one place
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        ${[
+                            { icon: 'fa-gem', title: 'Metal Cards', desc: 'Premium metal cards with exclusive designs and enhanced security', color: 'text-nexus-gold' },
+                            { icon: 'fa-chart-line', title: 'Smart Investing', desc: 'Commission-free trading and AI-powered investment insights', color: 'text-nexus-green' },
+                            { icon: 'fa-bolt', title: 'Instant Transfers', desc: 'Send money globally in seconds with zero hidden fees', color: 'text-nexus-cyan' },
+                            { icon: 'fa-shield-halved', title: 'Bank-Grade Security', desc: 'Military-grade encryption and biometric authentication', color: 'text-nexus-purple' },
+                            { icon: 'fa-plane', title: 'Travel Perks', desc: 'Lounge access, travel insurance, and no foreign transaction fees', color: 'text-nexus-pink' },
+                            { icon: 'fa-tags', title: 'Cashback Rewards', desc: 'Up to 5% cashback on all purchases with Metal tier', color: 'text-nexus-blue' }
+                        ].map(feature => `
+                            <div class="glass-panel p-6 rounded-2xl hover:transform hover:-translate-y-2 transition-all duration-300 group">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-dark-700 to-dark-800 flex items-center justify-center mb-6 group-hover:bg-gradient-to-br ${feature.color.replace('text-', 'from-')} to-${feature.color.replace('text-', '').split('-')[1]}-700">
+                                    <i class="fa-solid ${feature.icon} text-2xl ${feature.color}"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-3">${feature.title}</h3>
+                                <p class="text-gray-400">${feature.desc}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+
+                <!-- Metal Card Showcase -->
+                <section class="py-20 bg-gradient-to-b from-dark-900 to-dark-800">
+                    <div class="container mx-auto px-4 md:px-8">
+                        <div class="flex flex-col lg:flex-row items-center gap-12">
+                            <div class="lg:w-1/2">
+                                <div class="relative">
+                                    <div class="relative w-full max-w-md h-56 rounded-2xl bg-gradient-to-br from-gray-900 via-black to-gray-900 p-6 text-white shadow-2xl rotate-3 transform">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-nexus-purple/10 to-nexus-cyan/10"></div>
+                                        <div class="relative z-10">
+                                            <div class="flex justify-between items-start mb-8">
+                                                <i class="fa-brands fa-cc-visa text-3xl"></i>
+                                                <div class="text-xs font-bold bg-gradient-to-r from-amber-500 to-yellow-600 text-black px-3 py-1 rounded-full">
+                                                    METAL EDITION
+                                                </div>
+                                            </div>
+                                            <div class="font-mono text-2xl tracking-widest mb-6">**** **** **** 4589</div>
+                                            <div class="flex justify-between items-end">
+                                                <div>
+                                                    <div class="text-xs opacity-70 uppercase">Card Holder</div>
+                                                    <div class="font-bold tracking-wide">SARAH JENKINS</div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-xs opacity-70 uppercase">Valid Thru</div>
+                                                    <div class="font-bold">12/28</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Shadow Card -->
+                                    <div class="absolute inset-0 w-full max-w-md h-56 rounded-2xl bg-gradient-to-br from-nexus-purple to-nexus-cyan opacity-30 blur-xl -z-10 rotate-3 transform"></div>
+                                </div>
+                            </div>
+
+                            <div class="lg:w-1/2 space-y-6">
+                                <h2 class="text-3xl md:text-4xl font-display font-bold text-white">
+                                    The <span class="text-nexus-gold">Metal Card</span> Experience
+                                </h2>
+                                <p class="text-gray-400 text-lg">
+                                    Feel the weight of premium banking. Our metal cards are crafted from stainless steel and come with exclusive benefits.
+                                </p>
+                                <ul class="space-y-4">
+                                    ${[
+                                        'Unlimited 5% cashback on travel',
+                                        'Priority airport lounge access',
+                                        '24/7 dedicated concierge service',
+                                        'Comprehensive travel insurance',
+                                        'No foreign transaction fees'
+                                    ].map(item => `
+                                        <li class="flex items-center gap-3">
+                                            <i class="fa-solid fa-check text-nexus-green"></i>
+                                            <span class="text-gray-300">${item}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                                <button onclick="navigate('auth')" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold rounded-lg hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all">
+                                    Upgrade to Metal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pricing Section -->
+                <section id="pricing" class="py-20 container mx-auto px-4 md:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+                            Simple, <span class="text-nexus-cyan">Transparent</span> Pricing
+                        </h2>
+                        <p class="text-gray-400 max-w-2xl mx-auto">
+                            Choose the plan that fits your lifestyle. Upgrade or downgrade anytime.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        ${state.subscriptions.plans.map((plan, index) => `
+                            <div class="glass-panel p-8 rounded-2xl ${plan.active ? 'gradient-border' : ''}">
+                                <div class="${plan.active ? 'p-6 rounded-xl bg-dark-900' : ''}">
+                                    <div class="text-center mb-8">
+                                        <div class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">${plan.name}</div>
+                                        <div class="text-4xl font-bold text-white mb-1">
+                                            ${plan.price === 0 ? 'Free' : `$${plan.price}`}
+                                            <span class="text-sm text-gray-400">/month</span>
+                                        </div>
+                                        ${plan.active ? `
+                                            <div class="inline-block px-3 py-1 bg-nexus-green/20 text-nexus-green text-xs font-bold rounded-full mt-2">
+                                                Current Plan
+                                            </div>
+                                        ` : ''}
+                                    </div>
+
+                                    <ul class="space-y-4 mb-8">
+                                        ${plan.features.map(feature => `
+                                            <li class="flex items-center gap-3">
+                                                <i class="fa-solid fa-check ${plan.active ? 'text-nexus-green' : 'text-gray-600'}"></i>
+                                                <span class="${plan.active ? 'text-gray-300' : 'text-gray-500'}">${feature}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+
+                                    <button onclick="${plan.active ? '' : `showToast('Upgraded to ${plan.name} plan!', 'success')`}"
+                                            class="w-full py-3 rounded-lg font-bold transition-all ${plan.active ?
+                                                'bg-white/10 text-white cursor-default' :
+                                                'bg-white text-black hover:bg-gray-200'}">
+                                        ${plan.active ? 'Current Plan' : 'Get Started'}
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+
+                <!-- Testimonials -->
+                <section id="testimonials" class="py-20 bg-dark-800/50">
+                    <div class="container mx-auto px-4 md:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+                                Loved by <span class="text-nexus-cyan">2M+</span> Users
+                            </h2>
+                            <p class="text-gray-400 max-w-2xl mx-auto">
+                                See what our members are saying about their Nexus experience
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            ${[
+                                { name: 'Alex Morgan', role: 'Entrepreneur', avatar: 'https://i.pravatar.cc/150?u=alex', text: 'Nexus completely transformed how I manage my business finances. The metal card gets compliments everywhere!' },
+                                { name: 'Sophia Chen', role: 'Digital Nomad', avatar: 'https://i.pravatar.cc/150?u=sophia', text: 'As someone who travels constantly, Nexus has been a game-changer. No foreign fees and lounge access is priceless.' },
+                                { name: 'Marcus Rivera', role: 'Investor', avatar: 'https://i.pravatar.cc/150?u=marcus', text: 'The investment tools and instant transfers make managing my portfolio effortless. Best banking app I\'ve used.' }
+                            ].map(testimonial => `
+                                <div class="glass-panel p-6 rounded-2xl">
+                                    <div class="flex items-center gap-4 mb-6">
+                                        <img src="${testimonial.avatar}" class="w-14 h-14 rounded-full">
+                                        <div>
+                                            <div class="font-bold text-white">${testimonial.name}</div>
+                                            <div class="text-sm text-nexus-cyan">${testimonial.role}</div>
+                                        </div>
+                                        <div class="ml-auto text-nexus-gold">
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-300 italic">"${testimonial.text}"</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CTA Section -->
+                <section class="py-20 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-nexus-purple/10 via-nexus-cyan/10 to-nexus-purple/10"></div>
+                    <div class="container mx-auto px-4 md:px-8 relative z-10">
+                        <div class="max-w-4xl mx-auto text-center">
+                            <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-6">
+                                Ready to Revolutionize Your Banking?
+                            </h2>
+                            <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+                                Join millions who have upgraded to smarter, premium banking.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                                <button onclick="navigate('auth')" class="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all text-lg shadow-2xl">
+                                    Get Started Free
+                                </button>
+                                <button onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})"
+                                        class="px-8 py-4 glass border border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-lg">
+                                    Explore Features
+                                </button>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-6">No credit card required • Cancel anytime</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="bg-dark-900 border-t border-white/5 py-12">
+                    <div class="container mx-auto px-4 md:px-8">
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                            <div class="text-2xl font-display font-bold flex items-center gap-2">
+                                <div class="w-8 h-8 bg-gradient-to-br from-nexus-purple to-nexus-cyan rounded-lg flex items-center justify-center">
+                                    <i class="fa-solid fa-layer-group text-white text-sm"></i>
+                                </div>
+                                NEXUS <span class="text-nexus-cyan text-sm self-end mb-1 font-mono">PRIME</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-6 text-gray-400 text-sm">
+                                <a href="#" class="hover:text-white transition-colors">About</a>
+                                <a href="#" class="hover:text-white transition-colors">Careers</a>
+                                <a href="#" class="hover:text-white transition-colors">Security</a>
+                                <a href="#" class="hover:text-white transition-colors">Privacy</a>
+                                <a href="#" class="hover:text-white transition-colors">Terms</a>
+                                <a href="#" class="hover:text-white transition-colors">Contact</a>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                                    <i class="fa-brands fa-twitter"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                                    <i class="fa-brands fa-instagram"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                                    <i class="fa-brands fa-linkedin-in"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-white/5 mt-8 pt-8 text-center text-gray-500 text-sm">
+                            <p>© 2023 NEXUS Prime. All rights reserved.</p>
+                            <p class="mt-2">Nexus Prime is a registered trademark of Nexus Financial Technologies Inc.</p>
+                            <p class="mt-2">Banking services provided by Partner Bank, Member FDIC.</p>
+                        </div>
+                    </div>
+                </footer>
+            </div>`;
+        }
+
+        // --- AUTH VIEW ---
+        function renderAuth() {
+            return `
+            <div class="min-h-screen bg-dark-900 flex items-center justify-center p-4 relative overflow-hidden">
+                <div class="absolute inset-0 bg-subtle-grid opacity-30"></div>
+                <div class="glass-panel w-full max-w-md p-8 rounded-2xl relative z-10 fade-in border-t-4 border-nexus-purple">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-gradient-to-br from-nexus-purple to-nexus-cyan rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-layer-group text-white text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-display font-bold text-white">Welcome to NEXUS</h2>
+                        <p class="text-gray-400 text-sm mt-2">Enter your credentials to continue</p>
+                    </div>
+                    <form onsubmit="handleLogin(event)" class="space-y-5">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Email</label>
+                            <input type="email" id="email" value="sarah.j@nexus.bank" required
+                                   class="w-full bg-dark-800 border border-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-nexus-purple focus:ring-1 focus:ring-nexus-purple transition-all">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Password</label>
+                            <input type="password" value="password123" required
+                                   class="w-full bg-dark-800 border border-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-nexus-purple transition-all">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" class="rounded bg-dark-800 border-gray-700">
+                                <span class="text-sm text-gray-400">Remember me</span>
+                            </label>
+                            <a href="#" class="text-sm text-nexus-cyan hover:underline">Forgot password?</a>
+                        </div>
+                        <button id="login-btn" type="submit"
+                                class="w-full bg-gradient-to-r from-nexus-purple to-nexus-cyan text-white font-bold py-3 rounded-lg hover:shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all flex items-center justify-center gap-2 group">
+                            <span>Sign In</span> <i class="fa-solid fa-lock text-xs"></i>
+                        </button>
+                    </form>
+                    <div class="mt-6 pt-6 border-t border-white/5 text-center">
+                        <p class="text-gray-400 text-sm">Don't have an account?</p>
+                        <button onclick="showToast('Account creation flow would open here', 'info')"
+                                class="text-nexus-cyan hover:underline text-sm font-medium mt-2">
+                            Create an account
+                        </button>
+                    </div>
+                     <div class="mt-6 text-center">
+                        <button onclick="navigate('landing')" class="text-sm text-gray-500 hover:text-white transition-colors">
+                            ← Back to Home
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="loader"></div>`;
+            btn.disabled = true;
+
+            // Simulate API call
+            setTimeout(() => {
+                navigate('dashboard');
+                showToast('Welcome back, Sarah!', 'success');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1500);
+        }
+
+        // --- SIDEBAR ---
+        function renderSidebar() {
+            const navItems = [
+                { id: 'dashboard', icon: 'fa-house', label: 'Dashboard' },
+                { id: 'accounts', icon: 'fa-credit-card', label: 'Accounts & Cards' },
+                { id: 'payments', icon: 'fa-arrow-right-arrow-left', label: 'Payments' },
+                { id: 'invest', icon: 'fa-chart-line', label: 'Invest' },
+                { id: 'marketplace', icon: 'fa-store', label: 'Marketplace' },
+                { id: 'settings', icon: 'fa-gear', label: 'Settings' },
+            ];
+
+            return `
+            <aside class="hidden md:flex flex-col w-64 glass border-r border-white/5 h-screen sticky top-0">
+                <div class="p-6 flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-gradient-to-br from-nexus-purple to-nexus-cyan rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-layer-group text-white text-xs"></i>
+                    </div>
+                    <span class="font-display font-bold text-lg tracking-tight text-white">NEXUS</span>
+                    <span class="text-nexus-cyan text-xs font-mono bg-nexus-cyan/10 px-2 py-1 rounded">PRIME</span>
+                </div>
+
+                <div class="flex-1 px-3 space-y-1">
+                    ${navItems.map(item => `
+                        <button onclick="navigate('${item.id}')"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group relative overflow-hidden ${state.view === item.id ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}">
+                            ${state.view === item.id ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-nexus-purple to-nexus-cyan rounded-r-full"></div>' : ''}
+                            <i class="fa-solid ${item.icon} w-5 text-center ${state.view === item.id ? 'text-nexus-cyan' : 'group-hover:text-gray-300'} transition-colors"></i>
+                            ${item.label}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <div class="p-4 mt-auto">
+                    <div class="glass-panel p-4 rounded-xl border border-white/5">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 flex items-center justify-center text-black">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white uppercase tracking-wider">Nexus ${state.user.tier}</div>
+                                <div class="text-[10px] text-gray-400">${state.user.tier === 'Metal' ? 'Premium benefits active' : 'Upgrade to Metal'}</div>
+                            </div>
+                        </div>
+                        ${state.user.tier === 'Metal' ? `
+                            <div class="text-xs text-gray-400 mb-3">
+                                <div class="flex justify-between mb-1">
+                                    <span>Cashback earned</span>
+                                    <span class="text-nexus-green">${formatCurrency(245.60)}</span>
+                                </div>
+                                <div class="w-full bg-gray-800 rounded-full h-1">
+                                    <div class="bg-nexus-cyan h-full rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        <button onclick="${state.user.tier === 'Metal' ? `navigate('settings')` : `showToast('Upgrade flow would open here', 'info')`}"
+                                class="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-gray-300 transition-colors">
+                            ${state.user.tier === 'Metal' ? 'View Benefits' : 'Upgrade Now'}
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Mobile Bottom Navigation -->
+            <div class="md:hidden fixed bottom-0 left-0 w-full glass border-t border-white/10 z-50 flex justify-around px-2 py-3 backdrop-blur-xl bg-dark-900/90">
+                ${navItems.slice(0, 5).map(item => `
+                    <button onclick="navigate('${item.id}')"
+                            class="flex flex-col items-center gap-1 px-3 py-2 ${state.view === item.id ? 'text-nexus-cyan' : 'text-gray-500'}"
+                            title="${item.label}">
+                        <i class="fa-solid ${item.icon} text-lg"></i>
+                        <span class="text-[10px] font-medium">${item.label.split(' ')[0]}</span>
+                    </button>
+                `).join('')}
+                <button onclick="navigate('settings')"
+                        class="flex flex-col items-center gap-1 px-3 py-2 ${state.view === 'settings' ? 'text-nexus-cyan' : 'text-gray-500'}">
+                    <i class="fa-solid fa-ellipsis text-lg"></i>
+                    <span class="text-[10px] font-medium">More</span>
+                </button>
+            </div>`;
+        }
+
+        // --- HEADER ---
+        function renderHeader() {
+            const unreadNotifications = state.notifications.filter(n => !n.read).length;
+
+            return `
+            <header class="sticky top-0 z-10 glass border-b border-white/5 px-4 md:px-6 py-4 flex justify-between items-center bg-dark-900/80 backdrop-blur-md">
+                <div class="flex items-center gap-3">
+                    <button class="md:hidden text-gray-400 hover:text-white" onclick="toggleMobileMenu()">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <h2 class="text-xl font-display font-bold text-white capitalize tracking-tight">
+                        ${state.view.charAt(0).toUpperCase() + state.view.slice(1)}
+                    </h2>
+                    ${state.view === 'dashboard' ? `
+                        <div class="hidden md:flex items-center gap-2 text-xs bg-white/5 px-2 py-1 rounded-full">
+                            <span class="text-gray-400">Last updated:</span>
+                            <span class="text-gray-300">Just now</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex items-center gap-2 text-sm">
+                        <span class="text-gray-400">Total:</span>
+                        <span class="font-mono font-bold text-white">${formatCurrency(state.user.totalLiquidity)}</span>
+                    </div>
+
+                    <button class="relative p-2 text-gray-400 hover:text-white transition-colors group" onclick="toggleNotificationPanel()">
+                        <i class="fa-regular fa-bell text-xl"></i>
+                        ${unreadNotifications > 0 ? `
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-nexus-pink rounded-full border-2 border-dark-900"></span>
+                        ` : ''}
+                        <div class="absolute top-full right-0 mt-2 w-80 glass-panel rounded-xl shadow-xl opacity-0 invisible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-20">
+                            <div class="p-4 border-b border-white/5">
+                                <h3 class="font-bold text-white">Notifications</h3>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto">
+                                ${state.notifications.slice(0, 3).map(notif => `
+                                    <div class="p-4 border-b border-white/5 hover:bg-white/5 transition-colors ${!notif.read ? 'bg-white/5' : ''}">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-8 h-8 rounded-full ${notif.type === 'success' ? 'bg-nexus-green/20 text-nexus-green' : notif.type === 'warning' ? 'bg-nexus-gold/20 text-nexus-gold' : 'bg-nexus-cyan/20 text-nexus-cyan'} flex items-center justify-center">
+                                                <i class="fa-solid ${notif.type === 'success' ? 'fa-check' : notif.type === 'warning' ? 'fa-exclamation' : 'fa-info'} text-sm"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-bold text-white text-sm">${notif.title}</div>
+                                                <p class="text-gray-400 text-xs mt-1">${notif.message}</p>
+                                                <div class="text-[10px] text-gray-500 mt-2">${notif.time}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${state.notifications.length > 3 ? `
+                                    <div class="p-3 text-center">
+                                        <button class="text-nexus-cyan text-xs font-bold">View All</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </button>
+
+                    <button onclick="toggleModal('searchModal')" class="p-2 text-gray-400 hover:text-white transition-colors">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+
+                    <div class="relative group">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                                <img src="${state.user.avatar}" class="w-full h-full object-cover">
+                            </div>
+                            <span class="hidden md:inline text-sm font-medium text-white">${state.user.name.split(' ')[0]}</span>
+                            <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+                        </button>
+                        <div class="absolute top-full right-0 mt-2 w-48 glass-panel rounded-xl shadow-xl opacity-0 invisible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-20">
+                            <div class="p-3 border-b border-white/5">
+                                <div class="text-sm font-bold text-white">${state.user.name}</div>
+                                <div class="text-xs text-gray-400">${state.user.tier} Member</div>
+                            </div>
+                            <div class="p-2">
+                                <button onclick="navigate('settings')" class="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <i class="fa-solid fa-user mr-2"></i> Profile
+                                </button>
+                                <button onclick="showToast('Help center would open', 'info')" class="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <i class="fa-solid fa-question-circle mr-2"></i> Help
+                                </button>
+                                <button onclick="navigate('landing')" class="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors mt-2">
+                                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>`;
+        }
+
+        // --- DASHBOARD VIEW ---
+        function renderDashboard() {
+            const budgetPercent = Math.min((state.user.monthlySpending / state.user.monthlyBudget) * 100, 100);
+            const safeToSpend = state.user.monthlyBudget - state.user.monthlySpending;
+
+            return `
+            <div class="space-y-6">
+                <!-- Welcome & Quick Stats -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Welcome Card -->
+                    <div class="lg:col-span-2 gradient-border h-full">
+                        <div class="p-6 md:p-8 rounded-xl bg-dark-900 h-full">
+                            <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+                                <div class="flex-1">
+                                    <h2 class="text-2xl md:text-3xl font-display font-bold text-white mb-2">
+                                        Good ${getTimeOfDay()}, ${state.user.name.split(' ')[0]}!
+                                    </h2>
+                                    <p class="text-gray-400 mb-6">
+                                        ${getGreetingMessage()}
+                                    </p>
+                                    <div class="flex gap-3">
+                                        <button onclick="navigate('payments')"
+                                                class="px-4 py-2 bg-gradient-to-r from-nexus-purple to-nexus-cyan text-white font-bold rounded-lg hover:shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all flex items-center gap-2">
+                                            <i class="fa-solid fa-paper-plane"></i> Send Money
+                                        </button>
+                                        <button onclick="toggleModal('depositModal')"
+                                                class="px-4 py-2 glass border border-white/20 text-white font-bold rounded-lg hover:bg-white/10 transition-all flex items-center gap-2">
+                                            <i class="fa-solid fa-plus"></i> Add Funds
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-br from-dark-800 to-dark-900 p-4 rounded-xl border border-white/5">
+                                    <div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Credit Score</div>
+                                    <div class="text-2xl font-bold text-white mb-1">${state.user.creditScore}</div>
+                                    <div class="text-xs ${state.user.creditScore >= 750 ? 'text-nexus-green' : 'text-nexus-gold'}">
+                                        ${state.user.creditScore >= 750 ? 'Excellent' : 'Good'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Liquidity Card -->
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-white">Total Liquidity</h3>
+                            <i class="fa-solid fa-wallet text-nexus-cyan"></i>
+                        </div>
+                        <div class="text-3xl font-mono font-bold text-white mb-2">
+                            ${formatCurrency(state.user.totalLiquidity)}
+                        </div>
+                        <div class="flex items-center text-xs text-gray-400 mb-6">
+                            <i class="fa-solid fa-arrow-trend-up text-nexus-green mr-1"></i>
+                            <span>+2.4% from last month</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${state.accounts.slice(0, 2).map(account => `
+                                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br ${account.color} flex items-center justify-center">
+                                            <i class="fa-solid ${account.icon} text-white"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">${account.name}</div>
+                                            <div class="text-xs text-gray-400">${account.number}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-white">${formatCurrency(account.balance)}</div>
+                                        ${account.apy ? `
+                                            <div class="text-xs text-nexus-green">${account.apy} APY</div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics & Budget -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Spending Analytics -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-nexus-cyan"></i>
+                                Spending Analytics
+                            </h3>
+                            <select class="bg-dark-800 border border-gray-700 text-white text-xs px-3 py-1.5 rounded-lg">
+                                <option>Last 30 days</option>
+                                <option>Last 90 days</option>
+                                <option>This year</option>
+                            </select>
+                        </div>
+                        <div id="spendingChart" class="h-64 w-full"></div>
+                    </div>
+
+                    <!-- Budget Tracker -->
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye text-nexus-pink"></i>
+                            Monthly Budget
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-400">Spent this month</span>
+                                    <span class="font-bold text-white">${formatCurrency(state.user.monthlySpending)}</span>
+                                </div>
+                                <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-nexus-purple to-nexus-pink h-full rounded-full transition-all duration-1000"
+                                         style="width: ${budgetPercent}%"></div>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span>0</span>
+                                    <span>Budget: ${formatCurrency(state.user.monthlyBudget)}</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm text-gray-300">Safe to spend</span>
+                                    <span class="font-bold text-white font-mono">${formatCurrency(safeToSpend)}</span>
+                                </div>
+                                <p class="text-xs text-gray-500">${getBudgetAdvice(safeToSpend)}</p>
+                            </div>
+
+                            <div class="pt-4 border-t border-white/5">
+                                <div class="text-xs text-gray-400 mb-2">Budget resets in</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-dark-800 rounded-lg p-3">
+                                        <div class="text-2xl font-bold text-white">12</div>
+                                        <div class="text-[10px] text-gray-400">DAYS</div>
+                                    </div>
+                                    <div class="flex-1 bg-dark-800 rounded-lg p-3">
+                                        <div class="text-2xl font-bold text-white">${new Date().getDate()}</div>
+                                        <div class="text-[10px] text-gray-400">${new Date().toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings & Investments -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Savings Vaults -->
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white">Savings Vaults</h3>
+                            <button onclick="toggleModal('newGoalModal')" class="text-nexus-cyan text-sm font-bold hover:underline">
+                                <i class="fa-solid fa-plus mr-1"></i> New Goal
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            ${state.savingsGoals.map(goal => {
+                                const progress = (goal.current / goal.target) * 100;
+                                const daysLeft = Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+
+                                return `
+                                <div class="p-4 rounded-xl border border-white/5 hover:border-white/20 transition-all cursor-pointer group"
+                                     onclick="toggleModal('goalDetailModal')">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full ${goal.bg}/20 ${goal.color} flex items-center justify-center">
+                                                <i class="fa-solid ${goal.icon}"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-white">${goal.name}</div>
+                                                <div class="text-xs text-gray-400">
+                                                    ${formatCurrency(goal.current)} / ${formatCurrency(goal.target)}
+                                                    ${daysLeft > 0 ? `• ${daysLeft} days left` : '• Deadline passed'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-gray-600 text-xs group-hover:text-nexus-cyan transition-colors"></i>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                                            <div class="${goal.bg} h-full rounded-full transition-all duration-1000" style="width: ${progress}%"></div>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-gray-400">${progress.toFixed(1)}% complete</span>
+                                            <span class="${goal.color} font-bold">${formatCurrency(goal.target - goal.current)} to go</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Quick Investments -->
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white">Investment Snapshot</h3>
+                            <button onclick="navigate('invest')" class="text-nexus-cyan text-sm font-bold hover:underline">
+                                View All
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            ${state.stocks.slice(0, 3).map(stock => {
+                                const totalValue = stock.price * stock.shares;
+                                const changeColor = stock.change >= 0 ? 'text-nexus-green' : 'text-nexus-pink';
+                                const changeIcon = stock.change >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+
+                                return `
+                                <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                                     onclick="navigate('invest')">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold text-white">
+                                            ${stock.symbol.substring(0, 2)}
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">${stock.symbol}</div>
+                                            <div class="text-xs text-gray-400">${stock.name}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-white text-sm">${formatCurrency(totalValue)}</div>
+                                        <div class="text-xs ${changeColor}">
+                                            <i class="fa-solid ${changeIcon} mr-1"></i>
+                                            ${stock.change >= 0 ? '+' : ''}${stock.change}%
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="mt-6 p-4 bg-gradient-to-r from-nexus-purple/20 to-nexus-cyan/20 rounded-xl border border-white/5">
+                            <div class="text-xs text-gray-400 mb-1">Portfolio Performance</div>
+                            <div class="flex items-end justify-between">
+                                <div class="text-2xl font-bold text-white">+8.2%</div>
+                                <button onclick="toggleModal('investModal')"
+                                        class="px-4 py-2 bg-white text-black text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors">
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity & Upcoming Bills -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Recent Transactions -->
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white">Recent Activity</h3>
+                            <button onclick="navigate('accounts')" class="text-nexus-purple text-sm font-bold hover:underline">
+                                View All
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            ${state.transactions.slice(0, 4).map(tx => `
+                                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group"
+                                     onclick="toggleModal('transactionModal')">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl ${tx.type === 'credit' ? 'bg-nexus-green/20 text-nexus-green' : 'bg-white/5 text-gray-400'} flex items-center justify-center group-hover:${tx.type === 'credit' ? 'bg-nexus-green/30' : 'bg-white/10'} transition-colors">
+                                            <i class="fa-solid ${tx.icon}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-white group-hover:text-nexus-cyan transition-colors">
+                                                ${tx.merchant}
+                                            </div>
+                                            <div class="text-xs text-gray-500">${tx.date} • ${tx.category}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-mono font-medium text-sm ${tx.type === 'credit' ? 'text-nexus-green' : 'text-white'}">
+                                            ${tx.type === 'credit' ? '+' : '-'}${formatCurrency(Math.abs(tx.amount))}
+                                        </div>
+                                        ${tx.status === 'pending' ? `
+                                            <div class="text-[10px] text-nexus-gold bg-nexus-gold/10 px-2 py-0.5 rounded-full mt-1">
+                                                Pending
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Bills -->
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white">Upcoming Bills</h3>
+                            <button onclick="navigate('payments')" class="text-nexus-cyan text-sm font-bold hover:underline">
+                                Manage Bills
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            ${state.upcomingBills.map(bill => `
+                                <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 text-sm">
+                                            <i class="fa-solid ${bill.icon}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">${bill.name}</div>
+                                            <div class="text-xs text-gray-500">Due ${bill.date}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="font-mono font-medium text-sm text-white">${formatCurrency(bill.amount)}</div>
+                                        ${bill.autoPay ? `
+                                            <div class="text-[10px] text-nexus-green bg-nexus-green/10 px-2 py-0.5 rounded-full">
+                                                Auto-pay
+                                            </div>
+                                        ` : `
+                                            <button onclick="payBill(${bill.id})"
+                                                    class="px-3 py-1.5 bg-nexus-purple text-white text-xs font-bold rounded-lg hover:bg-nexus-purple/80 transition-colors">
+                                                Pay Now
+                                            </button>
+                                        `}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-6 p-4 bg-white/5 rounded-xl">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-xs text-gray-400">Next bill total</div>
+                                    <div class="font-bold text-white">
+                                        ${formatCurrency(state.upcomingBills.reduce((sum, bill) => sum + bill.amount, 0))}
+                                    </div>
+                                </div>
+                                <button onclick="toggleModal('schedulePaymentModal')"
+                                        class="px-4 py-2 bg-white/10 text-white text-xs font-bold rounded-lg hover:bg-white/20 transition-colors">
+                                    Schedule All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trend Chart -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-white">Monthly Spending Trend</h3>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-white/10 text-white text-xs rounded-lg">6M</button>
+                            <button class="px-3 py-1 bg-nexus-purple text-white text-xs rounded-lg">1Y</button>
+                            <button class="px-3 py-1 bg-white/10 text-white text-xs rounded-lg">All</button>
+                        </div>
+                    </div>
+                    <div id="monthlyTrendChart" class="h-64 w-full"></div>
+                </div>
+            </div>`;
+        }
+
+        // Helper functions for dashboard
+        function getTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'Morning';
+            if (hour < 17) return 'Afternoon';
+            return 'Evening';
+        }
+
+        function getGreetingMessage() {
+            const messages = [
+                "Your finances are looking great today!",
+                "You're on track to meet your savings goals.",
+                "Keep up the good financial habits!",
+                "Check out your recent spending insights below."
+            ];
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        function getBudgetAdvice(safeToSpend) {
+            if (safeToSpend > 1000) return "You're well within your budget. Consider allocating some to savings.";
+            if (safeToSpend > 500) return "You're on track. Keep monitoring your daily spending.";
+            if (safeToSpend > 100) return "Budget is getting tight. Consider reducing non-essential spending.";
+            return "You've exceeded your budget. Review your spending patterns.";
+        }
+
+        // --- ACCOUNTS VIEW ---
+        function renderAccounts() {
+            return `
+            <div class="space-y-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-white/5 pb-6">
+                    <div>
+                        <h2 class="text-3xl font-display font-bold text-white">Accounts & Cards</h2>
+                        <p class="text-gray-400 text-sm mt-1">Manage your banking infrastructure and cards</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="toggleModal('newAccountModal')"
+                                class="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors">
+                            <i class="fa-solid fa-plus mr-2"></i> New Account
+                        </button>
+                        <button onclick="toggleModal('orderCardModal')"
+                                class="glass border border-white/20 px-4 py-2 rounded-lg text-sm font-bold hover:bg-white/10 transition-colors text-white">
+                            <i class="fa-solid fa-credit-card mr-2"></i> Order Card
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Your Cards -->
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-white">Your Cards</h3>
+                        <div class="text-sm text-gray-400">
+                            ${state.cards.filter(c => c.status === 'Active').length} active •
+                            ${state.cards.filter(c => c.status === 'Frozen').length} frozen
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${state.cards.map(card => {
+                            const creditUtilization = card.creditLimit ?
+                                Math.round((card.usedCredit / card.creditLimit) * 100) : 0;
+
+                            return `
+                            <div class="relative h-56 rounded-2xl ${card.color} p-6 text-white shadow-xl transform hover:scale-[1.02] transition-all duration-300 border border-white/10 group overflow-hidden">
+                                ${card.status === 'Frozen' ? `
+                                    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm z-20 flex items-center justify-center">
+                                        <div class="bg-black/50 px-4 py-2 rounded-lg border border-white/20 font-bold text-sm">
+                                            <i class="fa-solid fa-snowflake mr-2"></i> FROZEN
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                <div class="flex justify-between items-start mb-10 relative z-10">
+                                    <i class="fa-brands fa-cc-${card.brand} text-4xl opacity-90"></i>
+                                    <i class="fa-solid fa-wifi rotate-90 opacity-70"></i>
+                                </div>
+
+                                <div class="font-mono text-2xl tracking-widest mb-6 relative z-10">
+                                    ${card.number}
+                                </div>
+
+                                <div class="flex justify-between items-end relative z-10">
+                                    <div>
+                                        <div class="text-[10px] opacity-60 uppercase">Card Name</div>
+                                        <div class="font-bold tracking-wide text-sm">${card.name}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[10px] opacity-60 uppercase">Valid Thru</div>
+                                        <div class="font-bold text-sm">${card.expiry}</div>
+                                    </div>
+                                </div>
+
+                                ${card.creditLimit ? `
+                                    <div class="absolute bottom-4 left-6 right-6">
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="opacity-60">Credit Used</span>
+                                            <span>${formatCurrency(card.usedCredit)} / ${formatCurrency(card.creditLimit)}</span>
+                                        </div>
+                                        <div class="w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
+                                            <div class="bg-white h-full rounded-full" style="width: ${creditUtilization}%"></div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Card Actions -->
+                                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="flex gap-2">
+                                        <button onclick="toggleCardStatus('${card.id}')"
+                                                class="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
+                                            <i class="fa-solid ${card.status === 'Active' ? 'fa-snowflake' : 'fa-bolt'} text-xs"></i>
+                                        </button>
+                                        <button onclick="showToast('Card details copied', 'info')"
+                                                class="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors">
+                                            <i class="fa-solid fa-copy text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+
+                        <!-- Add New Card -->
+                        <div class="relative h-56 rounded-2xl border-2 border-dashed border-white/10 p-6 flex flex-col items-center justify-center text-gray-400 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+                             onclick="toggleModal('orderCardModal')">
+                            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-plus text-2xl"></i>
+                            </div>
+                            <div class="font-bold text-lg mb-2">Add New Card</div>
+                            <p class="text-sm text-center">Order a physical or virtual card</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accounts -->
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-6">Bank Accounts</h3>
+                    <div class="space-y-4">
+                        ${state.accounts.map(account => `
+                            <div class="glass-panel rounded-xl p-5 hover:bg-white/5 transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${account.color} flex items-center justify-center">
+                                            <i class="fa-solid ${account.icon} text-white text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-white">${account.name}</div>
+                                            <div class="text-sm text-gray-400">${account.number} • ${account.type}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-6">
+                                        <div class="text-right">
+                                            <div class="font-mono font-bold text-white text-lg">${formatCurrency(account.balance)}</div>
+                                            ${account.apy ? `
+                                                <div class="text-xs text-nexus-green">${account.apy} APY</div>
+                                            ` : ''}
+                                        </div>
+
+                                        <div class="flex gap-2">
+                                            <button onclick="showToast('Transfer to this account', 'info')"
+                                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                                                <i class="fa-solid fa-arrow-right-arrow-left text-xs"></i>
+                                            </button>
+                                            <button onclick="showToast('Account details', 'info')"
+                                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                                                <i class="fa-solid fa-ellipsis text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- PAYMENTS VIEW ---
+        function renderPayments() {
+            return `
+            <div class="max-w-4xl mx-auto space-y-8">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-display font-bold text-white">Payments Hub</h2>
+                    <p class="text-gray-400">Send money instantly to anyone, anywhere</p>
+                </div>
+
+                <!-- Quick Transfer -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-t-4 border-nexus-cyan">
+                        <h3 class="font-bold text-white text-lg mb-6">
+                            <i class="fa-solid fa-paper-plane mr-2 text-nexus-cyan"></i>
+                            Quick Transfer
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Contacts -->
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Select Contact</label>
+                                <div class="flex gap-4 overflow-x-auto pb-2">
+                                    <div class="flex flex-col items-center gap-2 cursor-pointer group"
+                                         onclick="toggleModal('newContactModal')">
+                                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-nexus-cyan border border-nexus-cyan border-dashed hover:bg-nexus-cyan/20 transition-all">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </div>
+                                        <span class="text-xs text-gray-400 group-hover:text-white">New</span>
+                                    </div>
+                                    ${state.contacts.map(contact => `
+                                        <div class="flex flex-col items-center gap-2 cursor-pointer group"
+                                             onclick="selectRecipient('${contact.name}', '${contact.phone}')">
+                                            <img src="${contact.avatar}"
+                                                 class="w-12 h-12 rounded-full border border-transparent group-hover:border-nexus-purple transition-all">
+                                            <span class="text-xs text-gray-400 group-hover:text-white">${contact.name.split(' ')[0]}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Recipient -->
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">To</label>
+                                <input type="text" id="recipientName" placeholder="Name, Email, or Phone #"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-nexus-cyan focus:outline-none">
+                            </div>
+
+                            <!-- Amount -->
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                    <input type="number" placeholder="0.00" id="transferAmount"
+                                           class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-8 text-white font-mono text-xl focus:border-nexus-cyan focus:outline-none font-bold">
+                                </div>
+                            </div>
+
+                            <!-- Note -->
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Note (Optional)</label>
+                                <input type="text" placeholder="Dinner, Rent, etc."
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-nexus-cyan focus:outline-none">
+                            </div>
+
+                            <button onclick="handleTransfer()"
+                                    class="w-full py-3 bg-gradient-to-r from-nexus-cyan to-nexus-blue text-white font-bold rounded-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all mt-4">
+                                Send Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Services -->
+                    <div class="space-y-4">
+                        <div onclick="toggleModal('utilityModal')"
+                             class="glass-panel p-6 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group border-l-4 border-transparent hover:border-orange-500">
+                            <div class="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white">Pay Utilities</div>
+                                <div class="text-xs text-gray-400">Electric, Water, Internet</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right ml-auto text-gray-600"></i>
+                        </div>
+
+                        <div onclick="toggleModal('mobileModal')"
+                             class="glass-panel p-6 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group border-l-4 border-transparent hover:border-pink-500">
+                            <div class="w-12 h-12 rounded-full bg-pink-500/20 text-pink-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-mobile-screen"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white">Mobile Top-up</div>
+                                <div class="text-xs text-gray-400">Instant credit reload</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right ml-auto text-gray-600"></i>
+                        </div>
+
+                        <div onclick="toggleModal('splitModal')"
+                             class="glass-panel p-6 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group border-l-4 border-transparent hover:border-indigo-500">
+                            <div class="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white">Split Bill</div>
+                                <div class="text-xs text-gray-400">Request money from friends</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right ml-auto text-gray-600"></i>
+                        </div>
+
+                        <div onclick="toggleModal('subscriptionModal')"
+                             class="glass-panel p-6 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group border-l-4 border-transparent hover:border-green-500">
+                            <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-repeat"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white">Subscriptions</div>
+                                <div class="text-xs text-gray-400">Manage recurring payments</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right ml-auto text-gray-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transfers -->
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-white/5">
+                        <h3 class="font-bold text-white">Recent Transfers</h3>
+                    </div>
+                    <div class="divide-y divide-white/5">
+                        ${state.transactions.filter(t => t.category === 'Transfer' || t.merchant.includes('Transfer')).slice(0, 5).map(tx => `
+                            <div class="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full ${tx.type === 'credit' ? 'bg-nexus-green/20' : 'bg-nexus-pink/20'} flex items-center justify-center">
+                                        <i class="fa-solid fa-paper-plane ${tx.type === 'credit' ? 'text-nexus-green' : 'text-nexus-pink'}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-white">${tx.merchant}</div>
+                                        <div class="text-xs text-gray-500">${tx.date}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-mono font-bold ${tx.type === 'credit' ? 'text-nexus-green' : 'text-white'}">
+                                        ${tx.type === 'credit' ? '+' : '-'}${formatCurrency(Math.abs(tx.amount))}
+                                    </div>
+                                    <div class="text-xs text-gray-500">${tx.status || 'Completed'}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+
+                        ${state.transactions.filter(t => t.category === 'Transfer' || t.merchant.includes('Transfer')).length === 0 ? `
+                            <div class="p-8 text-center text-gray-500">
+                                <i class="fa-solid fa-paper-plane text-3xl mb-3 opacity-20"></i>
+                                <p>No recent transfers</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function handleTransfer() {
+            const recipient = document.getElementById('recipientName').value;
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+
+            if (!recipient || !amount || amount <= 0) {
+                showToast('Please enter valid recipient and amount', 'error');
+                return;
+            }
+
+            if (amount > 10000) {
+                showToast('Large transfers require additional verification', 'warning');
+                return;
+            }
+
+            initiateTransfer(amount, recipient);
+
+            // Clear form
+            document.getElementById('recipientName').value = '';
+            document.getElementById('transferAmount').value = '';
+        }
+
+        function selectRecipient(name, phone) {
+            document.getElementById('recipientName').value = name;
+            showToast(`Selected ${name}`, 'info');
+        }
+
+        // --- INVEST VIEW ---
+        function renderInvest() {
+            const portfolioValue = state.stocks.reduce((sum, stock) => sum + (stock.price * stock.shares), 0);
+            const totalChange = state.stocks.reduce((sum, stock) => {
+                const valueChange = (stock.change / 100) * (stock.price * stock.shares);
+                return sum + valueChange;
+            }, 0);
+            const percentChange = (totalChange / portfolioValue) * 100;
+
+            return `
+            <div class="space-y-6">
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                    <div>
+                        <h2 class="text-3xl font-display font-bold text-white">Investments</h2>
+                        <p class="text-gray-400 text-sm">Real-time market access • Commission free trading</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="toggleModal('investModal')"
+                                class="bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors">
+                            <i class="fa-solid fa-plus mr-2"></i> Buy
+                        </button>
+                        <button onclick="toggleModal('tradeModal')"
+                                class="glass border border-white/20 px-4 py-2 rounded-lg font-bold hover:bg-white/10 transition-colors text-white">
+                            <i class="fa-solid fa-arrow-right-arrow-left mr-2"></i> Trade
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Portfolio Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="text-sm text-gray-400 mb-1">Portfolio Value</div>
+                        <div class="text-3xl font-mono font-bold text-white mb-1">${formatCurrency(portfolioValue)}</div>
+                        <div class="text-sm ${percentChange >= 0 ? 'text-nexus-green' : 'text-nexus-pink'} font-bold">
+                            <i class="fa-solid fa-arrow-trend-${percentChange >= 0 ? 'up' : 'down'} mr-1"></i>
+                            ${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(2)}%
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="text-sm text-gray-400 mb-1">Today's Change</div>
+                        <div class="text-3xl font-mono font-bold ${totalChange >= 0 ? 'text-nexus-green' : 'text-nexus-pink'} mb-1">
+                            ${totalChange >= 0 ? '+' : ''}${formatCurrency(totalChange)}
+                        </div>
+                        <div class="text-sm text-gray-400">Market is ${totalChange >= 0 ? 'up' : 'down'}</div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="text-sm text-gray-400 mb-1">Total Holdings</div>
+                        <div class="text-3xl font-mono font-bold text-white mb-1">${state.stocks.length}</div>
+                        <div class="text-sm text-gray-400">Stocks & ETFs</div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <div class="text-sm text-gray-400 mb-1">Cash Available</div>
+                        <div class="text-3xl font-mono font-bold text-white mb-1">${formatCurrency(8450.20)}</div>
+                        <button onclick="toggleModal('depositModal')" class="text-sm text-nexus-cyan hover:underline">
+                            Add Funds
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Chart -->
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-white">Portfolio Performance</h3>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-nexus-purple text-white text-xs rounded-lg">1D</button>
+                            <button class="px-3 py-1 bg-white/10 text-white text-xs rounded-lg">1W</button>
+                            <button class="px-3 py-1 bg-white/10 text-white text-xs rounded-lg">1M</button>
+                            <button class="px-3 py-1 bg-white/10 text-white text-xs rounded-lg">1Y</button>
+                            <button class="px-3 py-1 bg-white/10 text-white text-xs rounded-lg">ALL</button>
+                        </div>
+                    </div>
+                    <div id="investChart" class="h-80 w-full"></div>
+                </div>
+
+                <!-- Holdings Table -->
+                <div class="glass-panel overflow-hidden rounded-2xl">
+                    <div class="p-6 border-b border-white/5">
+                        <h3 class="font-bold text-white">Your Holdings</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="text-xs text-gray-500 uppercase bg-white/5">
+                                    <th class="p-4">Instrument</th>
+                                    <th class="p-4 text-right">Price</th>
+                                    <th class="p-4 text-right">Change</th>
+                                    <th class="p-4 text-right">Shares</th>
+                                    <th class="p-4 text-right">Value</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                ${state.stocks.map(stock => {
+                                    const totalValue = stock.price * stock.shares;
+                                    const changeValue = (stock.change / 100) * totalValue;
+
+                                    return `
+                                    <tr class="group hover:bg-white/5 transition-colors">
+                                        <td class="p-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center font-bold text-white text-sm">
+                                                    ${stock.symbol.substring(0, 2)}
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-white text-sm">${stock.symbol}</div>
+                                                    <div class="text-xs text-gray-500">${stock.name}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 text-right font-mono text-white text-sm">
+                                            ${formatCurrency(stock.price)}
+                                        </td>
+                                        <td class="p-4 text-right">
+                                            <span class="${stock.change >= 0 ? 'text-nexus-green' : 'text-nexus-pink'} bg-opacity-10 px-2 py-1 rounded text-xs font-bold">
+                                                ${stock.change >= 0 ? '+' : ''}${stock.change}%
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-right text-gray-400 font-mono text-sm">
+                                            ${stock.shares}
+                                        </td>
+                                        <td class="p-4 text-right font-bold text-white text-sm font-mono">
+                                            ${formatCurrency(totalValue)}
+                                        </td>
+                                        <td class="p-4 text-right">
+                                            <div class="flex gap-2 justify-end">
+                                                <button onclick="toggleModal('buyStockModal')"
+                                                        class="bg-white text-black text-xs font-bold px-3 py-1.5 rounded hover:bg-gray-200 transition-colors">
+                                                    Buy
+                                                </button>
+                                                <button onclick="toggleModal('sellStockModal')"
+                                                        class="glass border border-white/20 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-white/10 transition-colors">
+                                                    Sell
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Investment Categories -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <h4 class="font-bold text-white mb-4">Popular ETFs</h4>
+                        <div class="space-y-3">
+                            ${[
+                                { symbol: 'SPY', name: 'S&P 500 ETF', change: 0.8 },
+                                { symbol: 'QQQ', name: 'Nasdaq 100', change: 1.2 },
+                                { symbol: 'VTI', name: 'Total Market', change: 0.5 }
+                            ].map(etf => `
+                                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                    <div>
+                                        <div class="font-bold text-white text-sm">${etf.symbol}</div>
+                                        <div class="text-xs text-gray-400">${etf.name}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm ${etf.change >= 0 ? 'text-nexus-green' : 'text-nexus-pink'}">
+                                            ${etf.change >= 0 ? '+' : ''}${etf.change}%
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <h4 class="font-bold text-white mb-4">Watchlist</h4>
+                        <div class="space-y-3">
+                            ${[
+                                { symbol: 'AMZN', name: 'Amazon', price: 128.45, change: 1.8 },
+                                { symbol: 'META', name: 'Meta', price: 310.20, change: -0.3 },
+                                { symbol: 'AMD', name: 'AMD', price: 98.75, change: 2.1 }
+                            ].map(stock => `
+                                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors">
+                                    <div>
+                                        <div class="font-bold text-white text-sm">${stock.symbol}</div>
+                                        <div class="text-xs text-gray-400">${stock.name}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm text-white">${formatCurrency(stock.price)}</div>
+                                        <div class="text-xs ${stock.change >= 0 ? 'text-nexus-green' : 'text-nexus-pink'}">
+                                            ${stock.change >= 0 ? '+' : ''}${stock.change}%
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <h4 class="font-bold text-white mb-4">AI Recommendations</h4>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-nexus-green/10 border border-nexus-green/20 rounded-lg">
+                                <div class="text-xs text-nexus-green font-bold mb-1">Top Pick</div>
+                                <div class="font-bold text-white">NVDA</div>
+                                <div class="text-xs text-gray-400">Strong AI growth potential</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                <p>Based on your risk profile, we recommend:</p>
+                                <ul class="mt-2 space-y-1">
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-check text-nexus-green text-xs"></i>
+                                        <span>70% Growth Stocks</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-check text-nexus-green text-xs"></i>
+                                        <span>20% ETFs</span>
+                                    </li>
+                                    <li class="flex items-center gap-2">
+                                        <i class="fa-solid fa-check text-nexus-green text-xs"></i>
+                                        <span>10% Bonds</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- MARKETPLACE VIEW ---
+        function renderMarketplace() {
+            const subscribedServices = state.marketplaceServices.filter(s => s.subscribed);
+            const availableServices = state.marketplaceServices.filter(s => !s.subscribed);
+
+            return `
+            <div class="space-y-8">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-display font-bold text-white">Nexus Marketplace</h2>
+                    <p class="text-gray-400">Manage subscriptions and discover new services</p>
+                </div>
+
+                <!-- Your Subscriptions -->
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-6">Your Subscriptions</h3>
+                    ${subscribedServices.length > 0 ? `
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${subscribedServices.map(service => `
+                                <div class="glass-panel rounded-2xl overflow-hidden group">
+                                    <div class="h-32 bg-gradient-to-br ${service.color} relative overflow-hidden">
+                                        <div class="absolute inset-0 bg-black/20"></div>
+                                        <div class="absolute top-4 right-4">
+                                            <div class="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
+                                                <i class="fa-solid ${service.icon} text-white text-lg"></i>
+                                            </div>
+                                        </div>
+                                        <div class="absolute bottom-4 left-4">
+                                            <div class="text-white font-bold text-xl">${service.name}</div>
+                                            <div class="text-white/80 text-sm">${service.category}</div>
+                                        </div>
+                                    </div>
+                                    <div class="p-6">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <div class="font-bold text-white text-lg">${formatCurrency(service.price)}</div>
+                                            <div class="text-xs bg-nexus-green/20 text-nexus-green px-2 py-1 rounded-full">
+                                                Active
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-400 text-sm mb-6">Billed monthly • Next charge: Nov 15</p>
+                                        <div class="flex gap-2">
+                                            <button onclick="showToast('${service.name} subscription cancelled', 'warning')"
+                                                    class="flex-1 py-2 border border-white/20 text-white text-sm font-bold rounded-lg hover:bg-white/10 transition-colors">
+                                                Cancel
+                                            </button>
+                                            <button onclick="showToast('${service.name} settings opened', 'info')"
+                                                    class="flex-1 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-200 transition-colors">
+                                                Manage
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="glass-panel rounded-2xl p-12 text-center">
+                            <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-store text-2xl text-gray-500"></i>
+                            </div>
+                            <h4 class="font-bold text-white mb-2">No active subscriptions</h4>
+                            <p class="text-gray-400 mb-6">Browse available services below</p>
+                        </div>
+                    `}
+                </div>
+
+                <!-- Available Services -->
+                <div>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-white">Discover Services</h3>
+                        <div class="text-sm text-gray-400">
+                            ${availableServices.length} services available
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${availableServices.map(service => `
+                            <div class="glass-panel rounded-2xl p-6 group hover:transform hover:-translate-y-1 transition-all duration-300">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${service.color} flex items-center justify-center">
+                                        <i class="fa-solid ${service.icon} text-white text-xl"></i>
+                                    </div>
+                                    <div class="text-xs text-gray-400">${service.category}</div>
+                                </div>
+
+                                <h4 class="font-bold text-white text-lg mb-2">${service.name}</h4>
+                                <p class="text-gray-400 text-sm mb-6">Premium ${service.category.toLowerCase()} service</p>
+
+                                <div class="flex items-center justify-between">
+                                    <div class="font-bold text-white">${formatCurrency(service.price)}<span class="text-gray-400 text-sm font-normal">/month</span></div>
+                                    <button onclick="subscribeToService(${service.id})"
+                                            class="px-4 py-2 bg-gradient-to-r from-nexus-purple to-nexus-cyan text-white text-sm font-bold rounded-lg hover:shadow-[0_0_15px_rgba(124,58,237,0.3)] transition-all">
+                                        Subscribe
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Bill Summary -->
+                <div class="glass-panel rounded-2xl p-6">
+                    <h3 class="font-bold text-white mb-6">Monthly Subscription Summary</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Total monthly cost</span>
+                            <span class="font-bold text-white">
+                                ${formatCurrency(subscribedServices.reduce((sum, s) => sum + s.price, 0))}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Services subscribed</span>
+                            <span class="font-bold text-white">${subscribedServices.length}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Next billing date</span>
+                            <span class="font-bold text-white">Nov 15, 2023</span>
+                        </div>
+                        <div class="pt-4 border-t border-white/5">
+                            <button onclick="showToast('All subscriptions will be billed together', 'info')"
+                                    class="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors">
+                                Pay All Subscriptions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function subscribeToService(serviceId) {
+            const service = state.marketplaceServices.find(s => s.id === serviceId);
+            if (!service) return;
+
+            service.subscribed = true;
+            showToast(`Subscribed to ${service.name}`, 'success');
+
+            // Add to upcoming bills
+            state.upcomingBills.push({
+                id: Date.now(),
+                name: service.name,
+                date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                amount: service.price,
+                icon: service.icon,
+                category: service.category,
+                autoPay: true
+            });
+
+            if (state.view === 'marketplace') {
+                renderMarketplaceContent();
+            }
+        }
+
+        // --- SETTINGS VIEW ---
+        function renderSettings() {
+            return `
+            <div class="max-w-4xl mx-auto space-y-8">
+                <h1 class="text-3xl font-display font-bold text-white">Settings</h1>
+
+                <!-- Profile Section -->
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-white/5">
+                        <h2 class="font-bold text-white text-lg">Profile</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row items-start gap-8">
+                            <div class="relative">
+                                <img src="${state.user.avatar}" class="w-24 h-24 rounded-full border-4 border-white/5">
+                                <button onclick="showToast('Profile photo upload would open', 'info')"
+                                        class="absolute bottom-0 right-0 bg-nexus-cyan text-black w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-camera text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold text-white mb-2">${state.user.name}</h3>
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="bg-gradient-to-r from-amber-500 to-yellow-600 text-black text-xs font-bold uppercase px-2 py-0.5 rounded">
+                                        NEXUS ${state.user.tier}
+                                    </span>
+                                    <span class="text-gray-500 text-sm">Member since ${state.user.memberSince}</span>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-envelope text-gray-400 w-5"></i>
+                                        <span class="text-gray-300">${state.user.email}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-phone text-gray-400 w-5"></i>
+                                        <span class="text-gray-300">${state.user.phone}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-location-dot text-gray-400 w-5"></i>
+                                        <span class="text-gray-300">${state.user.address}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-white/5">
+                        <h2 class="font-bold text-white text-lg">Account Settings</h2>
+                    </div>
+                    <div class="divide-y divide-white/5">
+                        <!-- Security -->
+                        <div class="p-6">
+                            <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Security</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-fingerprint text-nexus-purple text-lg"></i>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">Biometric Login</div>
+                                            <div class="text-xs text-gray-400">Use Face ID or fingerprint</div>
+                                        </div>
+                                    </div>
+                                    <div class="relative inline-block w-10 align-middle select-none">
+                                        <input type="checkbox" checked id="biometric" class="toggle-checkbox">
+                                        <label for="biometric" class="toggle-label"></label>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-shield-halved text-nexus-green text-lg"></i>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">Two-Factor Authentication</div>
+                                            <div class="text-xs text-gray-400">Extra layer of security</div>
+                                        </div>
+                                    </div>
+                                    <div class="relative inline-block w-10 align-middle select-none">
+                                        <input type="checkbox" id="2fa" class="toggle-checkbox">
+                                        <label for="2fa" class="toggle-label"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="p-6">
+                            <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Notifications</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-bell text-nexus-pink text-lg"></i>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">Push Notifications</div>
+                                            <div class="text-xs text-gray-400">Account alerts and updates</div>
+                                        </div>
+                                    </div>
+                                    <div class="relative inline-block w-10 align-middle select-none">
+                                        <input type="checkbox" checked id="push" class="toggle-checkbox">
+                                        <label for="push" class="toggle-label"></label>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-envelope text-nexus-cyan text-lg"></i>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">Email Notifications</div>
+                                            <div class="text-xs text-gray-400">Weekly reports and statements</div>
+                                        </div>
+                                    </div>
+                                    <div class="relative inline-block w-10 align-middle select-none">
+                                        <input type="checkbox" checked id="email" class="toggle-checkbox">
+                                        <label for="email" class="toggle-label"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="p-6">
+                            <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Preferences</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                                     onclick="showToast('Currency settings would open', 'info')">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-dollar-sign text-nexus-gold text-lg"></i>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">Currency</div>
+                                            <div class="text-xs text-gray-400">USD - United States Dollar</div>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                                     onclick="showToast('Language settings would open', 'info')">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-language text-nexus-blue text-lg"></i>
+                                        <div>
+                                            <div class="text-sm font-bold text-white">Language</div>
+                                            <div class="text-xs text-gray-400">English (United States)</div>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Plan -->
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-white/5">
+                        <h2 class="font-bold text-white text-lg">Subscription Plan</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="text-2xl font-bold text-white">Nexus ${state.user.tier}</div>
+                                    ${state.user.tier === 'Metal' ? `
+                                        <div class="text-xs bg-nexus-gold/20 text-nexus-gold px-2 py-0.5 rounded-full">
+                                            ACTIVE
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <p class="text-gray-400 text-sm">
+                                    ${state.subscriptions.plans.find(p => p.name === state.user.tier)?.price === 0 ?
+                                        'Free plan • Upgrade for premium features' :
+                                        `$${state.subscriptions.plans.find(p => p.name === state.user.tier)?.price}/month • Billed annually`}
+                                </p>
+                            </div>
+                            ${state.user.tier !== 'Metal' ? `
+                                <button onclick="showToast('Upgrade flow would open', 'info')"
+                                        class="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold rounded-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all">
+                                    Upgrade to Metal
+                                </button>
+                            ` : `
+                                <button onclick="showToast('Manage subscription would open', 'info')"
+                                        class="px-6 py-3 glass border border-white/20 text-white font-bold rounded-lg hover:bg-white/10 transition-colors">
+                                    Manage Subscription
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-red-500/20">
+                    <div class="p-6 border-b border-red-500/20">
+                        <h2 class="font-bold text-white text-lg">Danger Zone</h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <button onclick="showToast('Account closure confirmation would open', 'warning')"
+                                    class="w-full text-left p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors">
+                                <div class="font-bold mb-1">Close Account</div>
+                                <div class="text-sm">Permanently delete your account and all data</div>
+                            </button>
+
+                            <button onclick="navigate('landing')"
+                                    class="w-full p-4 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors font-bold">
+                                Sign Out of All Devices
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- MODALS ---
+        function renderModals() {
+            return `
+            <!-- Search Modal -->
+            <div id="searchModal" class="hidden fixed inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0 pt-20">
+                <div class="glass-panel w-full max-w-2xl rounded-2xl overflow-hidden transform scale-95 transition-transform duration-200">
+                    <div class="p-4 border-b border-white/5">
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute left-4 top-3 text-gray-400"></i>
+                            <input type="text" placeholder="Search transactions, accounts, or help..."
+                                   class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-10 text-white focus:outline-none focus:border-nexus-purple">
+                            <button onclick="toggleModal('searchModal')" class="absolute right-3 top-3 text-gray-400 hover:text-white">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="text-xs text-gray-500 uppercase mb-2">Quick Actions</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="navigate('payments')" class="p-3 text-left rounded-lg hover:bg-white/5 transition-colors">
+                                <div class="font-bold text-white text-sm">Send Money</div>
+                                <div class="text-xs text-gray-400">Transfer funds</div>
+                            </button>
+                            <button onclick="navigate('invest')" class="p-3 text-left rounded-lg hover:bg-white/5 transition-colors">
+                                <div class="font-bold text-white text-sm">Invest</div>
+                                <div class="text-xs text-gray-400">Buy stocks</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Utility Modal -->
+            <div id="utilityModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0">
+                <div class="glass-panel w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-display font-bold text-xl text-white">Pay Utilities</h3>
+                        <button onclick="toggleModal('utilityModal')" class="text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Service Provider</label>
+                            <select class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:outline-none">
+                                <option>Dominion Energy</option>
+                                <option>City Water & Sewer</option>
+                                <option>Comcast Xfinity</option>
+                                <option>AT&T Fiber</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Account Number</label>
+                            <input type="text" placeholder="123-456-789"
+                                   class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-orange-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Amount Due</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                <input type="number" value="142.50"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-8 text-white font-mono text-xl focus:border-orange-500 focus:outline-none font-bold">
+                            </div>
+                        </div>
+                        <button onclick="toggleModal('utilityModal'); showToast('Utility bill paid successfully!', 'success')"
+                                class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 rounded-lg hover:shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all">
+                            Pay Bill
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Top-up Modal -->
+            <div id="mobileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0">
+                <div class="glass-panel w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-display font-bold text-xl text-white">Mobile Top-up</h3>
+                        <button onclick="toggleModal('mobileModal')" class="text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Phone Number</label>
+                            <input type="tel" value="+1 (555) 012-3456"
+                                   class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-pink-500 focus:outline-none">
+                            <i class="fa-solid fa-address-book absolute right-3 top-9 text-gray-500"></i>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button class="bg-dark-800 border border-gray-700 rounded-lg p-3 text-white hover:border-pink-500 hover:bg-pink-500/10 transition-all">
+                                $10
+                            </button>
+                            <button class="bg-dark-800 border border-pink-500 bg-pink-500/10 rounded-lg p-3 text-white">
+                                $25
+                            </button>
+                            <button class="bg-dark-800 border border-gray-700 rounded-lg p-3 text-white hover:border-pink-500 hover:bg-pink-500/10 transition-all">
+                                $50
+                            </button>
+                        </div>
+                        <button onclick="toggleModal('mobileModal'); showToast('Mobile top-up successful!', 'success')"
+                                class="w-full bg-gradient-to-r from-pink-500 to-rose-600 text-white font-bold py-3 rounded-lg hover:shadow-[0_0_15px_rgba(236,72,153,0.4)] transition-all">
+                            Reload Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deposit Modal -->
+            <div id="depositModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0">
+                <div class="glass-panel w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-display font-bold text-xl text-white">Add Funds</h3>
+                        <button onclick="toggleModal('depositModal')" class="text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-white/5 p-4 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-white text-sm">Chase Bank</div>
+                                <div class="text-xs text-gray-400">**** 8821 • Instant</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-down ml-auto text-gray-500"></i>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Amount</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                <input type="number" placeholder="0.00"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-8 text-white font-mono text-xl focus:border-nexus-cyan focus:outline-none font-bold">
+                            </div>
+                        </div>
+                        <button onclick="toggleModal('depositModal'); showToast('Deposit initiated successfully!', 'success')"
+                                class="w-full bg-white text-black font-bold py-3 rounded-lg hover:bg-gray-200 transition-all">
+                            Deposit Funds
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Split Bill Modal -->
+            <div id="splitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0">
+                <div class="glass-panel w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-display font-bold text-xl text-white">Split Bill</h3>
+                        <button onclick="toggleModal('splitModal')" class="text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Split With</label>
+                            <div class="flex gap-2 flex-wrap">
+                                <div class="bg-nexus-purple/20 border border-nexus-purple text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                    Mike <i class="fa-solid fa-xmark text-xs cursor-pointer"></i>
+                                </div>
+                                <div class="bg-nexus-purple/20 border border-nexus-purple text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                    Jessica <i class="fa-solid fa-xmark text-xs cursor-pointer"></i>
+                                </div>
+                                <div class="bg-dark-800 border border-dashed border-gray-600 text-gray-400 px-3 py-1 rounded-full text-sm cursor-pointer hover:text-white hover:border-white">
+                                    + Add
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Total Amount</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                <input type="number" value="120.00"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-8 text-white font-mono text-xl focus:border-indigo-500 focus:outline-none font-bold">
+                            </div>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
+                            <span class="text-gray-400 text-sm">Each pays</span>
+                            <span class="text-white font-bold font-mono">$40.00</span>
+                        </div>
+                        <button onclick="toggleModal('splitModal'); showToast('Bill split requests sent!', 'success')"
+                                class="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-bold py-3 rounded-lg hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all">
+                            Request Money
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invest Modal -->
+            <div id="investModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0">
+                <div class="glass-panel w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-display font-bold text-xl text-white">Buy Stocks</h3>
+                        <button onclick="toggleModal('investModal')" class="text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Symbol</label>
+                            <div class="relative">
+                                <input type="text" placeholder="AAPL, TSLA, etc." value="AAPL"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-nexus-green focus:outline-none font-bold">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Amount</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-gray-400">$</span>
+                                <input type="number" value="1000.00"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-8 text-white font-mono text-xl focus:border-nexus-green focus:outline-none font-bold">
+                            </div>
+                        </div>
+                        <div class="p-3 bg-nexus-green/10 border border-nexus-green/20 rounded-lg">
+                            <div class="text-xs text-nexus-green font-bold mb-1">Estimated Shares</div>
+                            <div class="text-lg font-bold text-white">5.6 shares</div>
+                        </div>
+                        <button onclick="toggleModal('investModal'); showToast('Stock purchase order placed!', 'success')"
+                                class="w-full bg-gradient-to-r from-nexus-green to-emerald-600 text-white font-bold py-3 rounded-lg hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all">
+                            Place Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Goal Modal -->
+            <div id="newGoalModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity opacity-0">
+                <div class="glass-panel w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-display font-bold text-xl text-white">New Savings Goal</h3>
+                        <button onclick="toggleModal('newGoalModal')" class="text-gray-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Goal Name</label>
+                            <input type="text" placeholder="New Car, Vacation, etc."
+                                   class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-nexus-cyan focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Target Amount</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-3 text-gray-400">$</span>
+                                    <input type="number" placeholder="5000"
+                                           class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 pl-7 text-white focus:border-nexus-cyan focus:outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Deadline</label>
+                                <input type="date"
+                                       class="w-full bg-dark-800 border border-gray-700 rounded-lg p-3 text-white focus:border-nexus-cyan focus:outline-none">
+                            </div>
+                        </div>
+                        <button onclick="toggleModal('newGoalModal'); showToast('New savings goal created!', 'success')"
+                                class="w-full bg-gradient-to-r from-nexus-cyan to-nexus-blue text-white font-bold py-3 rounded-lg hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all">
+                            Create Goal
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- MODAL TOGGLE FUNCTION ---
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            const content = modal.querySelector('div');
+
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                void modal.offsetWidth; // Trigger reflow
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            } else {
+                modal.classList.add('opacity-0');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+            }
+        }
+
+        // --- MOBILE MENU TOGGLE ---
+        function toggleMobileMenu() {
+            // This would toggle a mobile menu if we had one
+            showToast('Mobile menu would open', 'info');
+        }
+
+        function toggleNotificationPanel() {
+            // Already implemented in header via CSS focus
+        }
+
+        function toggleUserMenu() {
+            // Already implemented in header via CSS focus
+        }
+
+        // --- INITIAL RENDER ---
+        window.onload = () => {
+            render();
+            // Add event listeners for toggle switches
+            document.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    const label = e.target.closest('label');
+                    if (label) {
+                        const settingName = label.querySelector('.text-sm')?.textContent;
+                        if (settingName) {
+                            showToast(`${settingName} ${e.target.checked ? 'enabled' : 'disabled'}`, 'info');
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

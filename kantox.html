@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kantox Nexus • Treasury Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/recharts@2.9.0/dist/Recharts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(17, 20, 29, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .risk-indicator {
+            transition: all 0.3s ease;
+        }
+
+        .risk-indicator:hover {
+            filter: brightness(1.2);
+        }
+
+        .success-glow {
+            animation: successGlow 2s ease-out;
+        }
+
+        @keyframes successGlow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            50% { box-shadow: 0 0 30px 10px rgba(16, 185, 129, 0.3); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body class="bg-[#090b11] text-slate-200 antialiased">
+
+<div id="root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+
+<script type="text/babel">
+// Professional Financial Constants
+const USER_ROLE = "Senior Group Treasurer";
+const ENTITY = "Global Operations - EMEA";
+const RISK_LIMIT = 1500000;
+const HEDGE_THRESHOLD = 0.75; // 75% of risk limit
+
+// ERP Integration States
+const ERP_STATES = {
+    IDLE: 'System Ready',
+    WEBHOOK: 'ERP Notification Received',
+    TALKING_BACK: 'Data Enrichment: Fetching Line Items',
+    SYNCED: 'Exposure Synced',
+    RATE_LIMITED: 'Rate Limit Active (Hammer ETS)',
+    ERROR: 'Integration Error'
+};
+
+// Mock SAP Invoice Data
+const MOCK_INVOICES = [
+    { id: 'INV-2024-089', amount: 1500000, currency: 'USD', due: '2024-12-31', entity: 'US Operations' },
+    { id: 'INV-2024-092', amount: 850000, currency: 'EUR', due: '2024-11-15', entity: 'EU Subsidiary' },
+    { id: 'INV-2024-095', amount: 2100000, currency: 'GBP', due: '2025-01-20', entity: 'UK Trading' },
+    { id: 'INV-2024-098', amount: 425000, currency: 'CHF', due: '2024-10-05', entity: 'Swiss Office' }
+];
+
+// Main App Component
+const App = () => {
+    // State Management
+    const [activeTab, setActiveTab] = React.useState('observability');
+    const [marketPrice, setMarketPrice] = React.useState(1.08245);
+    const [priceDirection, setPriceDirection] = React.useState('up');
+    const [priceHistory, setPriceHistory] = React.useState([]);
+    const [reAuthVisible, setReAuthVisible] = React.useState(false);
+    const [ingestionStatus, setIngestionStatus] = React.useState(ERP_STATES.IDLE);
+    const [ingestionProgress, setIngestionProgress] = React.useState(0);
+    const [auditLog, setAuditLog] = React.useState([]);
+    const [exposure, setExposure] = React.useState(1385681);
+    const [hedgeRecommendation, setHedgeRecommendation] = React.useState(null);
+    const [erpInvoices, setErpInvoices] = React.useState([]);
+    const [rateLimitCount, setRateLimitCount] = React.useState(0);
+    const [cacheHits, setCacheHits] = React.useState(0);
+    const [cacheMisses, setCacheMisses] = React.useState(0);
+    const [selectedInvoice, setSelectedInvoice] = React.useState(null);
+    const [biometricVerified, setBiometricVerified] = React.useState(false);
+    const [executedTrades, setExecutedTrades] = React.useState([]);
+    const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
+    const [etsTable, setEtsTable] = React.useState(new Map()); // Simulated ETS cache
+
+    // Refs
+    const wsInterval = React.useRef(null);
+    const priceCache = React.useRef(new Map());
+
+    // Initialize with mock data
+    React.useEffect(() => {
+        // Initial audit log entries
+        setAuditLog([
+            { id: 'evt_7h9k2m4n', time: '14:32:05', action: 'System initialized: Event Store connected', type: 'system', txId: 'tx_' + Math.random().toString(36).substr(2, 9) },
+            { id: 'evt_3b5f7g8h', time: '14:31:22', action: 'Biometric device registered: Elena V.', type: 'auth', txId: 'tx_' + Math.random().toString(36).substr(2, 9) },
+            { id: 'evt_9j1k3l5m', time: '14:30:47', action: 'ERP integration: SAP S/4HANA connected', type: 'system', txId: 'tx_' + Math.random().toString(36).substr(2, 9) }
+        ]);
+
+        // Initialize price history
+        const initialHistory = [];
+        for (let i = 0; i < 20; i++) {
+            initialHistory.push({
+                time: new Date(Date.now() - (20 - i) * 800).toLocaleTimeString(),
+                price: 1.08245 + (Math.random() - 0.5) * 0.002
+            });
+        }
+        setPriceHistory(initialHistory);
+
+        // Initialize ETS cache simulation
+        priceCache.current.set('EUR/USD', 1.08245);
+        priceCache.current.set('GBP/USD', 1.26890);
+        priceCache.current.set('USD/CHF', 0.89234);
+
+        startMarketSimulation();
+        return () => clearInterval(wsInterval.current);
+    }, []);
+
+    // High-Frequency Market Feed Simulation
+    const startMarketSimulation = () => {
+        wsInterval.current = setInterval(() => {
+            setMarketPrice(prev => {
+                const change = (Math.random() - 0.5) * 0.0003;
+                const next = Number((prev + change).toFixed(5));
+                setPriceDirection(next > prev ? 'up' : 'down');
+
+                // Update ETS cache (simulated)
+                priceCache.current.set('EUR/USD', next);
+                setCacheHits(prev => prev + 1);
+
+                // Update price history
+                setPriceHistory(current => {
+                    const newHistory = [...current, {
+                        time: new Date().toLocaleTimeString(),
+                        price: next
+                    }].slice(-20);
+                    return newHistory;
+                });
+
+                return next;
+            });
+        }, 800);
+    };
+
+    // ETS Cache Read Simulation
+    const readFromCache = (key) => {
+        const start = performance.now();
+        const value = priceCache.current.get(key);
+        const latency = performance.now() - start;
+
+        if (value) {
+            setCacheHits(prev => prev + 1);
+            return { value, latency, hit: true };
+        } else {
+            setCacheMisses(prev => prev + 1);
+            return { value: null, latency, hit: false };
+        }
+    };
+
+    // ERP "Talk Back" Pattern Simulation
+    const triggerReconciliation = (invoice = null) => {
+        const targetInvoice = invoice || MOCK_INVOICES[Math.floor(Math.random() * MOCK_INVOICES.length)];
+        setSelectedInvoice(targetInvoice);
+
+        // Phase 1: Webhook Received
+        setIngestionStatus(ERP_STATES.WEBHOOK);
+        setIngestionProgress(25);
+        logAuditEvent(`ERP Webhook: New invoice ${targetInvoice.id} detected`, 'system');
+
+        // Phase 2: Rate Limit Check (Hammer ETS)
+        setTimeout(() => {
+            const currentRate = rateLimitCount;
+            if (currentRate < 100) { // 100 requests per minute limit
+                setRateLimitCount(prev => prev + 1);
+                setIngestionStatus(ERP_STATES.TALKING_BACK);
+                setIngestionProgress(50);
+                logAuditEvent(`Rate Limit: ${currentRate + 1}/100 requests (Hammer ETS)`, 'system');
+
+                // Phase 3: "Talk Back" API Call
+                setTimeout(() => {
+                    setIngestionStatus(ERP_STATES.TALKING_BACK);
+                    setIngestionProgress(75);
+                    logAuditEvent(`API Call: Fetching line items for ${targetInvoice.id} from SAP`, 'process');
+
+                    // Phase 4: Data Sync Complete
+                    setTimeout(() => {
+                        const newExposure = exposure + targetInvoice.amount * 0.92; // Convert to EUR
+                        setExposure(newExposure);
+                        setErpInvoices(prev => [...prev, { ...targetInvoice, syncedAt: new Date().toISOString() }]);
+                        setIngestionStatus(ERP_STATES.SYNCED);
+                        setIngestionProgress(100);
+
+                        logAuditEvent(`✓ Exposure Updated: €${(targetInvoice.amount * 0.92).toLocaleString()} (${targetInvoice.currency})`, 'success');
+
+                        // Check if hedge needed
+                        if (newExposure > RISK_LIMIT * HEDGE_THRESHOLD) {
+                            const recommendation = {
+                                amount: newExposure - RISK_LIMIT * HEDGE_THRESHOLD,
+                                rate: marketPrice,
+                                strategy: newExposure > RISK_LIMIT ? 'Full Hedge' : 'Micro-Hedge'
+                            };
+                            setHedgeRecommendation(recommendation);
+                            logAuditEvent(`⚠️ Hedge Required: €${(recommendation.amount).toLocaleString()} exposure threshold exceeded`, 'warning');
+                        }
+
+                        // Reset after 3 seconds
+                        setTimeout(() => {
+                            setIngestionStatus(ERP_STATES.IDLE);
+                            setIngestionProgress(0);
+                            setSelectedInvoice(null);
+                        }, 3000);
+                    }, 2000);
+                }, 1500);
+            } else {
+                // Rate limit exceeded
+                setIngestionStatus(ERP_STATES.RATE_LIMITED);
+                logAuditEvent('⚠️ Rate limit exceeded: Backoff strategy engaged', 'warning');
+                setTimeout(() => setIngestionStatus(ERP_STATES.IDLE), 3000);
+            }
+        }, 1000);
+    };
+
+    // Biometric Authentication (WebAuthn Simulation)
+    const executeBiometricAuth = () => {
+        setBiometricVerified(false);
+
+        // Generate WebAuthn challenge (simulated)
+        const challenge = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+
+        logAuditEvent(`WebAuthn Challenge Generated: ${challenge.substr(0, 8)}...`, 'auth');
+
+        // Simulate biometric verification
+        setTimeout(() => {
+            setBiometricVerified(true);
+            logAuditEvent(`✓ Biometric Verified: Elena V. (Touch ID)`, 'success');
+
+            // Execute hedge after verification
+            if (hedgeRecommendation) {
+                executeHedge(hedgeRecommendation);
+            }
+
+            setTimeout(() => {
+                setReAuthVisible(false);
+                setBiometricVerified(false);
+            }, 1500);
+        }, 2000);
+    };
+
+    // Hedge Execution
+    const executeHedge = (recommendation) => {
+        const trade = {
+            id: 'trade_' + Math.random().toString(36).substr(2, 9),
+            amount: recommendation.amount,
+            rate: marketPrice,
+            strategy: recommendation.strategy,
+            timestamp: new Date().toISOString(),
+            biometricId: 'bio_' + Math.random().toString(36).substr(2, 9),
+            eventId: 'evt_' + Math.random().toString(36).substr(2, 9)
+        };
+
+        setExecutedTrades(prev => [trade, ...prev].slice(0, 10));
+        setExposure(prev => prev - recommendation.amount);
+        setHedgeRecommendation(null);
+
+        logAuditEvent(`🚀 Trade Executed: ${recommendation.strategy} €${recommendation.amount.toLocaleString()} @ ${marketPrice}`, 'success');
+        logAuditEvent(`📝 Event Stored: ${trade.eventId} (Event Store)`, 'system');
+    };
+
+    // Audit Log Helper
+    const logAuditEvent = (action, type) => {
+        const entry = {
+            id: 'evt_' + Math.random().toString(36).substr(2, 9),
+            time: new Date().toLocaleTimeString([], { hour12: false }),
+            action,
+            type,
+            txId: 'tx_' + Math.random().toString(36).substr(2, 9)
+        };
+        setAuditLog(prev => [entry, ...prev].slice(0, 15));
+    };
+
+    // Calculate ETS Cache Performance
+    const cacheHitRate = cacheHits + cacheMisses > 0
+        ? ((cacheHits / (cacheHits + cacheMisses)) * 100).toFixed(2)
+        : '100.00';
+
+    // Biometric Overlay Component
+    const BiometricOverlay = () => (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm">
+            <div className="w-full max-w-sm bg-[#11141d] border border-white/5 p-10 rounded-[3rem] shadow-2xl text-center">
+                <div className="w-24 h-24 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                    <div className={`absolute inset-0 rounded-full ${biometricVerified ? 'bg-emerald-500/20' : 'bg-indigo-500/20'} animate-ping`}></div>
+                    <svg className={`w-12 h-12 ${biometricVerified ? 'text-emerald-400' : 'text-indigo-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinecap="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                    </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">
+                    {biometricVerified ? '✓ Identity Verified' : 'Authorize Execution'}
+                </h3>
+                <p className="text-sm text-slate-400 mb-6">
+                    {biometricVerified
+                        ? 'Biometric handshake complete. Executing hedge...'
+                        : 'Secure multi-factor handshake required for high-value currency movements.'}
+                </p>
+
+                {!biometricVerified && (
+                    <div className="space-y-4">
+                        <div className="bg-white/5 rounded-2xl p-4 text-left">
+                            <p className="text-xs text-slate-500">WebAuthn Challenge</p>
+                            <p className="text-xs font-mono text-indigo-400 break-all">
+                                {Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                                    .map(b => b.toString(16).padStart(2, '0')).join('').substr(0, 16)}...
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={executeBiometricAuth}
+                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl transition shadow-lg shadow-indigo-600/20 active:scale-95"
+                        >
+                            Confirm with Biometrics
+                        </button>
+                    </div>
+                )}
+
+                <button
+                    onClick={() => setReAuthVisible(false)}
+                    className="mt-4 text-sm text-slate-500 hover:text-white transition"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    );
+
+    // Price Chart Component
+    const PriceChart = () => {
+        const minPrice = Math.min(...priceHistory.map(p => p.price)) * 0.999;
+        const maxPrice = Math.max(...priceHistory.map(p => p.price)) * 1.001;
+
+        return (
+            <div className="h-32 w-full relative">
+                <svg className="w-full h-full" preserveAspectRatio="none" viewBox={`0 0 ${priceHistory.length} 100`}>
+                    <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                        </linearGradient>
+                    </defs>
+
+                    {/* Grid lines */}
+                    {[0, 25, 50, 75, 100].map(y => (
+                        <line
+                            key={y}
+                            x1="0"
+                            y1={y}
+                            x2={priceHistory.length}
+                            y2={y}
+                            stroke="#ffffff10"
+                            strokeWidth="0.5"
+                        />
+                    ))}
+
+                    {/* Price line */}
+                    <polyline
+                        points={priceHistory.map((p, i) => {
+                            const y = 100 - ((p.price - minPrice) / (maxPrice - minPrice)) * 100;
+                            return `${i},${Math.max(0, Math.min(100, y))}`;
+                        }).join(' ')}
+                        fill="none"
+                        stroke="#6366f1"
+                        strokeWidth="2"
+                    />
+
+                    {/* Area under curve */}
+                    <polygon
+                        points={`0,100 ${priceHistory.map((p, i) => {
+                            const y = 100 - ((p.price - minPrice) / (maxPrice - minPrice)) * 100;
+                            return `${i},${Math.max(0, Math.min(100, y))}`;
+                        }).join(' ')} ${priceHistory.length},100`}
+                        fill="url(#chartGradient)"
+                    />
+                </svg>
+
+                {/* Latest price indicator */}
+                <div className="absolute top-0 right-0 bg-indigo-600/20 px-2 py-1 rounded text-[10px] font-mono">
+                    {marketPrice.toFixed(5)}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="flex h-screen bg-[#090b11] text-slate-200 antialiased font-sans">
+            {reAuthVisible && <BiometricOverlay />}
+
+            {/* Institutional Sidebar */}
+            <aside className="w-72 bg-[#0d0f17] border-r border-white/5 flex flex-col shrink-0">
+                <div className="p-8">
+                    <div className="flex items-center gap-3 mb-12">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinecap="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <span className="text-2xl font-black tracking-tight text-white italic">nexus</span>
+                    </div>
+
+                    <nav className="space-y-1">
+                        {[
+                            { id: 'observability', label: 'Exposure Monitor', icon: 'Eye' },
+                            { id: 'audit', label: 'Audit Trail', icon: 'NotebookText' },
+                            { id: 'erp', label: 'Data Sources', icon: 'Globe' },
+                            { id: 'sandbox', label: 'Scenario Testing', icon: 'BarChart3' },
+                            { id: 'compliance', label: 'Reporting', icon: 'FileCheck' }
+                        ].map((item) => {
+                            const Icon = lucide[item.icon];
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setActiveTab(item.id)}
+                                    className={`w-full flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-200 ${
+                                        activeTab === item.id
+                                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                                        : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
+                                    }`}
+                                >
+                                    <Icon size={18} />
+                                    <span className="text-sm font-bold">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
+
+                <div className="mt-auto p-8">
+                    <div className="bg-white/5 rounded-3xl p-5 border border-white/5">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <lucide.User size={18} />
+                            </div>
+                            <div className="overflow-hidden">
+                                <p className="text-xs font-bold text-white truncate">{USER_ROLE}</p>
+                                <p className="text-[10px] text-slate-500 font-medium">Elena V.</p>
+                            </div>
+                        </div>
+
+                        {/* ETS Cache Stats */}
+                        <div className="pt-4 border-t border-white/5 space-y-2">
+                            <div className="flex justify-between text-[10px]">
+                                <span className="text-slate-500">ETS Cache Hit Rate</span>
+                                <span className="text-emerald-400 font-bold">{cacheHitRate}%</span>
+                            </div>
+                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-emerald-500" style={{ width: `${cacheHitRate}%` }}></div>
+                            </div>
+                            <div className="flex justify-between text-[10px]">
+                                <span className="text-slate-500">Active Sessions</span>
+                                <span className="text-white">3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Primary Dashboard View */}
+            <main className="flex-1 overflow-y-auto flex flex-col custom-scroll">
+                {/* Global Market Bar */}
+                <header className="px-10 py-6 flex justify-between items-center bg-[#090b11]/80 backdrop-blur-xl sticky top-0 z-20 border-b border-white/5">
+                    <div className="flex items-center gap-8">
+                        <div>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Market Connectivity</p>
+                            <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></div>
+                                <span className="text-sm font-bold text-white">Live FX Stream (BNP Paribas)</span>
+                            </div>
+                        </div>
+                        <div className="h-8 w-px bg-white/5"></div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">EUR/USD Spot</p>
+                            <div className="flex items-center gap-3">
+                                <span className={`text-xl font-mono font-black tabular-nums transition-colors duration-500 ${
+                                    priceDirection === 'up' ? 'text-emerald-400' : 'text-rose-400'
+                                }`}>
+                                    {marketPrice.toFixed(5)}
+                                </span>
+                                {priceDirection === 'up'
+                                    ? <lucide.TrendingUp size={16} className="text-emerald-400" />
+                                    : <lucide.TrendingDown size={16} className="text-rose-400" />
+                                }
+                                <span className="text-[10px] text-slate-500">(ETS Cache)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => triggerReconciliation()}
+                            disabled={ingestionStatus !== ERP_STATES.IDLE}
+                            className={`bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2 ${
+                                ingestionStatus !== ERP_STATES.IDLE ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                        >
+                            <lucide.RefreshCw size={14} className={ingestionStatus !== ERP_STATES.IDLE ? 'animate-spin' : ''} />
+                            {ingestionStatus === ERP_STATES.IDLE ? 'Sync ERP' : 'Processing...'}
+                        </button>
+                        <button
+                            onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 transition flex items-center gap-2"
+                        >
+                            <lucide.Cpu size={14} />
+                            {showTechnicalDetails ? 'Hide Details' : 'Show Tech Stack'}
+                        </button>
+                    </div>
+                </header>
+
+                <div className="p-10 space-y-8">
+                    {/* Technical Details Panel (Toggle) */}
+                    {showTechnicalDetails && (
+                        <div className="bg-[#11141d] rounded-[2rem] border border-indigo-500/20 p-8 slide-in">
+                            <h3 className="text-sm font-black uppercase tracking-wider text-white mb-4">Live Architecture View</h3>
+                            <div className="grid grid-cols-5 gap-4 text-center">
+                                <div className="bg-indigo-600/10 p-4 rounded-xl">
+                                    <lucide.Webhook size={20} className="mx-auto mb-2 text-indigo-400" />
+                                    <p className="text-[10px] font-bold">Webhook</p>
+                                    <p className="text-[8px] text-slate-500">SAP → Nexus</p>
+                                </div>
+                                <div className="bg-amber-600/10 p-4 rounded-xl">
+                                    <lucide.Shield size={20} className="mx-auto mb-2 text-amber-400" />
+                                    <p className="text-[10px] font-bold">Hammer ETS</p>
+                                    <p className="text-[8px] text-slate-500">Rate Limiting</p>
+                                </div>
+                                <div className="bg-emerald-600/10 p-4 rounded-xl">
+                                    <lucide.Database size={20} className="mx-auto mb-2 text-emerald-400" />
+                                    <p className="text-[10px] font-bold">Event Store</p>
+                                    <p className="text-[8px] text-slate-500">Commanded</p>
+                                </div>
+                                <div className="bg-purple-600/10 p-4 rounded-xl">
+                                    <lucide.Zap size={20} className="mx-auto mb-2 text-purple-400" />
+                                    <p className="text-[10px] font-bold">ETS Cache</p>
+                                    <p className="text-[8px] text-slate-500">O(1) Reads</p>
+                                </div>
+                                <div className="bg-blue-600/10 p-4 rounded-xl">
+                                    <lucide.Clock size={20} className="mx-auto mb-2 text-blue-400" />
+                                    <p className="text-[10px] font-bold">TimescaleDB</p>
+                                    <p className="text-[8px] text-slate-500">Hypertables</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Executive Overview Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="bg-[#11141d] p-8 rounded-[2rem] border border-white/5 relative overflow-hidden group hover-lift">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Value at Risk (VaR)</p>
+                            <div className="text-3xl font-black text-white">€{exposure.toLocaleString()}</div>
+                            <p className="text-xs text-rose-500 mt-2 font-bold flex items-center gap-1">
+                                <lucide.ArrowUpRight size={14} />
+                                {((exposure / RISK_LIMIT) * 100).toFixed(1)}% of limit
+                            </p>
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <lucide.AlertTriangle size={80} />
+                            </div>
+                            {/* Risk meter */}
+                            <div className="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full transition-all duration-500 ${
+                                        exposure > RISK_LIMIT ? 'bg-rose-500' : exposure > RISK_LIMIT * HEDGE_THRESHOLD ? 'bg-amber-500' : 'bg-emerald-500'
+                                    }`}
+                                    style={{ width: `${(exposure / RISK_LIMIT) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div className="bg-[#11141d] p-8 rounded-[2rem] border border-white/5 hover-lift">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Hedge Status</p>
+                            <div className="text-3xl font-black text-indigo-400 italic">
+                                {hedgeRecommendation ? hedgeRecommendation.strategy : 'Optimal'}
+                            </div>
+                            {hedgeRecommendation ? (
+                                <p className="text-xs text-amber-400 mt-2 font-bold">
+                                    Required: €{hedgeRecommendation.amount.toLocaleString()}
+                                </p>
+                            ) : (
+                                <p className="text-xs text-slate-500 mt-2 font-bold">Within thresholds</p>
+                            )}
+                        </div>
+
+                        <div className="bg-[#11141d] p-8 rounded-[2rem] border border-white/5 hover-lift">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">ERP Sync</p>
+                            <div className="text-3xl font-black text-emerald-400">{erpInvoices.length}</div>
+                            <p className="text-xs text-slate-500 mt-2 font-bold">Invoices today</p>
+                        </div>
+
+                        <button
+                            onClick={() => hedgeRecommendation ? setReAuthVisible(true) : null}
+                            className={`p-8 rounded-[2rem] flex flex-col justify-between items-start text-white shadow-xl transition-all active:scale-95 ${
+                                hedgeRecommendation
+                                    ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/10'
+                                    : 'bg-slate-800 cursor-not-allowed opacity-50'
+                            }`}
+                            disabled={!hedgeRecommendation}
+                        >
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Critical Action</p>
+                            <div className="flex justify-between items-center w-full">
+                                <span className="text-2xl font-black italic">
+                                    {hedgeRecommendation ? 'Authorize Hedge' : 'No Action'}
+                                </span>
+                                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <lucide.Play size={18} fill="white" />
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-8">
+                            {/* Reconciliation Status */}
+                            <div className="bg-[#11141d] rounded-[2.5rem] border border-white/5 p-8">
+                                <div className="flex justify-between items-center mb-6">
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">ERP Data Sync</h3>
+                                        <p className="text-xs text-slate-500 mt-1">Real-time reconciliation with SAP S/4HANA</p>
+                                    </div>
+                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                        ingestionStatus === ERP_STATES.SYNCED
+                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 success-glow'
+                                            : ingestionStatus.includes('Error') || ingestionStatus.includes('Rate')
+                                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                            : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                                    }`}>
+                                        {ingestionStatus}
+                                    </div>
+                                </div>
+
+                                {/* Talk Back Pattern Visualization */}
+                                <div className="relative flex justify-between items-center py-8">
+                                    <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-[2px] bg-white/5 z-0"></div>
+                                    <div
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-indigo-500 z-0 transition-all duration-1000"
+                                        style={{ width: `${ingestionProgress}%` }}
+                                    ></div>
+
+                                    {[
+                                        { label: 'Webhook', icon: 'Zap', status: ingestionProgress >= 25 },
+                                        { label: 'Rate Limit', icon: 'Shield', status: ingestionProgress >= 50 },
+                                        { label: 'Talk Back', icon: 'RefreshCw', status: ingestionProgress >= 75 },
+                                        { label: 'Synced', icon: 'BadgeCheck', status: ingestionProgress >= 100 }
+                                    ].map((step, i) => {
+                                        const Icon = lucide[step.icon];
+                                        return (
+                                            <div key={i} className="relative z-10 flex flex-col items-center gap-3">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${
+                                                    step.status
+                                                        ? 'bg-[#11141d] border-indigo-500 text-indigo-400 shadow-lg shadow-indigo-600/20'
+                                                        : 'bg-[#11141d] border-white/5 text-slate-600'
+                                                }`}>
+                                                    <Icon size={20} className={step.label === 'Talk Back' && ingestionProgress === 75 ? 'animate-spin' : ''} />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{step.label}</span>
+                                                {selectedInvoice && step.status && i === 3 && (
+                                                    <span className="text-[8px] text-indigo-400">{selectedInvoice.id}</span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Active Invoices */}
+                                {erpInvoices.length > 0 && (
+                                    <div className="mt-6 space-y-2">
+                                        <p className="text-[10px] font-black text-slate-500 uppercase">Recent Syncs</p>
+                                        {erpInvoices.slice(-3).map((inv, i) => (
+                                            <div key={i} className="flex justify-between items-center bg-white/5 rounded-xl p-3 text-xs">
+                                                <span className="font-mono">{inv.id}</span>
+                                                <span>{inv.currency} {inv.amount.toLocaleString()}</span>
+                                                <span className="text-indigo-400">✓ {new Date(inv.syncedAt).toLocaleTimeString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Price Chart & Market Data */}
+                            <div className="bg-[#11141d] rounded-[2.5rem] border border-white/5 p-8">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Market Data Feed</h3>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            WebSocket Live
+                                        </div>
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                            ETS Cache: {cacheHitRate}% hit
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <PriceChart />
+
+                                <div className="grid grid-cols-4 gap-4 mt-6">
+                                    <div className="text-center">
+                                        <p className="text-[10px] text-slate-500">Bid</p>
+                                        <p className="text-sm font-mono font-bold">{(marketPrice - 0.0001).toFixed(5)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[10px] text-slate-500">Ask</p>
+                                        <p className="text-sm font-mono font-bold">{(marketPrice + 0.0001).toFixed(5)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[10px] text-slate-500">Spread</p>
+                                        <p className="text-sm font-mono font-bold">0.0002</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[10px] text-slate-500">Source</p>
+                                        <p className="text-sm font-mono font-bold text-indigo-400">BNPP</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Audit Trail */}
+                        <div className="bg-[#0d0f17] rounded-[2.5rem] border border-white/5 flex flex-col overflow-hidden">
+                            <div className="p-8 border-b border-white/5 flex justify-between items-center">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Compliance Ledger</h3>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[8px] text-slate-600">Event Store</span>
+                                    <lucide.Clock size={14} className="text-slate-600" />
+                                </div>
+                            </div>
+
+                            <div className="flex-1 p-6 overflow-y-auto custom-scroll space-y-6">
+                                {auditLog.map((entry, i) => (
+                                    <div key={entry.id} className="relative pl-6 slide-in" style={{ animationDelay: `${i * 50}ms` }}>
+                                        <div className={`absolute left-0 top-1.5 w-2 h-2 rounded-full ${
+                                            entry.type === 'success' ? 'bg-emerald-500' :
+                                            entry.type === 'warning' ? 'bg-amber-500' :
+                                            entry.type === 'auth' ? 'bg-indigo-500' : 'bg-slate-500'
+                                        }`}></div>
+                                        <div className="absolute left-1 top-4 bottom-[-1.5rem] w-px bg-white/5 last:hidden"></div>
+
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className="text-[9px] font-mono text-slate-500">{entry.time}</p>
+                                            <span className="text-[8px] font-mono text-indigo-400/60">{entry.txId}</span>
+                                        </div>
+                                        <p className="text-xs font-bold text-slate-200 leading-tight">{entry.action}</p>
+                                        <p className="text-[8px] font-mono text-indigo-400/40 mt-1 uppercase tracking-tighter">
+                                            Event: {entry.id}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Executed Trades Summary */}
+                            {executedTrades.length > 0 && (
+                                <div className="p-6 bg-[#11141d]/50 border-t border-white/5">
+                                    <p className="text-[10px] font-black text-slate-400 mb-3">Recent Trades</p>
+                                    <div className="space-y-2">
+                                        {executedTrades.slice(0, 3).map(trade => (
+                                            <div key={trade.id} className="text-[10px] flex justify-between">
+                                                <span className="text-emerald-400">{trade.strategy}</span>
+                                                <span>€{trade.amount.toLocaleString()}</span>
+                                                <span className="text-slate-500">@{trade.rate.toFixed(5)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Mock Invoices Grid */}
+                    {activeTab === 'erp' && (
+                        <div className="grid grid-cols-2 gap-6 mt-8">
+                            {MOCK_INVOICES.map((invoice, i) => (
+                                <div key={i} className="bg-[#11141d] rounded-2xl p-6 border border-white/5 hover:border-indigo-500/30 transition cursor-pointer"
+                                     onClick={() => triggerReconciliation(invoice)}>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-xs font-mono text-indigo-400">{invoice.id}</p>
+                                            <p className="text-lg font-bold text-white mt-1">
+                                                {invoice.currency} {invoice.amount.toLocaleString()}
+                                            </p>
+                                            <p className="text-xs text-slate-500 mt-1">{invoice.entity}</p>
+                                        </div>
+                                        <button className="px-3 py-1 bg-indigo-600/20 text-indigo-400 rounded-full text-[10px] font-bold">
+                                            Sync Now
+                                        </button>
+                                    </div>
+                                    <div className="mt-4 text-[10px] text-slate-500">
+                                        Due: {new Date(invoice.due).toLocaleDateString()}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Status Bar */}
+                <div className="sticky bottom-0 bg-[#11141d]/80 backdrop-blur-2xl border-t border-white/5 px-10 py-3 flex justify-between items-center text-[10px] font-mono">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span>Event Store: Connected</span>
+                        </div>
+                        <div className="w-px h-4 bg-white/10"></div>
+                        <div className="flex items-center gap-2">
+                            <lucide.Database size={12} className="text-indigo-400" />
+                            <span>ETS Cache: {priceCache.current.size} keys</span>
+                        </div>
+                        <div className="w-px h-4 bg-white/10"></div>
+                        <div className="flex items-center gap-2">
+                            <lucide.Shield size={12} className="text-amber-400" />
+                            <span>Rate Limit: {rateLimitCount}/100</span>
+                        </div>
+                    </div>
+                    <div className="text-slate-500">
+                        UUIDv7: {crypto.randomUUID()}
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+// Initialize Lucide icons after component mount
+setTimeout(() => {
+    lucide.createIcons();
+}, 100);
+
+// Render app
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
