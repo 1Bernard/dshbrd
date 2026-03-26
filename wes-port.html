@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bernard // The Distributed Auteur (Cosmic Folio + Hieroglyphics)</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@1,900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP + ScrollTrigger + ScrollSmoother -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://assets.codepen.io/16327/ScrollSmoother.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #F4EBD0;
+      --accent: #D9381E;
+      --detail: #2A2A2A;
+      --paper: #F9F3E5;
+      --liquid: #D9381E;
+      --grid: rgba(0,0,0,0.08);
+      --border-trail: #D9381E;
+      --cosmic-1: rgba(217, 56, 30, 0.05);
+      --cosmic-2: rgba(42, 42, 42, 0.03);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--detail);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom Cursor - becomes a celestial body */
+    #cursor {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      mix-blend-mode: difference;
+      box-shadow: 0 0 30px var(--accent);
+    }
+
+    #cursor-ring {
+      position: fixed;
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 40px rgba(217, 56, 30, 0.3);
+    }
+
+    /* Cosmic Border Trail */
+    #cosmicCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.7;
+      filter: blur(1px);
+    }
+
+    /* Whimsical Drawings Container - now celestial */
+    .cosmic-drawings {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    .drawing {
+      position: absolute;
+      opacity: 0.15;
+      filter: drop-shadow(0 0 20px var(--accent));
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .drawing:hover {
+      opacity: 0.3;
+      filter: drop-shadow(0 0 40px var(--accent));
+    }
+
+    /* Celestial Bicycle - orbits the page */
+    #celestialBicycle {
+      position: fixed;
+      bottom: 40px;
+      left: -200px;
+      width: 220px;
+      height: 140px;
+      z-index: 9996;
+      pointer-events: none;
+      filter: drop-shadow(0 0 30px var(--accent));
+      opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+
+    /* Orrery (mechanical solar system) */
+    #orrery {
+      position: fixed;
+      top: 10%;
+      right: -300px;
+      width: 400px;
+      height: 400px;
+      z-index: 9995;
+      pointer-events: none;
+      opacity: 0.2;
+      transform-origin: center;
+    }
+
+    /* Cosmic Telescope */
+    #cosmicTelescope {
+      position: fixed;
+      top: 60%;
+      left: -200px;
+      width: 180px;
+      height: 240px;
+      z-index: 9995;
+      pointer-events: none;
+      opacity: 0.2;
+      transform-origin: center;
+    }
+
+    /* Time-Travel Pocket Watch */
+    #pocketWatch {
+      position: fixed;
+      top: 20%;
+      left: 5%;
+      width: 100px;
+      height: 100px;
+      z-index: 9995;
+      pointer-events: none;
+      opacity: 0.1;
+      animation: float 10s ease-in-out infinite;
+    }
+
+    /* Paper grain - more ethereal */
+    .paper-grain {
+      position: fixed;
+      inset: 0;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJmIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBudW1PY3RhdmVzPSIzIiAvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNmKSIgb3BhY2l0eT0iMC4wNCIgLz48L3N2Zz4=');
+      pointer-events: none;
+      z-index: 9994;
+      opacity: 0.08;
+      mix-blend-mode: multiply;
+    }
+
+    /* Cosmic grid */
+    .cosmic-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--cosmic-1) 1px, transparent 1px),
+        linear-gradient(90deg, var(--cosmic-2) 1px, transparent 1px);
+      background-size: 100px 100px;
+      pointer-events: none;
+      z-index: 9993;
+      opacity: 0.8;
+      transform: perspective(500px) rotateX(2deg);
+      animation: gridPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes gridPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Vignette - deeper */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.15) 100%);
+      pointer-events: none;
+      z-index: 9992;
+    }
+
+    /* Magazine cover elements - harmonized */
+    .cover-strip {
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      z-index: 9001;
+      mix-blend-mode: overlay;
+      opacity: 0.1;
+      transform: rotate(-1deg);
+      animation: stripGlow 4s ease-in-out infinite;
+    }
+
+    .cover-strip-bottom {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(90deg, transparent, var(--detail), transparent);
+      z-index: 9001;
+      mix-blend-mode: overlay;
+      opacity: 0.1;
+      transform: rotate(1deg);
+      animation: stripGlow 6s ease-in-out infinite reverse;
+    }
+
+    @keyframes stripGlow {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 0.2; }
+    }
+
+    /* Marginalia - cosmic */
+    .marginalia {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%) rotate(180deg);
+      writing-mode: vertical-rl;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5em;
+      opacity: 0.15;
+      z-index: 9980;
+      pointer-events: none;
+      color: var(--detail);
+      text-shadow: 0 0 10px var(--accent);
+    }
+
+    .marginalia-left {
+      left: 20px;
+      transform: translateY(-50%);
+    }
+
+    /* Page number - cosmic */
+    .page-number {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      opacity: 0.3;
+      z-index: 9980;
+      mix-blend-mode: difference;
+      color: white;
+      text-shadow: 0 0 15px var(--accent);
+    }
+
+    /* Folio Cards - transcendent */
+    .folio-card {
+      background: rgba(255, 255, 255, 0.95);
+      border: 3px solid var(--detail);
+      box-shadow: 15px 15px 0 var(--detail), 0 0 50px rgba(217, 56, 30, 0.1);
+      padding: 2.5rem;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      backdrop-filter: blur(4px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .folio-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(217, 56, 30, 0.1), transparent);
+      transition: left 0.8s ease;
+    }
+
+    .folio-card:hover::before {
+      left: 100%;
+    }
+
+    .folio-card::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      right: -5px;
+      bottom: -5px;
+      background: var(--accent);
+      z-index: -1;
+      opacity: 0.1;
+      transition: all 0.4s ease;
+    }
+
+    .folio-card:hover {
+      transform: translate(-8px, -8px);
+      box-shadow: 25px 25px 0 var(--accent), 0 0 80px rgba(217, 56, 30, 0.2);
+    }
+
+    /* Bento Items - cosmic (UPDATED FOR BETTER LAYOUT) */
+    .bento-item {
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid var(--detail);
+      padding: 2.5rem;
+      box-shadow: 15px 15px 0 var(--detail), 0 0 30px rgba(217, 56, 30, 0.1);
+      backdrop-filter: blur(4px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bento-item::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(217,56,30,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      transform: rotate(30deg);
+    }
+
+    .bento-item:hover::before {
+      opacity: 1;
+    }
+
+    .bento-item:hover {
+      transform: translate(-8px, -8px);
+      box-shadow: 20px 20px 0 var(--accent), 0 0 60px rgba(217, 56, 30, 0.3);
+    }
+
+    /* Film Strip - ethereal */
+    .film-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) transparent;
+    }
+
+    .film-strip::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .film-strip::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
+      box-shadow: 0 0 20px var(--accent);
+    }
+
+    .film-frame {
+      background: var(--paper);
+      border: 3px solid var(--detail);
+      padding: 2.5rem;
+      box-shadow: 12px 12px 0 var(--detail), 0 0 30px rgba(217, 56, 30, 0.1);
+      transform: rotate(var(--rot, -0.8deg));
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      backdrop-filter: blur(2px);
+    }
+
+    .film-frame:nth-child(even) {
+      --rot: 1.8deg;
+    }
+
+    .film-frame:hover {
+      transform: rotate(0deg) scale(1.03);
+      box-shadow: 18px 18px 0 var(--accent), 0 0 60px rgba(217, 56, 30, 0.3);
+    }
+
+    /* Marquee - cosmic stream */
+    .marquee {
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      background: linear-gradient(90deg, var(--detail), var(--accent), var(--detail));
+      color: white;
+      padding: 1.8rem 0;
+      transform: rotate(-1.2deg);
+      margin: 8rem 0;
+      border-top: 3px solid var(--accent);
+      border-bottom: 3px solid var(--detail);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: marqueeGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes marqueeGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.9; }
+    }
+
+    .marquee-content {
+      display: inline-block;
+      animation: marqueeScroll 30s linear infinite;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      letter-spacing: 0.4em;
+      text-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+
+    @keyframes marqueeScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Floating animations - cosmic */
+    .float-1 {
+      animation: cosmicFloat 14s ease-in-out infinite;
+    }
+
+    .float-2 {
+      animation: cosmicFloat 18s ease-in-out infinite reverse;
+    }
+
+    .float-3 {
+      animation: cosmicFloat 22s ease-in-out infinite;
+    }
+
+    @keyframes cosmicFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-30px) rotate(2deg); }
+      75% { transform: translateY(20px) rotate(-2deg); }
+    }
+
+    /* Iris opening - more dramatic */
+    .iris {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--detail) 0%, black 100%);
+      z-index: 10001;
+      pointer-events: none;
+      transform: scale(1);
+      transform-origin: center;
+      animation: cosmicIris 2.2s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    }
+
+    @keyframes cosmicIris {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    /* Horizontal Scroll - smooth as silk */
+    .horizontal-scroll {
+      display: flex;
+      width: max-content;
+      gap: 5rem;
+      padding: 0 10vw;
+      will-change: transform;
+    }
+
+    .project-card {
+      width: 600px;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    /* NEW HIEROGLYPH CARD STYLES */
+    .hieroglyph-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid var(--detail);
+      padding: 2.5rem;
+      box-shadow: 15px 15px 0 var(--detail), 0 0 30px rgba(217, 56, 30, 0.1);
+      backdrop-filter: blur(4px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hieroglyph-card:hover {
+      transform: translate(-8px, -8px);
+      box-shadow: 25px 25px 0 var(--accent), 0 0 80px rgba(217, 56, 30, 0.2);
+    }
+
+    .hieroglyph-symbol {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 1rem;
+      filter: drop-shadow(2px 4px 6px var(--accent));
+      opacity: 0.9;
+    }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 1024px) {
+      .archive-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .archive-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CTA button styles */
+    .cta-primary {
+      background: var(--detail);
+      color: white;
+      border: 3px solid var(--detail);
+      padding: 1.2rem 3rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 12px 12px 0 var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .cta-primary:hover {
+      transform: translate(-6px, -6px);
+      box-shadow: 18px 18px 0 var(--accent);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .cta-secondary {
+      background: transparent;
+      border: 3px solid var(--detail);
+      padding: 1.2rem 3rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 8px 8px 0 var(--detail);
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .cta-secondary:hover {
+      background: white;
+      box-shadow: 12px 12px 0 var(--accent);
+      border-color: var(--accent);
+      transform: translate(-4px, -4px);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      margin-top: 3rem;
+    }
+
+    /* Additional floating hieroglyphs */
+    .hiero-float {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.1;
+      pointer-events: none;
+      z-index: 9990;
+      font-family: 'Times New Roman', serif;
+      filter: drop-shadow(0 0 10px var(--accent));
+    }
+
+    /* Grid layout improvements */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .bento-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Iris Opening - cosmic -->
+  <div class="iris"></div>
+
+  <!-- Cosmic Cover Strips -->
+  <div class="cover-strip"></div>
+  <div class="cover-strip-bottom"></div>
+
+  <!-- Marginalia - cosmic text -->
+  <div class="marginalia">✦ THE DISTRIBUTED AUTEUR • COSMIC EDITION ✦</div>
+  <div class="marginalia marginalia-left">✦ BERNARD S. • SYSTEMS ARCHITECT • CELESTIAL OBSERVATIONS ✦</div>
+
+  <!-- Page Number -->
+  <div class="page-number" id="pageNumber">001</div>
+
+  <!-- Custom Cursor - celestial -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Cosmic Border Trail Canvas -->
+  <canvas id="cosmicCanvas"></canvas>
+
+  <!-- Cosmic Drawings -->
+  <div class="cosmic-drawings">
+    <!-- Celestial Bicycle -->
+    <svg id="celestialBicycle" viewBox="0 0 120 80">
+      <circle cx="30" cy="60" r="16" fill="none" stroke="var(--detail)" stroke-width="4" stroke-dasharray="3 3"/>
+      <circle cx="30" cy="60" r="8" fill="var(--accent)" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="90" cy="60" r="16" fill="none" stroke="var(--detail)" stroke-width="4" stroke-dasharray="3 3"/>
+      <circle cx="90" cy="60" r="8" fill="var(--accent)" stroke="var(--detail)" stroke-width="2"/>
+      <line x1="30" y1="44" x2="50" y2="20" stroke="var(--detail)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="90" y1="44" x2="70" y2="20" stroke="var(--detail)" stroke-width="4" stroke-linecap="round"/>
+      <polyline points="50,20 60,32 70,20" stroke="var(--detail)" stroke-width="4" fill="none"/>
+      <rect x="54" y="32" width="12" height="24" fill="var(--accent)" rx="2" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="60" cy="52" r="2" fill="white"/>
+      <line x1="30" y1="60" x2="90" y2="60" stroke="var(--detail)" stroke-width="3" stroke-dasharray="4 4"/>
+      <circle cx="60" cy="20" r="8" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="2 2"/>
+    </svg>
+
+    <!-- Orrery (mechanical solar system) -->
+    <svg id="orrery" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="40" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2"/>
+      <circle cx="100" cy="100" r="70" fill="none" stroke="var(--detail)" stroke-width="1" stroke-dasharray="3 3"/>
+      <circle cx="100" cy="100" r="100" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 4"/>
+      <circle cx="100" cy="100" r="4" fill="var(--accent)"/>
+      <!-- planets -->
+      <circle cx="140" cy="100" r="6" fill="none" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="100" cy="40" r="8" fill="none" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="170" cy="100" r="4" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="100" cy="170" r="10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    </svg>
+
+    <!-- Cosmic Telescope -->
+    <svg id="cosmicTelescope" viewBox="0 0 80 100">
+      <circle cx="40" cy="30" r="15" fill="none" stroke="var(--detail)" stroke-width="3"/>
+      <circle cx="40" cy="35" r="10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/>
+      <rect x="30" y="40" width="20" height="40" fill="none" stroke="var(--detail)" stroke-width="3"/>
+      <line x1="30" y1="60" x2="10" y2="80" stroke="var(--detail)" stroke-width="2"/>
+      <line x1="50" y1="60" x2="70" y2="80" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="40" cy="20" r="3" fill="var(--accent)" opacity="0.5"/>
+    </svg>
+
+    <!-- Pocket Watch -->
+    <svg id="pocketWatch" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="var(--detail)" stroke-width="3"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="2 2"/>
+      <line x1="50" y1="50" x2="50" y2="20" stroke="var(--detail)" stroke-width="2"/>
+      <line x1="50" y1="50" x2="75" y2="50" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="50" cy="50" r="5" fill="var(--accent)"/>
+    </svg>
+
+    <!-- Additional floating hieroglyphs -->
+    <div class="hiero-float" style="top: 15%; left: 8%;">𓃀𓃥𓃦</div>
+    <div class="hiero-float" style="bottom: 20%; right: 12%; transform:rotate(15deg);">𓅃𓅄𓅅</div>
+    <div class="hiero-float" style="top: 40%; right: 25%;">𓆣𓆤𓆥</div>
+    <div class="hiero-float" style="bottom: 30%; left: 20%;">𓊽𓊾𓋀</div>
+    <div class="hiero-float" style="top: 70%; left: 30%;">𓍯𓍰𓍱</div>
+  </div>
+
+  <!-- Overlays -->
+  <div class="paper-grain"></div>
+  <div class="cosmic-grid"></div>
+  <div class="vignette"></div>
+
+  <!-- Fixed HUD - Cosmic -->
+  <div class="fixed top-12 left-12 z-50 mix-blend-difference">
+    <div class="text-white text-xs font-mono space-y-1">
+      <div class="text-2xl font-black tracking-tighter">BERNARD S.</div>
+      <div class="text-sm tracking-[0.3em]">THE DISTRIBUTED AUTEUR</div>
+      <div class="border-t border-white/20 pt-1 mt-1 text-xs">COSMIC EDITION // CELESTIAL</div>
+    </div>
+  </div>
+
+  <div class="fixed top-12 right-12 z-50 mix-blend-difference text-white text-right">
+    <div class="font-mono text-xs space-y-1">
+      <div>✦ COORD <span id="coordX">000</span> / <span id="coordY">000</span></div>
+      <div>✦ TIME <span id="cosmicTime">00:00:00</span></div>
+      <div>✦ ISO ∞ // F/∞</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="relative z-10">
+
+    <!-- Navigation - floating in space -->
+    <nav class="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex gap-16 bg-white/90 backdrop-blur-xl px-16 py-5 border-3 border-black shadow-[12px_12px_0_black] rounded-full">
+      <a href="#work" class="font-black text-sm uppercase tracking-[0.4em] hover:text-[var(--accent)] transition-colors relative group">
+        WORK
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <a href="#lab" class="font-black text-sm uppercase tracking-[0.4em] hover:text-[var(--accent)] transition-colors relative group">
+        LAB
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <a href="#archive" class="font-black text-sm uppercase tracking-[0.4em] hover:text-[var(--accent)] transition-colors relative group">
+        ARCHIVE
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <button id="themeToggle" class="font-black text-sm uppercase tracking-[0.4em] hover:text-[var(--accent)] transition-colors relative group">
+        COSMOS
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </button>
+    </nav>
+
+    <!-- Hero - Cosmic Cover -->
+    <section class="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <!-- Floating cosmic particles (will be animated) -->
+      <div class="absolute inset-0 pointer-events-none" id="particleField"></div>
+
+      <div class="text-center max-w-7xl mx-auto px-6 relative z-20">
+        <div class="mb-16 float-1">
+          <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-4 rounded-full border-2 border-white shadow-[8px_8px_0_black] tracking-widest">
+            ✦ COSMIC FOLIO • CELESTIAL NAVIGATION ✦
+          </span>
+        </div>
+
+        <h1 class="text-10xl md:text-[18rem] font-black uppercase leading-[0.65] tracking-tighter relative">
+          <span class="block relative z-10 animate-title float-2">Distributed</span>
+          <span class="block text-[var(--accent)] relative z-10 animate-title float-3" style="margin-top: -0.15em;">Auteur.</span>
+
+          <!-- Cosmic overlays -->
+          <span class="absolute -top-40 -right-40 text-[25rem] font-black opacity-5 select-none animate-pulse">∞</span>
+          <span class="absolute -bottom-60 -left-40 text-[25rem] font-black opacity-5 select-none animate-pulse">✦</span>
+        </h1>
+
+        <div class="w-[500px] h-4 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent mx-auto my-20 opacity-70"></div>
+
+        <p class="text-3xl font-serif italic max-w-4xl mx-auto opacity-70 leading-relaxed float-1">
+          "Architecting resilient systems with the precision of celestial mechanics, the whimsy of a bicycle through the cosmos, and the curiosity of a telescope pointed at distant galaxies."
+        </p>
+
+        <!-- IMPROVED CTA BUTTONS with hieroglyph icons -->
+        <div class="btn-group">
+          <button class="cta-primary">
+            <i data-lucide="sparkles" class="w-5 h-5"></i> Explore the Cosmos <span style="font-size:1.5rem;">𓃀</span>
+          </button>
+          <button class="cta-secondary">
+            <i data-lucide="telescope" class="w-5 h-5"></i> View Star Charts <span style="font-size:1.5rem;">𓅃</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Floating cosmic decorations -->
+      <div class="absolute bottom-40 left-20 opacity-10 float-2">
+        <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2 L12 22 M2 12 L22 12"/>
+        </svg>
+      </div>
+
+      <div class="absolute top-60 right-20 opacity-10 float-3">
+        <svg width="250" height="250" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M4 4 L20 20 M20 4 L4 20"/>
+          <circle cx="12" cy="12" r="4"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- Cosmic Marquee (FULLY PRESERVED) -->
+    <div class="marquee">
+      <div class="marquee-content">
+        <span>⚡ ELIXIR • PHOENIX • RUST • OTP • LIVEVIEW • POSTGRES • REDIS • MPC • HORIZON • NEBULA • </span>
+        <span>⚡ ELIXIR • PHOENIX • RUST • OTP • LIVEVIEW • POSTGRES • REDIS • MPC • HORIZON • NEBULA • </span>
+      </div>
+    </div>
+
+    <!-- ===== IMPROVED BENTO GRID - CELESTIAL CORE (01 // CELESTIAL CORE) ===== -->
+    <section id="work" class="py-64 px-6 max-w-7xl mx-auto">
+      <!-- Section header with improved styling -->
+      <div class="flex items-center gap-6 mb-20">
+        <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest shadow-[4px_4px_0_var(--accent)]">01 // CELESTIAL CORE</span>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+        <span class="text-sm font-mono opacity-40 tracking-widest flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-3 h-3"></i> FOLIO PP. 12-19
+        </span>
+      </div>
+
+      <!-- Section introduction -->
+      <div class="grid md:grid-cols-3 gap-16 mb-24">
+        <div class="md:col-span-2">
+          <h2 class="text-7xl font-black uppercase leading-tight">
+            <span class="text-[var(--accent)]">✦</span> Architecture<br>of the cosmos
+          </h2>
+          <div class="w-32 h-2 bg-[var(--accent)] mt-8 mb-10"></div>
+          <p class="text-2xl font-serif italic opacity-70 max-w-2xl">
+            Foundational systems engineered for resilience, scale, and celestial precision. Each component orbits in perfect harmony.
+          </p>
+        </div>
+        <div class="flex items-end justify-end">
+          <div class="text-right font-mono text-sm opacity-40 space-y-1">
+            <div class="text-xs tracking-widest">SYSTEMS • CORE • KERNEL</div>
+            <div class="flex items-center gap-2 justify-end">
+              <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
+              <span>v2.4.0 • STABLE ORBIT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main bento grid with improved layout -->
+      <div class="bento-grid">
+        <!-- Primary feature - spans 2x2 -->
+        <div class="bento-item md:col-span-2 md:row-span-2 bg-gradient-to-br from-white to-white/95 relative overflow-hidden group">
+          <!-- Decorative orbital rings -->
+          <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full border-8 border-[var(--accent)]/5 group-hover:scale-150 transition-transform duration-1000"></div>
+          <div class="absolute -left-20 -bottom-20 w-48 h-48 rounded-full border-8 border-[var(--detail)]/5 group-hover:scale-150 transition-transform duration-1000 delay-200"></div>
+
+          <span class="text-xs font-mono opacity-40 block mb-6 tracking-widest flex items-center gap-2">
+            <i data-lucide="cpu" class="w-4 h-4"></i> ✦ PRIMARY FRAMEWORK
+          </span>
+          <h3 class="text-6xl font-black mt-2 leading-tight relative">
+            Concurrency<br>Architecture
+            <span class="absolute -top-6 -right-4 text-8xl opacity-5 select-none">⌘</span>
+          </h3>
+
+          <!-- Metrics strip -->
+          <div class="flex gap-8 my-8 py-4 border-y border-black/10">
+            <div>
+              <div class="text-3xl font-black text-[var(--accent)]">2.4M</div>
+              <div class="text-xs font-mono opacity-40">msgs/sec</div>
+            </div>
+            <div>
+              <div class="text-3xl font-black text-[var(--accent)]">99.999%</div>
+              <div class="text-xs font-mono opacity-40">uptime</div>
+            </div>
+            <div>
+              <div class="text-3xl font-black text-[var(--accent)]"><1ms</div>
+              <div class="text-xs font-mono opacity-40">latency</div>
+            </div>
+          </div>
+
+          <p class="text-xl font-serif italic leading-relaxed">Supervision trees · Fault tolerance · Actor model · OTP · Celestial messaging</p>
+
+          <!-- Tech stack tags -->
+          <div class="mt-10 flex flex-wrap gap-3">
+            <span class="text-xs bg-[var(--accent)]/10 px-4 py-2 rounded-full font-mono border border-[var(--accent)]/20">ELIXIR/OTP v1.15</span>
+            <span class="text-xs bg-[var(--detail)]/5 px-4 py-2 rounded-full font-mono border border-[var(--detail)]/20">STABLE ORBIT</span>
+            <span class="text-xs bg-[var(--detail)]/5 px-4 py-2 rounded-full font-mono border border-[var(--detail)]/20">QUANTUM READY</span>
+          </div>
+
+          <!-- Progress indicator -->
+          <div class="mt-12 flex items-center gap-4">
+            <span class="text-sm font-mono">SYSTEM HEALTH</span>
+            <div class="flex-1 h-2 bg-black/10 rounded-full overflow-hidden">
+              <div class="h-full w-[98%] bg-gradient-to-r from-[var(--accent)] to-[var(--detail)] rounded-full"></div>
+            </div>
+            <span class="text-sm font-mono text-[var(--accent)]">98%</span>
+          </div>
+        </div>
+
+        <!-- Realtime card - improved -->
+        <div class="bento-item relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/0 to-[var(--accent)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <span class="text-xs font-mono opacity-40 flex items-center gap-1">
+            <i data-lucide="zap" class="w-3 h-3"></i> REALTIME
+          </span>
+          <h4 class="text-4xl font-black mt-4">LiveView</h4>
+          <p class="text-lg mt-3 font-serif italic">State sync at light speed</p>
+
+          <!-- Circular progress -->
+          <div class="mt-8 flex items-center gap-3">
+            <div class="relative w-16 h-16">
+              <svg class="w-16 h-16 transform -rotate-90">
+                <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="4" fill="none" class="opacity-10"/>
+                <circle cx="32" cy="32" r="28" stroke="var(--accent)" stroke-width="4" fill="none" stroke-dasharray="176" stroke-dashoffset="17.6" stroke-linecap="round"/>
+              </svg>
+              <span class="absolute inset-0 flex items-center justify-center text-sm font-black"><1ms</span>
+            </div>
+            <div class="text-xs font-mono">LATENCY</div>
+          </div>
+
+          <div class="mt-6 text-xs font-mono border-t border-black/10 pt-4 flex justify-between">
+            <span>WEBSOCKETS</span>
+            <span class="text-[var(--accent)]">240fps</span>
+          </div>
+        </div>
+
+        <!-- Data card - improved -->
+        <div class="bento-item relative overflow-hidden group">
+          <span class="text-xs font-mono opacity-40 flex items-center gap-1">
+            <i data-lucide="database" class="w-3 h-3"></i> DATA
+          </span>
+          <h4 class="text-4xl font-black mt-4">PostgreSQL</h4>
+          <p class="text-lg mt-3 font-serif italic">Event sourcing · CDC</p>
+
+          <!-- Wave animation -->
+          <div class="mt-8 h-12 flex items-end gap-1">
+            <div class="w-2 bg-[var(--accent)] h-4 group-hover:h-8 transition-all duration-300"></div>
+            <div class="w-2 bg-[var(--accent)] h-8 group-hover:h-12 transition-all duration-300"></div>
+            <div class="w-2 bg-[var(--accent)] h-6 group-hover:h-10 transition-all duration-300"></div>
+            <div class="w-2 bg-[var(--accent)] h-10 group-hover:h-14 transition-all duration-300"></div>
+            <div class="w-2 bg-[var(--accent)] h-5 group-hover:h-9 transition-all duration-300"></div>
+          </div>
+
+          <div class="mt-6 text-xs font-mono border-t border-black/10 pt-4 flex justify-between items-center">
+            <span>THROUGHPUT</span>
+            <span class="text-2xl font-black text-[var(--accent)]">2.4M</span>
+          </div>
+          <div class="text-[10px] font-mono opacity-40 mt-1">QPS PEAK</div>
+        </div>
+
+        <!-- Security card - improved -->
+        <div class="bento-item relative overflow-hidden group">
+          <span class="text-xs font-mono opacity-40 flex items-center gap-1">
+            <i data-lucide="shield" class="w-3 h-3"></i> SECURITY
+          </span>
+          <h4 class="text-4xl font-black mt-4">MPC/Rust</h4>
+          <p class="text-lg mt-3 font-serif italic">Threshold signatures</p>
+
+          <!-- Key visualization -->
+          <div class="mt-8 flex gap-2">
+            <div class="w-8 h-8 border-2 border-[var(--accent)] rotate-45"></div>
+            <div class="w-8 h-8 border-2 border-[var(--detail)] rotate-12"></div>
+            <div class="w-8 h-8 border-2 border-[var(--accent)] -rotate-12"></div>
+          </div>
+
+          <div class="mt-8 text-xs font-mono grid grid-cols-2 gap-2">
+            <span class="bg-black/5 px-2 py-1 rounded">tECDSA</span>
+            <span class="bg-black/5 px-2 py-1 rounded">tEd25519</span>
+          </div>
+        </div>
+
+        <!-- Infra card - improved -->
+        <div class="bento-item relative overflow-hidden group">
+          <span class="text-xs font-mono opacity-40 flex items-center gap-1">
+            <i data-lucide="server" class="w-3 h-3"></i> INFRA
+          </span>
+          <h4 class="text-4xl font-black mt-4">Redis</h4>
+          <p class="text-lg mt-3 font-serif italic">Caching · PubSub</p>
+
+          <!-- Ring visualization -->
+          <div class="mt-8 flex justify-center">
+            <div class="relative">
+              <div class="w-16 h-16 rounded-full border-4 border-[var(--accent)] border-t-transparent animate-spin"></div>
+              <div class="absolute inset-0 flex items-center justify-center text-xs font-black">99.99%</div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-xs font-mono border-t border-black/10 pt-4 text-center">
+            <span class="text-[var(--accent)]">99.9999%</span> uptime
+          </div>
+        </div>
+
+        <!-- Manifesto card - spans 2 columns, improved -->
+        <div class="bento-item md:col-span-2 relative overflow-hidden group bg-gradient-to-br from-white to-[var(--accent)]/5">
+          <!-- Decorative quote marks -->
+          <div class="absolute top-4 right-8 text-9xl font-serif opacity-5 text-[var(--accent)]">"</div>
+
+          <span class="text-xs font-mono opacity-40 block mb-4 tracking-widest flex items-center gap-2">
+            <i data-lucide="quote" class="w-4 h-4"></i> MANIFESTO
+          </span>
+
+          <p class="text-3xl md:text-4xl font-serif italic leading-relaxed relative z-10">
+            "Code that reads like a novel, structured like a film set, moves like a bicycle through the cosmos, and observes like a telescope aimed at infinity."
+          </p>
+
+          <!-- Signature -->
+          <div class="mt-8 flex items-center gap-4 justify-end">
+            <div class="w-12 h-px bg-[var(--accent)]"></div>
+            <span class="font-mono text-sm tracking-widest">— BERNARD S.</span>
+          </div>
+
+          <!-- Celestial metadata -->
+          <div class="mt-12 flex gap-8 text-xs font-mono opacity-40 border-t border-black/10 pt-6">
+            <span>✦ RATIFIED 2024.03.21</span>
+            <span>✦ COSMIC HASH 0x7F3A...B9C2</span>
+            <span>✦ ORBIT ID: CORE-001</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom stats strip -->
+      <div class="mt-24 grid grid-cols-4 gap-8 border-t border-black/10 pt-12">
+        <div>
+          <div class="text-4xl font-black text-[var(--accent)]">12</div>
+          <div class="text-xs font-mono opacity-40">GALACTIC NODES</div>
+        </div>
+        <div>
+          <div class="text-4xl font-black text-[var(--accent)]">99.999%</div>
+          <div class="text-xs font-mono opacity-40">CONSENSUS RATE</div>
+        </div>
+        <div>
+          <div class="text-4xl font-black text-[var(--accent)]">∞</div>
+          <div class="text-xs font-mono opacity-40">THEORETICAL SCALE</div>
+        </div>
+        <div>
+          <div class="text-4xl font-black text-[var(--accent)]">0</div>
+          <div class="text-xs font-mono opacity-40">DOWNTIME EVENTS</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Film Strip - Cosmic Lab (FULLY PRESERVED) -->
+    <section id="lab" class="py-64 px-6 bg-white/30 relative">
+      <div class="absolute inset-0 bg-gradient-to-b from-[var(--accent)] to-transparent opacity-5" style="transform: skewY(-3deg);"></div>
+
+      <div class="max-w-7xl mx-auto relative">
+        <div class="flex items-center gap-6 mb-32">
+          <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest">02 // COSMIC LAB</span>
+          <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+          <span class="text-sm font-mono opacity-40 tracking-widest">FOLIO PP. 20-25</span>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-32">
+          <div>
+            <h2 class="text-8xl font-black uppercase italic leading-tight">The Contact<br>Sheets</h2>
+            <div class="w-40 h-3 bg-[var(--accent)] my-16"></div>
+            <p class="text-2xl font-serif italic opacity-60 leading-relaxed">
+              Experimental prototypes, field recordings from distant galaxies, and accidental discoveries in the distributed universe.
+            </p>
+
+            <!-- Cosmic drawings -->
+            <div class="mt-20 flex gap-12 opacity-30">
+              <svg width="80" height="80" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1">
+                <path d="M12 2 L2 7 L12 12 L22 7 L12 2 Z M2 17 L12 22 L22 17 M2 12 L12 17 L22 12"/>
+              </svg>
+              <svg width="80" height="80" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1">
+                <circle cx="12" cy="12" r="8"/>
+                <path d="M12 4 L12 12 L16 16"/>
+                <path d="M4 4 L20 20 M20 4 L4 20" opacity="0.3"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="film-strip">
+            <div class="film-frame">
+              <div class="flex justify-between items-start">
+                <span class="font-mono text-sm opacity-40">EXP_001 // NEBULA</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+              <h4 class="text-4xl font-black mt-6">Mesh Network Protocol</h4>
+              <p class="font-mono text-lg mt-4">24-node Phoenix cluster · 1ms latency · Quantum failover</p>
+            </div>
+
+            <div class="film-frame">
+              <div class="flex justify-between items-start">
+                <span class="font-mono text-sm opacity-40">EXP_002 // EVENT HORIZON</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+              <h4 class="text-4xl font-black mt-6">Event Sourcing Engine</h4>
+              <p class="font-mono text-lg mt-4">Postgres CDC · Raft consensus · 500k events/sec</p>
+            </div>
+
+            <div class="film-frame">
+              <div class="flex justify-between items-start">
+                <span class="font-mono text-sm opacity-40">EXP_003 // OBSERVER</span>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+              <h4 class="text-4xl font-black mt-6">LiveView Lens</h4>
+              <p class="font-mono text-lg mt-4">Ultra low-latency UI updates · 240fps on all devices</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEW HIEROGLYPH ARCHIVE SECTION (Initialize_Dossier) -->
+    <section class="py-32 px-6 max-w-7xl mx-auto">
+      <div class="flex items-center gap-6 mb-16">
+        <span class="relative z-10 font-black uppercase tracking-[0.6em] text-[11px] flex items-center gap-4">
+          Initialize_Dossier <i data-lucide="scan" class="w-4 h-4"></i>
+        </span>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+      </div>
+
+      <div class="archive-grid">
+        <div class="hieroglyph-card">
+          <div class="hieroglyph-symbol">𓃀𓃥𓃦</div>
+          <h3 class="text-3xl font-black text-[var(--detail)]">Atomic Settlement</h3>
+          <p class="mt-4 font-serif italic text-[var(--detail)]/70">High-throughput system, $10B+ daily</p>
+          <div class="mt-6 flex gap-3">
+            <button class="text-sm border border-[var(--detail)] px-4 py-2 font-mono hover:bg-[var(--accent)] hover:text-white transition">→ settle</button>
+            <button class="text-sm bg-[var(--detail)] text-white px-4 py-2 font-mono hover:bg-[var(--accent)] transition">audit</button>
+          </div>
+        </div>
+        <div class="hieroglyph-card">
+          <div class="hieroglyph-symbol">𓅃𓅄𓅅</div>
+          <h3 class="text-3xl font-black text-[var(--detail)]">Distributed Ledger</h3>
+          <p class="mt-4 font-serif italic text-[var(--detail)]/70">Event-sourced, quantum verification</p>
+          <div class="mt-6 flex gap-3">
+            <button class="text-sm border border-[var(--detail)] px-4 py-2 font-mono hover:bg-[var(--accent)] hover:text-white">→ verify</button>
+            <button class="text-sm bg-[var(--detail)] text-white px-4 py-2 font-mono hover:bg-[var(--accent)]">prove</button>
+          </div>
+        </div>
+        <div class="hieroglyph-card">
+          <div class="hieroglyph-symbol">𓆣𓆤𓆥</div>
+          <h3 class="text-3xl font-black text-[var(--detail)]">Liquidity Mesh</h3>
+          <p class="mt-4 font-serif italic text-[var(--detail)]/70">Real-time across 24 exchanges</p>
+          <div class="mt-6 flex gap-3">
+            <button class="text-sm border border-[var(--detail)] px-4 py-2 font-mono hover:bg-[var(--accent)] hover:text-white">→ swap</button>
+            <button class="text-sm bg-[var(--detail)] text-white px-4 py-2 font-mono hover:bg-[var(--accent)]">mesh</button>
+          </div>
+        </div>
+        <div class="hieroglyph-card">
+          <div class="hieroglyph-symbol">𓊽𓊾𓋀</div>
+          <h3 class="text-3xl font-black text-[var(--detail)]">Mesh Network</h3>
+          <p class="mt-4 font-serif italic text-[var(--detail)]/70">24-node Phoenix cluster</p>
+          <div class="mt-6 flex gap-3">
+            <button class="text-sm border border-[var(--detail)] px-4 py-2 font-mono hover:bg-[var(--accent)] hover:text-white">→ nodes</button>
+            <button class="text-sm bg-[var(--detail)] text-white px-4 py-2 font-mono hover:bg-[var(--accent)]">topo</button>
+          </div>
+        </div>
+        <div class="hieroglyph-card">
+          <div class="hieroglyph-symbol">𓍯𓍰𓍱</div>
+          <h3 class="text-3xl font-black text-[var(--detail)]">Event Horizon</h3>
+          <p class="mt-4 font-serif italic text-[var(--detail)]/70">500k events/sec, Raft</p>
+          <div class="mt-6 flex gap-3">
+            <button class="text-sm border border-[var(--detail)] px-4 py-2 font-mono hover:bg-[var(--accent)] hover:text-white">→ stream</button>
+            <button class="text-sm bg-[var(--detail)] text-white px-4 py-2 font-mono hover:bg-[var(--accent)]">raft</button>
+          </div>
+        </div>
+        <div class="hieroglyph-card">
+          <div class="hieroglyph-symbol">𓎟𓎠𓎡</div>
+          <h3 class="text-3xl font-black text-[var(--detail)]">LiveView Lens</h3>
+          <p class="mt-4 font-serif italic text-[var(--detail)]/70">240fps UI updates</p>
+          <div class="mt-6 flex gap-3">
+            <button class="text-sm border border-[var(--detail)] px-4 py-2 font-mono hover:bg-[var(--accent)] hover:text-white">→ view</button>
+            <button class="text-sm bg-[var(--detail)] text-white px-4 py-2 font-mono hover:bg-[var(--accent)]">focus</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Horizontal Scroll - Cosmic Archive (FULLY PRESERVED) -->
+    <section id="archive" class="py-64 overflow-hidden">
+      <div class="flex items-center gap-6 px-6 mb-32 max-w-7xl mx-auto">
+        <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest">03 // COSMIC ARCHIVE</span>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+        <span class="text-sm font-mono opacity-40 tracking-widest">FOLIO PP. 26-35</span>
+      </div>
+
+      <div class="horizontal-scroll" id="horizontalScroll">
+        <div class="project-card">
+          <div class="aspect-video bg-[var(--detail)]/10 border-4 border-black p-3">
+            <div class="w-full h-full bg-white flex items-center justify-center relative overflow-hidden group">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M12 2 L2 7 L12 12 L22 7 L12 2 Z M2 17 L12 22 L22 17 M2 12 L12 17 L22 12"/>
+              </svg>
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-700"></div>
+            </div>
+          </div>
+          <div class="mt-12">
+            <span class="text-sm font-mono opacity-40 tracking-widest">REF_101 // FINANCIAL COSMOS</span>
+            <h3 class="text-5xl font-black mt-4">Atomic Settlement</h3>
+            <p class="font-serif italic text-2xl mt-4">High-throughput transaction system processing $10B+ daily across 12 galaxies</p>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="aspect-video bg-[var(--detail)]/10 border-4 border-black p-3">
+            <div class="w-full h-full bg-white flex items-center justify-center relative overflow-hidden group">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M5 14 L19 14 M12 12 L12 20 M8 20 L16 20"/>
+              </svg>
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-700"></div>
+            </div>
+          </div>
+          <div class="mt-12">
+            <span class="text-sm font-mono opacity-40 tracking-widest">REF_102 // CORE NEBULA</span>
+            <h3 class="text-5xl font-black mt-4">Distributed Ledger</h3>
+            <p class="font-serif italic text-2xl mt-4">Event-sourced financial core with quantum cryptographic verification</p>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="aspect-video bg-[var(--detail)]/10 border-4 border-black p-3">
+            <div class="w-full h-full bg-white flex items-center justify-center relative overflow-hidden group">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M12 2v20M2 12h20"/>
+                <circle cx="12" cy="12" r="4"/>
+              </svg>
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-700"></div>
+            </div>
+          </div>
+          <div class="mt-12">
+            <span class="text-sm font-mono opacity-40 tracking-widest">REF_103 // INFRA VERSE</span>
+            <h3 class="text-5xl font-black mt-4">Liquidity Mesh</h3>
+            <p class="font-serif italic text-2xl mt-4">Real-time market infrastructure across 24 global exchanges and 3 orbital stations</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cosmic Notebook (FULLY PRESERVED) -->
+    <section class="py-64 px-6 bg-white/50 relative">
+      <div class="absolute inset-0 bg-gradient-to-t from-[var(--detail)] to-transparent opacity-5"></div>
+
+      <div class="max-w-7xl mx-auto">
+        <div class="flex items-center gap-6 mb-32">
+          <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest">04 // COSMIC NOTEBOOK</span>
+          <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+          <span class="text-sm font-mono opacity-40 tracking-widest">FOLIO PP. 36-37</span>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-20">
+          <div>
+            <h2 class="text-7xl font-black italic leading-tight">Kinetic<br>Observations</h2>
+            <div class="w-32 h-3 bg-[var(--accent)] my-12"></div>
+            <p class="text-2xl font-serif italic opacity-60">Field notes from the distributed frontier, recorded through the cosmic telescope.</p>
+          </div>
+
+          <div class="col-span-2 grid grid-cols-2 gap-10">
+            <div class="folio-card">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mb-8">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <h4 class="font-black text-3xl">Latency Profile</h4>
+              <p class="text-lg opacity-60 mt-4 font-mono">p99 < 1ms across 24 regions</p>
+              <div class="mt-8 text-sm font-mono">MEASURED: 2024.03.15 • CELESTIAL</div>
+            </div>
+
+            <div class="folio-card">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mb-8">
+                <path d="M20 12H4M12 4v16"/>
+              </svg>
+              <h4 class="font-black text-3xl">Throughput</h4>
+              <p class="text-lg opacity-60 mt-4 font-mono">2.4M req/s sustained peak</p>
+              <div class="mt-8 text-sm font-mono">OBSERVED: 2024.03.22 • NEBULA</div>
+            </div>
+
+            <div class="folio-card col-span-2">
+              <p class="text-4xl font-serif italic leading-relaxed">
+                "The bicycle moves with the scroll, the orrery turns with the code, the telescope reveals distant architectures — all part of the same distributed universe."
+              </p>
+              <div class="mt-12 flex gap-6 justify-end">
+                <span class="text-xl font-mono">— BERNARD S., COSMIC ARCHITECT</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer - Cosmic Colophon (FULLY PRESERVED) -->
+    <footer class="py-40 bg-[var(--detail)] text-white relative">
+      <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-50"></div>
+
+      <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+        <div class="w-48 h-48 border-4 border-white mx-auto mb-20 flex items-center justify-center rotate-6 hover:rotate-0 transition-transform duration-1000 shadow-[0_0_70px_rgba(255,255,255,0.2)]">
+          <span class="text-8xl font-black">B</span>
+        </div>
+
+        <div class="flex justify-center gap-32 mb-32 font-mono text-sm tracking-[0.5em]">
+          <span class="hover:line-through cursor-pointer transition-all duration-300">ARCHIVE</span>
+          <span class="hover:line-through cursor-pointer transition-all duration-300">LABORATORY</span>
+          <span class="hover:line-through cursor-pointer transition-all duration-300">ENDORSEMENTS</span>
+          <span class="hover:line-through cursor-pointer transition-all duration-300">CORRESPONDENCE</span>
+        </div>
+
+        <div class="border-t border-white/20 pt-16">
+          <div class="opacity-30 text-sm tracking-[0.8em]">
+            MCMXCVII — MMXXIV • THE COSMIC AUTEUR • ALL RIGHTS RESERVED ACROSS ALL GALAXIES
+          </div>
+          <div class="opacity-20 text-xs mt-12 font-mono tracking-widest">
+            PRINTED IN THE REPUBLIC OF CODE • CELESTIAL EDITION
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Custom cursor - cosmic
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+
+    document.addEventListener('mousemove', (e) => {
+      gsap.to(cursor, {
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.1,
+        ease: 'power2.out'
+      });
+
+      gsap.to(ring, {
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.4,
+        ease: 'power2.out'
+      });
+
+      // Update coordinates
+      document.getElementById('coordX').textContent = String(e.clientX).padStart(3, '0');
+      document.getElementById('coordY').textContent = String(e.clientY).padStart(3, '0');
+    });
+
+    // Hover effect on interactive elements (including new hieroglyph cards)
+    document.querySelectorAll('a, button, .folio-card, .bento-item, .film-frame, .project-card, .hieroglyph-card').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        gsap.to(cursor, {
+          scale: 2,
+          duration: 0.3,
+          backgroundColor: 'var(--accent)',
+          boxShadow: '0 0 60px var(--accent)'
+        });
+        gsap.to(ring, {
+          scale: 1.3,
+          borderWidth: 3,
+          duration: 0.3,
+          borderColor: 'var(--accent)',
+          boxShadow: '0 0 70px var(--accent)'
+        });
+      });
+      el.addEventListener('mouseleave', () => {
+        gsap.to(cursor, {
+          scale: 1,
+          duration: 0.3,
+          boxShadow: '0 0 30px var(--accent)'
+        });
+        gsap.to(ring, {
+          scale: 1,
+          borderWidth: 2,
+          duration: 0.3,
+          boxShadow: '0 0 40px rgba(217, 56, 30, 0.3)'
+        });
+      });
+    });
+
+    // Cosmic Canvas
+    const canvas = document.getElementById('cosmicCanvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    let stars = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Create stars
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 2,
+        speed: 0.02 + Math.random() * 0.05
+      });
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      points.push({
+        x: e.clientX + (Math.random() - 0.5) * 20,
+        y: e.clientY + (Math.random() - 0.5) * 20,
+        age: 0
+      });
+
+      if (points.length > 45) {
+        points.shift();
+      }
+    });
+
+    function drawCosmic() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw stars
+      stars.forEach(star => {
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = 0;
+          star.x = Math.random() * canvas.width;
+        }
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + Math.random() * 0.5})`;
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw trail
+      if (points.length >= 2) {
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = 'var(--accent)';
+
+        for (let i = 0; i < points.length - 1; i++) {
+          const p1 = points[i];
+          const p2 = points[i + 1];
+          const alpha = 1 - (i / points.length) * 0.8;
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2;
+          const offsetX = (p2.y - p1.y) * 0.2;
+          const offsetY = (p1.x - p2.x) * 0.2;
+
+          ctx.quadraticCurveTo(
+            midX + offsetX,
+            midY + offsetY,
+            p2.x, p2.y
+          );
+
+          const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+          gradient.addColorStop(0, `rgba(217, 56, 30, ${alpha})`);
+          gradient.addColorStop(1, `rgba(42, 42, 42, ${alpha * 0.5})`);
+
+          ctx.strokeStyle = gradient;
+          ctx.stroke();
+        }
+
+        // Draw points
+        points.forEach((p, i) => {
+          const alpha = 1 - (i / points.length) * 0.7;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(217, 56, 30, ${alpha})`;
+          ctx.arc(p.x, p.y, 3 + (i * 0.1), 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      requestAnimationFrame(drawCosmic);
+    }
+    drawCosmic();
+
+    // Animate cosmic drawings
+    const bicycle = document.getElementById('celestialBicycle');
+    const orrery = document.getElementById('orrery');
+    const telescope = document.getElementById('cosmicTelescope');
+    const watch = document.getElementById('pocketWatch');
+
+    window.addEventListener('scroll', () => {
+      const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+
+      // Bicycle orbits
+      bicycle.style.left = -200 + (window.innerWidth + 400) * scrollPercent + 'px';
+      bicycle.style.transform = `rotate(${scrollPercent * 360}deg)`;
+
+      // Orrery rotates and moves
+      orrery.style.right = -300 + scrollPercent * 600 + 'px';
+      orrery.style.transform = `rotate(${scrollPercent * 720}deg)`;
+
+      // Telescope observes
+      telescope.style.left = -200 + scrollPercent * 400 + 'px';
+      telescope.style.transform = `rotate(${-10 + scrollPercent * 30}deg) scale(${1 + scrollPercent * 0.5})`;
+
+      // Watch ticks
+      watch.style.transform = `rotate(${scrollPercent * 1440}deg)`;
+
+      // Update page number
+      const pageNum = Math.floor(scrollPercent * 64) + 1;
+      document.getElementById('pageNumber').textContent = String(pageNum).padStart(3, '0');
+    });
+
+    // Horizontal scroll animation
+    gsap.to('#horizontalScroll', {
+      x: () => -(document.getElementById('horizontalScroll').scrollWidth - window.innerWidth),
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#archive',
+        start: 'top top',
+        end: () => '+=' + document.getElementById('horizontalScroll').scrollWidth,
+        scrub: 1.5,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true
+      }
+    });
+
+    // Cosmic themes
+    const themes = [
+      {
+        name: 'TENENBAUM',
+        bg: '#F4EBD0',
+        accent: '#D9381E',
+        detail: '#2A2A2A'
+      },
+      {
+        name: 'PENZANCE',
+        bg: '#F0E6D2',
+        accent: '#2A9D8F',
+        detail: '#264653'
+      },
+      {
+        name: 'ZISSOU',
+        bg: '#E8F0F2',
+        accent: '#E76F51',
+        detail: '#1E3A5F'
+      },
+      {
+        name: 'BUDAPEST',
+        bg: '#FAF0E6',
+        accent: '#9C89B8',
+        detail: '#342A3D'
+      },
+      {
+        name: 'DARJEELING',
+        bg: '#FDF5E6',
+        accent: '#C94F4F',
+        detail: '#4A2C2C'
+      },
+      {
+        name: 'COSMIC',
+        bg: '#1A1A2E',
+        accent: '#E94560',
+        detail: '#0F3460'
+      }
+    ];
+
+    let themeIndex = 0;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      themeIndex = (themeIndex + 1) % themes.length;
+      const theme = themes[themeIndex];
+
+      gsap.to(':root', {
+        '--bg': theme.bg,
+        '--accent': theme.accent,
+        '--detail': theme.detail,
+        duration: 0.8,
+        ease: 'power2.inOut'
+      });
+
+      document.querySelector('.fixed.top-12.left-12 div:last-child').textContent = `COSMIC EDITION // ${theme.name}`;
+    });
+
+    // Cosmic time
+    function updateCosmicTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('cosmicTime').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateCosmicTime, 1000);
+    updateCosmicTime();
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    // Initial theme name
+    document.querySelector('.fixed.top-12.left-12 div:last-child').textContent = 'COSMIC EDITION // CELESTIAL';
+  </script>
+</body>
+</html>

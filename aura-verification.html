@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA · Institutional Identity · Prime Verification</title>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@1,700;1,900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind + Lucide -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #030303;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        /* Architectural Grid */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+            pointer-events: none;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            opacity: 0.04;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .blueprint-border {
+            border: 0.5px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        /* Mechanical Brackets */
+        .bracket::before, .bracket::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-color: rgba(52, 211, 153, 0.4);
+            border-style: solid;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+        }
+        .bracket::before { top: -1px; left: -1px; border-width: 1.5px 0 0 1.5px; }
+        .bracket::after { bottom: -1px; right: -1px; border-width: 0 1.5px 1.5px 0; }
+        .bracket:hover::before, .bracket:hover::after { border-color: #34d399; width: 20px; height: 20px; }
+
+        .tech-label {
+            font-size: 8px;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            color: #f4f4f5;
+            font-weight: 800;
+        }
+
+        /* Up-and-Down Scanning Beam */
+        @keyframes scan-up-down {
+            0% { top: 10%; opacity: 0; }
+            10% { opacity: 1; }
+            50% { top: 90%; }
+            90% { opacity: 1; }
+            100% { top: 10%; opacity: 0; }
+        }
+        .animate-scan-up-down {
+            animation: scan-up-down 2s ease-in-out infinite;
+        }
+
+        .step-dot {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-up {
+            animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sensor Styling */
+        .sensor-btn {
+            background: radial-gradient(circle at center, rgba(52, 211, 153, 0.05) 0%, rgba(0,0,0,1) 100%);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            box-shadow: 0 0 30px rgba(52, 211, 153, 0.1);
+        }
+
+        .sensor-active {
+            border-color: rgba(52, 211, 153, 0.8) !important;
+            box-shadow: 0 0 60px rgba(52, 211, 153, 0.25), inset 0 0 30px rgba(52, 211, 153, 0.15);
+            transform: scale(1.02);
+        }
+
+        /* Ring background decor */
+        .ring-decor {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            box-shadow: 0 0 40px rgba(52, 211, 153, 0.05);
+        }
+
+        /* CTA Primary */
+        .cta-primary {
+            position: relative;
+            overflow: hidden;
+            transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
+        }
+        .cta-primary::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: -1;
+        }
+        .btn-emerald::before { background: white; }
+        .btn-emerald:hover { color: black; }
+        .btn-emerald:hover::before { height: 100%; }
+
+        /* Secondary Button */
+        .btn-secondary {
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            border-color: rgba(52, 211, 153, 0.3);
+            background: rgba(52, 211, 153, 0.05);
+        }
+
+        /* Kinetic Arrow */
+        .arrow-wrap { display: inline-flex; overflow: hidden; width: 14px; height: 14px; position: relative; }
+        .arrow-icon { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        button:hover .arrow-icon { transform: translate(150%, -150%); }
+        .arrow-clone { position: absolute; top: 150%; left: -150%; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        button:hover .arrow-clone { transform: translate(150%, -150%); }
+
+        /* Progress Circle */
+        .progress-ring {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Scroll */
+        .scroll-soft::-webkit-scrollbar {
+            width: 3px;
+        }
+        .scroll-soft::-webkit-scrollbar-thumb {
+            background: rgba(52, 211, 153, 0.2);
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="selection:bg-emerald-400 selection:text-black">
+
+    <div class="bg-grid"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="min-h-screen flex items-center justify-center p-4 relative z-20">
+        <div class="w-full max-w-[460px] bg-[#0a0a0a] blueprint-border rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.9)] relative bracket">
+
+            <!-- Progress & Status -->
+            <div class="pt-8 px-8 pb-4 flex justify-between items-center">
+                <div class="flex gap-1.5" id="stepDots">
+                    <div class="step-dot w-10 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]"></div>
+                    <div class="step-dot w-4 h-1.5 rounded-full bg-white/10"></div>
+                    <div class="step-dot w-4 h-1.5 rounded-full bg-white/10"></div>
+                    <div class="step-dot w-4 h-1.5 rounded-full bg-white/10"></div>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-1.5 bg-emerald-400/5 rounded-full border border-emerald-400/20">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                    </span>
+                    <span class="text-[8px] font-mono font-black tracking-[0.3em] text-emerald-400 uppercase">ENCRYPTED_L3</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Content -->
+            <div id="contentArea" class="px-8 pb-10 min-h-[560px] flex flex-col justify-center overflow-y-auto scroll-soft"></div>
+
+            <!-- Global Standards Footer -->
+            <div class="border-t border-white/5 px-8 py-5 flex items-center justify-between text-white/30 text-[8px] font-mono tracking-widest">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="fingerprint" class="w-3 h-3"></i>
+                    <span>NIST_BIOMETRIC_800-76</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield" class="w-3 h-3"></i>
+                    <span>ISO_27001_CERTIFIED</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            lucide.createIcons();
+
+            const state = {
+                step: 'welcome',
+                consentGiven: false,
+                scanActive: false,
+                scanProgress: 0,
+                scanInterval: null,
+                retryCount: 0,
+                maxRetries: 2,
+                verificationId: 'AURA_ID_' + Math.random().toString(36).substring(2,10).toUpperCase()
+            };
+
+            const contentDiv = document.getElementById('contentArea');
+            const stepDots = document.querySelectorAll('.step-dot');
+
+            function updateStepDots(step) {
+                const order = ['welcome', 'consent', 'biometric', 'verifying', 'success'];
+                let idx = order.indexOf(step);
+                if (step === 'verifying' || step === 'success') idx = 3;
+
+                stepDots.forEach((dot, i) => {
+                    if (i === idx) {
+                        dot.className = 'step-dot w-10 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_20px_#34d399]';
+                    } else {
+                        dot.className = 'step-dot w-4 h-1.5 rounded-full bg-white/10';
+                    }
+                });
+            }
+
+            // ----- RENDER FUNCTIONS -----
+
+            function renderWelcome() {
+                return `
+                    <div class="fade-up space-y-6">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-400/10 flex items-center justify-center border border-emerald-400/20">
+                            <i data-lucide="shield-check" class="w-8 h-8 text-emerald-400"></i>
+                        </div>
+                        <h1 class="text-3xl font-serif italic font-black uppercase tracking-tight">Identity <br/><span class="text-emerald-400">Verification</span></h1>
+                        <p class="text-zinc-500 text-sm leading-relaxed font-light">Verify your institutional credentials to access the AURA Mainnet. Your biometric signature is encrypted at the hardware layer.</p>
+
+                        <div class="space-y-4 py-4 border-y border-white/5">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><i data-lucide="scan-face" class="w-4 h-4 text-emerald-400"></i></div>
+                                <div><p class="text-xs font-bold uppercase tracking-widest">Liveness 3.0</p><p class="text-[9px] text-zinc-600 font-mono">Anti-Spoofing enabled</p></div>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><i data-lucide="lock" class="w-4 h-4 text-emerald-400"></i></div>
+                                <div><p class="text-xs font-bold uppercase tracking-widest">Zero Knowledge</p><p class="text-[9px] text-zinc-600 font-mono">Private key sharding active</p></div>
+                            </div>
+                        </div>
+
+                        <button onclick="window.nextStep('consent')" class="cta-primary btn-emerald w-full py-5 bg-emerald-400 text-black rounded-full text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(52,211,153,0.2)]">
+                            <span>Initialize Handshake</span>
+                            <span class="arrow-wrap"><i data-lucide="arrow-up-right" class="w-4 h-4 arrow-icon"></i><i data-lucide="arrow-up-right" class="w-4 h-4 arrow-clone"></i></span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            function renderConsent() {
+                return `
+                    <div class="fade-up space-y-6">
+                        <h2 class="text-2xl font-serif italic font-black uppercase">Privacy & Consent</h2>
+
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-5 text-xs text-zinc-400 max-h-36 overflow-y-auto scroll-soft leading-relaxed">
+                            <p class="mb-3"><span class="text-emerald-400">GDPR Art. 9(2)(a)</span> – Explicit biometric consent required for institutional verification.</p>
+                            <ul class="list-disc ml-4 space-y-1.5 text-[10px] text-zinc-500">
+                                <li>Biometric data is one‑way salted hash — never stored as raw image</li>
+                                <li>Cross‑referenced with global watchlists (PEP, sanctions, adverse media)</li>
+                                <li>Data retention: 30 days or until regulatory obligation met</li>
+                                <li>You may withdraw consent, but verification will fail</li>
+                            </ul>
+                        </div>
+
+                        <label class="flex items-start gap-3 cursor-pointer group mt-4">
+                            <input type="checkbox" id="consentCheck" class="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-emerald-400 focus:ring-emerald-400/50">
+                            <span class="text-xs text-zinc-300 group-hover:text-white transition-colors">I confirm acceptance of the <span class="text-emerald-400 underline">data processing notice</span> and consent to biometric verification.</span>
+                        </label>
+
+                        <div class="space-y-3 pt-4">
+                            <button id="confirmBtn" onclick="window.handleConsent()" class="w-full py-5 bg-white/5 border border-white/10 rounded-full text-xs font-black uppercase tracking-[0.3em] opacity-50 cursor-not-allowed transition-all" disabled>
+                                Confirm & Continue
+                            </button>
+                            <button onclick="window.nextStep('welcome')" class="w-full py-3 text-zinc-500 text-xs uppercase tracking-widest btn-secondary rounded-full">
+                                ← Back
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderBiometric() {
+                return `
+                    <div class="fade-up text-center flex flex-col items-center">
+                        <h2 class="text-2xl font-serif italic font-black uppercase">Sensor Calibration</h2>
+                        <p class="text-[9px] text-zinc-500 mt-2 font-mono uppercase tracking-[0.2em]">Press and hold to transmit entropy</p>
+
+                        <div class="relative my-12 flex justify-center items-center">
+                            <!-- Background Ring Decor -->
+                            <div class="absolute w-72 h-72 rounded-full border border-emerald-400/10"></div>
+                            <div class="absolute w-64 h-64 rounded-full border border-white/5"></div>
+                            <div class="absolute w-56 h-56 rounded-full border border-emerald-400/20" style="box-shadow: 0 0 60px rgba(52, 211, 153, 0.1);"></div>
+
+                            <!-- The Sensor Button -->
+                            <button id="sensorBtn"
+                                class="relative w-52 h-52 rounded-full sensor-btn flex items-center justify-center overflow-hidden touch-none"
+                                onpointerdown="window.handleStart(event)"
+                                onpointerup="window.handleEnd(event)"
+                                onpointerleave="window.handleEnd(event)"
+                                oncontextmenu="return false;"
+                            >
+                                <!-- Progress SVG -->
+                                <svg class="absolute inset-0 w-full h-full progress-ring">
+                                    <circle id="progCircle" cx="104" cy="104" r="94" fill="none" stroke="#34d399" stroke-width="4" stroke-dasharray="590.6" stroke-dashoffset="590.6" stroke-linecap="round" class="transition-all duration-100 ease-linear" style="filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.5));" />
+                                </svg>
+
+                                <!-- Icon -->
+                                <div id="sensorIcon" class="z-20 transition-all duration-500">
+                                    <i data-lucide="fingerprint" class="w-16 h-16 text-zinc-600"></i>
+                                </div>
+
+                                <!-- Scanning Beam -->
+                                <div id="scanLine" class="absolute left-6 right-6 h-0.5 bg-emerald-400 shadow-[0_0_15px_#34d399] opacity-0 pointer-events-none z-10"></div>
+                            </button>
+                        </div>
+
+                        <div id="statusMsg" class="h-10 text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
+                            ⬇️ press & hold the sensor ⬇️
+                        </div>
+
+                        <div class="mt-6 flex gap-3">
+                            <div class="w-2 h-2 rounded-full bg-emerald-400/20" id="ind-1"></div>
+                            <div class="w-2 h-2 rounded-full bg-emerald-400/20" id="ind-2"></div>
+                            <div class="w-2 h-2 rounded-full bg-emerald-400/20" id="ind-3"></div>
+                        </div>
+
+                        <div class="mt-8 flex gap-4 w-full">
+                            <button onclick="window.nextStep('consent')" class="flex-1 py-3 border border-white/10 text-zinc-400 text-xs rounded-full uppercase tracking-widest btn-secondary">
+                                ← Back
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderVerifying() {
+                return `
+                    <div class="fade-up flex flex-col items-center py-8">
+                        <div class="relative w-28 h-28 mb-10">
+                            <div class="absolute inset-0 border-4 border-emerald-400/10 rounded-full"></div>
+                            <div class="absolute inset-0 border-4 border-t-emerald-400 rounded-full animate-spin"></div>
+                            <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="activity" class="w-8 h-8 text-emerald-400"></i></div>
+                        </div>
+                        <h3 class="text-2xl font-serif italic font-black uppercase">Auth_Processing</h3>
+                        <p class="text-[9px] text-zinc-600 font-mono mt-2 uppercase tracking-widest">Broadcasting to 14 validator nodes</p>
+
+                        <div class="w-full mt-10 space-y-3 font-mono text-[9px]">
+                            <div class="flex justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                                <span class="text-zinc-500 uppercase">Biometric Hash</span>
+                                <span class="text-emerald-400">0x72...FA1</span>
+                            </div>
+                            <div class="flex justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                                <span class="text-zinc-500 uppercase">Cryptographic_Verify</span>
+                                <span class="text-emerald-400">VERIFIED</span>
+                            </div>
+                            <div class="flex justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                                <span class="text-zinc-500 uppercase">Sanctions_Screen</span>
+                                <span class="text-amber-400 animate-pulse" id="sanctionStatus">SCANNING...</span>
+                            </div>
+                        </div>
+                        <p class="text-[7px] text-zinc-700 mt-8 font-mono">REF: ${state.verificationId}</p>
+                    </div>
+                `;
+            }
+
+            function renderSuccess() {
+                return `
+                    <div class="fade-up flex flex-col items-center py-6 text-center">
+                        <div class="w-24 h-24 rounded-full bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center mb-8">
+                            <i data-lucide="shield-check" class="w-12 h-12 text-emerald-400"></i>
+                        </div>
+                        <h2 class="text-3xl font-serif italic font-black uppercase">Verified</h2>
+                        <p class="text-zinc-400 text-sm mt-3 mb-10 leading-relaxed">Identity authenticated. <br/> Your institutional session is now live.</p>
+
+                        <div class="w-full bg-white/5 border border-white/10 p-6 rounded-3xl mb-10 text-left font-mono">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-[8px] text-zinc-600 uppercase">Global_ID</span>
+                                <span class="text-[10px] text-white">${state.verificationId}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-[8px] text-zinc-600 uppercase">Protocol</span>
+                                <span class="text-[10px] text-emerald-400">AURA_MAINNET_V2</span>
+                            </div>
+                        </div>
+
+                        <button onclick="location.reload()" class="cta-primary btn-emerald w-full py-5 bg-emerald-400 text-black rounded-full text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3">
+                            <span>Access Dashboard</span>
+                            <span class="arrow-wrap"><i data-lucide="arrow-right" class="w-4 h-4 arrow-icon"></i><i data-lucide="arrow-right" class="w-4 h-4 arrow-clone"></i></span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            // ----- STEP LOGIC -----
+
+            window.nextStep = (step) => {
+                state.step = step;
+                updateStepDots(step);
+
+                let html = '';
+                if (step === 'welcome') html = renderWelcome();
+                if (step === 'consent') html = renderConsent();
+                if (step === 'biometric') html = renderBiometric();
+                if (step === 'verifying') html = renderVerifying();
+                if (step === 'success') html = renderSuccess();
+
+                contentDiv.innerHTML = html;
+                lucide.createIcons();
+
+                if (step === 'consent') attachConsentHandler();
+                if (step === 'verifying') {
+                    setTimeout(() => {
+                        const sanction = document.getElementById('sanctionStatus');
+                        if (sanction) sanction.innerHTML = 'CLEAR';
+                        setTimeout(() => window.nextStep('success'), 800);
+                    }, 2000);
+                }
+
+                // Clean up scan state
+                if (step !== 'biometric' && state.scanInterval) {
+                    clearInterval(state.scanInterval);
+                    state.scanActive = false;
+                }
+            };
+
+            // ----- CONSENT HANDLER -----
+            function attachConsentHandler() {
+                const check = document.getElementById('consentCheck');
+                const btn = document.getElementById('confirmBtn');
+
+                if (check && btn) {
+                    check.addEventListener('change', (e) => {
+                        const checked = e.target.checked;
+                        btn.disabled = !checked;
+                        btn.classList.toggle('opacity-50', !checked);
+                        btn.classList.toggle('cursor-not-allowed', !checked);
+                        btn.classList.toggle('bg-emerald-400/90', checked);
+                        btn.classList.toggle('text-black', checked);
+                        btn.classList.toggle('border-emerald-400', checked);
+                    });
+                }
+            }
+
+            window.handleConsent = () => {
+                if (document.getElementById('consentCheck')?.checked) {
+                    state.consentGiven = true;
+                    window.nextStep('biometric');
+                }
+            };
+
+            // ----- SCANNER LOGIC WITH RETRY -----
+            window.handleStart = (e) => {
+                if (state.scanActive) return;
+                if (state.retryCount >= state.maxRetries) {
+                    document.getElementById('statusMsg').innerHTML = '<span class="text-rose-400">max retries exceeded · reload</span>';
+                    return;
+                }
+
+                e.target.setPointerCapture?.(e.pointerId);
+
+                state.scanActive = true;
+                state.scanProgress = 0;
+
+                const btn = document.getElementById('sensorBtn');
+                const line = document.getElementById('scanLine');
+                const icon = document.getElementById('sensorIcon');
+                const msg = document.getElementById('statusMsg');
+
+                if (btn) btn.classList.add('sensor-active');
+                if (line) {
+                    line.style.opacity = '1';
+                    line.classList.add('animate-scan-up-down');
+                }
+                if (icon) {
+                    icon.classList.add('scale-90');
+                    icon.querySelector('i')?.classList.add('text-emerald-400');
+                }
+                if (msg) msg.innerHTML = '<span class="text-emerald-400">📡 transmitting_biometric_data...</span>';
+
+                // Pulse indicators
+                for (let i = 1; i <= 3; i++) {
+                    const ind = document.getElementById(`ind-${i}`);
+                    if (ind) ind.classList.add('animate-pulse', 'bg-emerald-400/60');
+                }
+
+                if (state.scanInterval) clearInterval(state.scanInterval);
+                state.scanInterval = setInterval(() => {
+                    state.scanProgress += 1.5;
+                    const offset = 590.6 - (590.6 * (state.scanProgress / 100));
+                    const circle = document.getElementById('progCircle');
+                    if (circle) circle.style.strokeDashoffset = offset;
+
+                    if (state.scanProgress >= 100) {
+                        clearInterval(state.scanInterval);
+                        window.nextStep('verifying');
+                    }
+                }, 30);
+            };
+
+            window.handleEnd = (e) => {
+                if (!state.scanActive) return;
+
+                if (e?.target && e.pointerId) {
+                    e.target.releasePointerCapture?.(e.pointerId);
+                }
+
+                // Only trigger retry if scan wasn't complete
+                if (state.scanProgress < 100) {
+                    clearInterval(state.scanInterval);
+                    state.scanActive = false;
+                    state.retryCount++;
+
+                    resetBiometricUI();
+
+                    const msg = document.getElementById('statusMsg');
+                    if (msg) {
+                        if (state.retryCount < state.maxRetries) {
+                            msg.innerHTML = `<span class="text-amber-400">⚠️ partial scan (${state.retryCount}/${state.maxRetries}) — press & hold again</span>`;
+                        } else {
+                            msg.innerHTML = `<span class="text-rose-400">❌ too many attempts, reload page</span>`;
+                        }
+                    }
+                }
+            };
+
+            function resetBiometricUI() {
+                const btn = document.getElementById('sensorBtn');
+                const line = document.getElementById('scanLine');
+                const icon = document.getElementById('sensorIcon');
+
+                if (btn) btn.classList.remove('sensor-active');
+                if (line) {
+                    line.style.opacity = '0';
+                    line.classList.remove('animate-scan-up-down');
+                }
+                if (icon) {
+                    icon.classList.remove('scale-90');
+                    icon.querySelector('i')?.classList.remove('text-emerald-400');
+                }
+
+                const circle = document.getElementById('progCircle');
+                if (circle) circle.style.strokeDashoffset = 590.6;
+
+                for (let i = 1; i <= 3; i++) {
+                    const ind = document.getElementById(`ind-${i}`);
+                    if (ind) ind.classList.remove('animate-pulse', 'bg-emerald-400/60');
+                }
+            }
+
+            // Initialize
+            window.onload = () => window.nextStep('welcome');
+        })();
+    </script>
+</body>
+</html>

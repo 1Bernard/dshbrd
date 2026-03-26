@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Institutional Ledger Terminal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        obsidian: '#030303',
+                        emerald: {
+                            400: '#34d399',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #030303;
+        }
+
+        body {
+            color: white;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+            pointer-events: none;
+        }
+
+        .blueprint-border {
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Mechanical Brackets */
+        .bracket::before, .bracket::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-color: rgba(52, 211, 153, 0.4);
+            border-style: solid;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .bracket::before { top: -1px; left: -1px; border-width: 1.5px 0 0 1.5px; }
+        .bracket::after { bottom: -1px; right: -1px; border-width: 0 1.5px 1.5px 0; }
+
+        .tech-label {
+            font-size: 8px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            color: #71717a;
+            font-weight: 700;
+        }
+
+        /* Table Styling */
+        .table-row {
+            transition: background 0.2s ease;
+            border-bottom: 0.5px solid rgba(255,255,255,0.05);
+        }
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .table-row.selected-row {
+            background: rgba(52, 211, 153, 0.04);
+        }
+
+        /* Side Drawer */
+        #side-drawer {
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+        }
+        #side-drawer.open {
+            transform: translateX(0);
+        }
+
+        /* Batch Action Bar */
+        #batch-actions {
+            transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #batch-actions.visible {
+            transform: translateY(0);
+        }
+
+        /* Filter Panel */
+        #filter-panel {
+            transform: translateY(-20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #filter-panel.visible {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -100px;
+            z-index: 500;
+            background: #0f0f0f;
+            border: 1px solid rgba(52, 211, 153, 0.5);
+            border-radius: 9999px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #toast.visible {
+            bottom: 30px;
+        }
+
+        .status-pill {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Custom Checkbox - FIXED VERSION */
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .custom-checkbox:hover {
+            border-color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .custom-checkbox:checked {
+            background: #34d399 !important;
+            border-color: #34d399 !important;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: #030303;
+            font-size: 12px;
+            font-weight: bold;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Ensure master checkbox also gets the same styling */
+        #master-checkbox:checked {
+            background: #34d399 !important;
+            border-color: #34d399 !important;
+        }
+
+        .row-check:checked {
+            background: #34d399 !important;
+            border-color: #34d399 !important;
+        }
+
+        /* Input Styling */
+        input, select {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important;
+            outline: none !important;
+        }
+        input:focus, select:focus {
+            border-color: #34d399 !important;
+            background: rgba(52, 211, 153, 0.05) !important;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #080808;
+            z-index: 20;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* Icon button hover effects */
+        .icon-btn {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .icon-btn:hover {
+            background: rgba(52, 211, 153, 0.1);
+            color: #34d399;
+        }
+
+        /* Active filter chip */
+        .filter-chip {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: #34d399;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col p-4 md:p-8">
+    <div class="bg-grid"></div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+        <span class="text-xs font-bold uppercase tracking-widest text-white" id="toast-msg">Ledger Synchronized</span>
+    </div>
+
+    <!-- BATCH ACTION BAR -->
+    <div id="batch-actions" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[400] bg-zinc-900 border border-white/10 px-6 py-4 rounded-2xl flex items-center gap-8 shadow-2xl shadow-black">
+        <div class="flex items-center gap-3 pr-8 border-r border-white/5">
+            <span class="text-xs font-bold text-emerald-400" id="selected-count">0</span>
+            <span class="tech-label">Items Selected</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="batchValidate()" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-emerald-400 transition-all">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Validate All
+            </button>
+            <button onclick="batchDelete()" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-rose-400 transition-all">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+            </button>
+            <button onclick="clearSelection()" class="text-[10px] font-bold text-zinc-600 hover:text-white uppercase ml-4">Cancel</button>
+        </div>
+    </div>
+
+    <!-- FILTER PANEL -->
+    <div id="filter-panel" class="absolute top-32 right-8 z-[300] bg-zinc-900 border border-white/10 rounded-2xl p-6 w-96 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h4 class="font-serif italic font-black uppercase text-sm">Filter Ledger</h4>
+            <button onclick="toggleFilters()" class="p-1 hover:bg-white/5 rounded">
+                <i data-lucide="x" class="w-4 h-4 text-zinc-500"></i>
+            </button>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Status Filter -->
+            <div class="space-y-3">
+                <label class="tech-label text-emerald-400">Status</label>
+                <div class="flex gap-2">
+                    <button onclick="applyFilter('status', 'VALIDATED')" class="filter-status-btn flex-1 py-3 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest hover:border-emerald-400/30 transition-all">Validated</button>
+                    <button onclick="applyFilter('status', 'PENDING')" class="filter-status-btn flex-1 py-3 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest hover:border-emerald-400/30 transition-all">Pending</button>
+                </div>
+            </div>
+
+            <!-- Asset Filter -->
+            <div class="space-y-3">
+                <label class="tech-label text-emerald-400">Asset</label>
+                <select id="asset-filter" onchange="applyAssetFilter(this.value)" class="w-full p-3 rounded-xl text-xs font-mono">
+                    <option value="">All Assets</option>
+                    <option value="BTC/USD">BTC/USD</option>
+                    <option value="ETH/EUR">ETH/EUR</option>
+                    <option value="SOL/USD">SOL/USD</option>
+                    <option value="USDC/DAI">USDC/DAI</option>
+                    <option value="XRP/JPY">XRP/JPY</option>
+                </select>
+            </div>
+
+            <!-- Amount Range -->
+            <div class="space-y-3">
+                <label class="tech-label text-emerald-400">Amount Range (USD)</label>
+                <div class="flex gap-2">
+                    <input type="number" id="min-amount" placeholder="Min" class="w-1/2 p-3 rounded-xl text-xs font-mono">
+                    <input type="number" id="max-amount" placeholder="Max" class="w-1/2 p-3 rounded-xl text-xs font-mono">
+                </div>
+            </div>
+
+            <!-- Search in Hash -->
+            <div class="space-y-3">
+                <label class="tech-label text-emerald-400">Transaction Hash</label>
+                <input type="text" id="hash-filter" oninput="applyHashFilter(this.value)" placeholder="0x..." class="w-full p-3 rounded-xl text-xs font-mono">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2 pt-4">
+                <button onclick="clearAllFilters()" class="flex-1 py-3 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">
+                    Clear All
+                </button>
+                <button onclick="applyAllFilters()" class="flex-1 py-3 bg-emerald-400 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all">
+                    Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDE COMMAND DRAWER -->
+    <div id="side-drawer" class="fixed top-0 right-0 h-full w-full max-w-md z-[350] border-l border-white/10 p-8 flex flex-col">
+        <div class="flex justify-between items-start mb-12">
+            <div>
+                <h3 class="text-2xl font-serif italic font-black uppercase">Terminal <span class="text-emerald-400">Editor</span></h3>
+                <p class="tech-label opacity-40 mt-2" id="drawer-hash">TX_ID: 0x0000...</p>
+            </div>
+            <button onclick="closeDrawer()" class="p-2 rounded-full hover:bg-white/5 transition-colors">
+                <i data-lucide="x" class="w-6 h-6 text-zinc-500"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 space-y-8 overflow-y-auto pr-2 custom-scrollbar">
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="tech-label">Asset_Identifier</label>
+                    <input type="text" id="edit-asset" class="w-full p-4 rounded-xl text-sm font-mono">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="tech-label">Operation_Protocol</label>
+                    <select id="edit-type" class="w-full p-4 rounded-xl text-sm font-mono">
+                        <option value="ATOMIC_SWAP" class="bg-zinc-900">ATOMIC_SWAP</option>
+                        <option value="SETTLEMENT" class="bg-zinc-900">SETTLEMENT</option>
+                        <option value="LIQUIDITY_PROV" class="bg-zinc-900">LIQUIDITY_PROV</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="tech-label">Volume_Metric (USD)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-mono text-sm">$</span>
+                        <input type="number" id="edit-amount" class="w-full p-4 pl-8 rounded-xl text-sm font-mono">
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="tech-label">Verification_Status</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setDrawerStatus('VALIDATED')" id="drawer-status-VALIDATED" class="py-4 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest transition-all">Validated</button>
+                        <button onclick="setDrawerStatus('PENDING')" id="drawer-status-PENDING" class="py-4 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest transition-all">Pending</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-emerald-400/5 rounded-3xl border border-emerald-400/10">
+                <p class="tech-label text-emerald-400 mb-3">Audit_Trail</p>
+                <div class="space-y-2 font-mono text-[10px] text-zinc-500">
+                    <p>> Auth_User: Admin_L4</p>
+                    <p>> Protocol: V2.1_Mainnet</p>
+                    <p>> Timestamp: <span id="drawer-time">--:--</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-8 border-t border-white/5">
+            <button onclick="saveFromDrawer()" class="w-full py-5 bg-emerald-400 text-black rounded-full text-xs font-black uppercase tracking-[0.2em] hover:bg-white transition-all shadow-xl shadow-emerald-400/10">
+                Commit Changes
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN TERMINAL VIEW -->
+    <div class="max-w-7xl mx-auto relative z-10 h-full flex flex-col w-full overflow-hidden">
+
+        <!-- Header / Toolbar -->
+        <div class="flex-shrink-0 flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+            <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_15px_#34d399]"></div>
+                    <h1 class="text-3xl font-serif italic font-black uppercase tracking-tighter">Terminal <span class="text-emerald-400">Ledger</span></h1>
+                </div>
+                <div class="flex gap-4">
+                    <span class="tech-label">Network: Secure_Link</span>
+                    <span class="tech-label text-emerald-400">Sync: Active</span>
+                </div>
+                <!-- Active Filters Display -->
+                <div id="active-filters" class="flex gap-2 mt-2"></div>
+            </div>
+
+            <div class="flex items-center gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/10">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 icon-btn" onclick="document.getElementById('command-search').focus()"></i>
+                    <input type="text" id="command-search" oninput="handleSearch()" placeholder="Quick search (hash or asset)..." class="bg-black/40 border border-white/5 rounded-xl py-3 pl-11 pr-4 text-[10px] font-mono text-white placeholder:text-zinc-700 focus:outline-none focus:border-emerald-400/30 w-96 transition-all uppercase tracking-widest">
+                </div>
+                <button onclick="toggleFilters()" class="px-4 py-3 rounded-xl hover:bg-emerald-400/10 text-zinc-500 hover:text-emerald-400 transition-all icon-btn relative" title="Filter Options">
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                    <span id="filter-indicator" class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 hidden"></span>
+                </button>
+                <button onclick="exportToCSV()" class="px-4 py-3 rounded-xl hover:bg-emerald-400/10 text-zinc-500 hover:text-emerald-400 transition-all icon-btn" title="Export to CSV">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="blueprint-border rounded-[32px] bg-zinc-950/40 backdrop-blur-2xl overflow-hidden bracket flex-1 flex flex-col min-h-0">
+            <div class="overflow-auto flex-1 relative custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 bg-zinc-950">
+                            <th class="pl-8 pr-4 py-5 w-10">
+                                <input type="checkbox" id="master-checkbox" class="custom-checkbox" onclick="toggleSelectAll(this)">
+                            </th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 cursor-pointer hover:text-emerald-400" onclick="sortBy('hash')">
+                                Transaction_Hash <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-1"></i>
+                            </th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 cursor-pointer hover:text-emerald-400" onclick="sortBy('asset')">
+                                Asset <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-1"></i>
+                            </th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 cursor-pointer hover:text-emerald-400 text-right" onclick="sortBy('amount')">
+                                Volume_USD <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-1"></i>
+                            </th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 text-center">Status</th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 text-center">Confidence</th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 text-center">Age</th>
+                            <th class="px-6 py-5 tech-label text-zinc-500 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledger-body">
+                        <!-- Data Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer / Numerical Pagination with Stats -->
+            <div class="flex-shrink-0 px-8 py-6 border-t border-white/10 bg-black/40 flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Record_Range: <span class="text-white" id="range-label">1 - 10</span></span>
+                    <div class="h-4 w-[1px] bg-white/10 hidden sm:block"></div>
+                    <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest hidden sm:inline">Total: <span class="text-white" id="total-count">0</span></span>
+                    <div class="h-4 w-[1px] bg-white/10 hidden sm:block"></div>
+                    <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest hidden sm:inline">Validated: <span class="text-emerald-400" id="validated-count">0</span></span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <select id="page-size" onchange="changePageSize(this.value)" class="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono">
+                        <option value="10">10 / page</option>
+                        <option value="25">25 / page</option>
+                        <option value="50">50 / page</option>
+                        <option value="100">100 / page</option>
+                    </select>
+                    <button onclick="changePage(-1)" id="prev-btn" class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:border-emerald-400/50 disabled:opacity-20 transition-all">
+                        <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Previous
+                    </button>
+                    <span class="text-[10px] font-mono text-zinc-600" id="page-info">Page 1 of 1</span>
+                    <button onclick="changePage(1)" id="next-btn" class="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:border-emerald-400/50 transition-all">
+                        Next <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        let perPage = 10;
+        let activeEditIndex = null;
+        let activeDrawerStatus = 'VALIDATED';
+        let currentFilters = {
+            status: '',
+            asset: '',
+            minAmount: '',
+            maxAmount: '',
+            hash: ''
+        };
+        let sortConfig = {
+            column: null,
+            direction: 'asc'
+        };
+
+        // Initialize Data with enhanced fields
+        function init() {
+            const assets = ['BTC/USD', 'ETH/EUR', 'SOL/USD', 'USDC/DAI', 'XRP/JPY'];
+            const protocols = ['ATOMIC_SWAP', 'SETTLEMENT', 'LIQUIDITY_PROV'];
+            for(let i=0; i<124; i++) {
+                const confidence = Math.floor(Math.random() * 30) + 70; // 70-100%
+                rawData.push({
+                    id: i,
+                    hash: `0x${Math.random().toString(16).slice(2, 8)}...${Math.random().toString(16).slice(2, 6)}`.toUpperCase(),
+                    asset: assets[i % assets.length],
+                    amount: Math.floor(Math.random() * 5000000) + 100000,
+                    status: Math.random() > 0.3 ? 'VALIDATED' : 'PENDING',
+                    time: new Date(Date.now() - Math.random() * 86400000 * 30).toLocaleTimeString('en-GB') + ' UTC',
+                    type: protocols[Math.floor(Math.random() * 3)],
+                    confidence: confidence,
+                    age: Math.floor(Math.random() * 30) + 1 // days
+                });
+            }
+            filteredData = [...rawData];
+            updateStats();
+            render();
+            lucide.createIcons();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const validated = filteredData.filter(item => item.status === 'VALIDATED').length;
+            document.getElementById('validated-count').innerText = validated;
+            document.getElementById('total-count').innerText = filteredData.length;
+        }
+
+        // Render Table
+        function render() {
+            const container = document.getElementById('ledger-body');
+            container.innerHTML = '';
+
+            const start = (currentPage - 1) * perPage;
+            const end = start + perPage;
+            const pageItems = filteredData.slice(start, end);
+
+            pageItems.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                const globalIndex = rawData.findIndex(r => r.id === item.id);
+                tr.className = 'table-row group opacity-0';
+
+                const statusColor = item.status === 'VALIDATED' ? 'emerald' : 'amber';
+                const confidenceColor = item.confidence > 90 ? 'emerald' : item.confidence > 80 ? 'amber' : 'zinc';
+
+                tr.innerHTML = `
+                    <td class="pl-8 pr-4 py-5"><input type="checkbox" class="custom-checkbox row-check" data-id="${item.id}" onchange="updateBatchUI()"></td>
+                    <td class="px-6 py-5 font-mono text-[11px] text-zinc-400 tracking-tighter">${item.hash}</td>
+                    <td class="px-6 py-5">
+                        <p class="text-xs font-black text-white italic uppercase">${item.asset}</p>
+                        <p class="text-[8px] font-mono text-zinc-600">${item.type}</p>
+                    </td>
+                    <td class="px-6 py-5 text-right font-mono text-xs font-bold text-white">
+                        $${item.amount.toLocaleString()}
+                    </td>
+                    <td class="px-6 py-5 text-center">
+                        <span class="status-pill bg-${statusColor}-400/10 text-${statusColor}-400 border border-${statusColor}-400/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-5 text-center">
+                        <span class="text-${confidenceColor}-400 text-[10px] font-mono font-bold">${item.confidence}%</span>
+                    </td>
+                    <td class="px-6 py-5 text-center font-mono text-[10px] text-zinc-500">${item.age}d</td>
+                    <td class="px-6 py-5 text-right">
+                        <button onclick="openDrawer(${globalIndex})" class="p-2.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-emerald-400/10 text-zinc-500 hover:text-emerald-400 transition-all">
+                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(tr);
+            });
+
+            gsap.to('.table-row', { opacity: 1, x: 0, stagger: 0.04, duration: 0.5, startAt: {x: -15} });
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = end >= filteredData.length;
+
+            // Update range and page info
+            document.getElementById('range-label').innerText = `${start + 1} - ${Math.min(end, filteredData.length)}`;
+            document.getElementById('page-info').innerText = `Page ${currentPage} of ${Math.ceil(filteredData.length / perPage)}`;
+            lucide.createIcons();
+
+            syncMasterCheckbox();
+            updateStats();
+        }
+
+        // Sorting function
+        window.sortBy = (column) => {
+            if (sortConfig.column === column) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.column = column;
+                sortConfig.direction = 'asc';
+            }
+
+            filteredData.sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+
+                if (column === 'amount') {
+                    return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                    return 0;
+                }
+            });
+
+            render();
+            showToast(`Sorted by ${column} (${sortConfig.direction})`);
+        };
+
+        // Filter Functions
+        window.applyFilter = (type, value) => {
+            currentFilters.status = value;
+            document.querySelectorAll('.filter-status-btn').forEach(btn => {
+                btn.classList.remove('filter-chip');
+            });
+            event.target.classList.add('filter-chip');
+            applyAllFilters();
+        };
+
+        window.applyAssetFilter = (value) => {
+            currentFilters.asset = value;
+            applyAllFilters();
+        };
+
+        window.applyHashFilter = (value) => {
+            currentFilters.hash = value;
+            applyAllFilters();
+        };
+
+        window.applyAllFilters = () => {
+            const minAmount = document.getElementById('min-amount')?.value;
+            const maxAmount = document.getElementById('max-amount')?.value;
+
+            currentFilters.minAmount = minAmount;
+            currentFilters.maxAmount = maxAmount;
+
+            filteredData = rawData.filter(item => {
+                // Status filter
+                if (currentFilters.status && item.status !== currentFilters.status) return false;
+
+                // Asset filter
+                if (currentFilters.asset && item.asset !== currentFilters.asset) return false;
+
+                // Amount range
+                if (currentFilters.minAmount && item.amount < parseInt(currentFilters.minAmount)) return false;
+                if (currentFilters.maxAmount && item.amount > parseInt(currentFilters.maxAmount)) return false;
+
+                // Hash search
+                if (currentFilters.hash && !item.hash.toLowerCase().includes(currentFilters.hash.toLowerCase())) return false;
+
+                return true;
+            });
+
+            currentPage = 1;
+            updateActiveFiltersDisplay();
+            render();
+            showToast('Filters applied');
+        };
+
+        window.clearAllFilters = () => {
+            currentFilters = {
+                status: '',
+                asset: '',
+                minAmount: '',
+                maxAmount: '',
+                hash: ''
+            };
+
+            // Reset UI elements
+            document.getElementById('command-search').value = '';
+            document.getElementById('asset-filter').value = '';
+            document.getElementById('min-amount').value = '';
+            document.getElementById('max-amount').value = '';
+            document.getElementById('hash-filter').value = '';
+
+            document.querySelectorAll('.filter-status-btn').forEach(btn => {
+                btn.classList.remove('filter-chip');
+            });
+
+            filteredData = [...rawData];
+            currentPage = 1;
+            updateActiveFiltersDisplay();
+            render();
+            showToast('All filters cleared');
+        };
+
+        window.handleSearch = () => {
+            const searchTerm = document.getElementById('command-search').value.toLowerCase();
+            currentFilters.hash = searchTerm;
+            applyAllFilters();
+        };
+
+        function updateActiveFiltersDisplay() {
+            const container = document.getElementById('active-filters');
+            container.innerHTML = '';
+
+            let hasFilters = false;
+
+            if (currentFilters.status) {
+                container.innerHTML += `<span class="px-2 py-1 bg-emerald-400/10 border border-emerald-400/30 rounded text-[8px] font-mono text-emerald-400">status:${currentFilters.status}</span>`;
+                hasFilters = true;
+            }
+            if (currentFilters.asset) {
+                container.innerHTML += `<span class="px-2 py-1 bg-emerald-400/10 border border-emerald-400/30 rounded text-[8px] font-mono text-emerald-400">asset:${currentFilters.asset}</span>`;
+                hasFilters = true;
+            }
+            if (currentFilters.minAmount || currentFilters.maxAmount) {
+                container.innerHTML += `<span class="px-2 py-1 bg-emerald-400/10 border border-emerald-400/30 rounded text-[8px] font-mono text-emerald-400">amount:${currentFilters.minAmount || '0'}-${currentFilters.maxAmount || '∞'}</span>`;
+                hasFilters = true;
+            }
+
+            document.getElementById('filter-indicator').style.display = hasFilters ? 'block' : 'none';
+        }
+
+        // Export to CSV
+        window.exportToCSV = () => {
+            const headers = ['Transaction Hash', 'Asset', 'Type', 'Volume (USD)', 'Status', 'Confidence', 'Age (days)'];
+            const csvData = filteredData.map(item => [
+                item.hash,
+                item.asset,
+                item.type,
+                item.amount,
+                item.status,
+                item.confidence + '%',
+                item.age
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            csv += csvData.map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ledger_export_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+
+            showToast('Exported to CSV');
+        };
+
+        // Page size change
+        window.changePageSize = (size) => {
+            perPage = parseInt(size);
+            currentPage = 1;
+            render();
+            showToast(`Showing ${size} items per page`);
+        };
+
+        // Toggle filter panel
+        window.toggleFilters = () => {
+            const panel = document.getElementById('filter-panel');
+            panel.classList.toggle('visible');
+        };
+
+        // Sync Master Checkbox
+        function syncMasterCheckbox() {
+            const checkboxes = document.querySelectorAll('.row-check');
+            const masterCheck = document.getElementById('master-checkbox');
+            if (checkboxes.length > 0) {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                masterCheck.checked = allChecked;
+            } else {
+                masterCheck.checked = false;
+            }
+        }
+
+        // Batch Actions
+        window.updateBatchUI = () => {
+            const checked = document.querySelectorAll('.row-check:checked');
+            const batchBar = document.getElementById('batch-actions');
+            document.getElementById('selected-count').innerText = checked.length;
+
+            if (checked.length > 0) {
+                batchBar.classList.add('visible');
+            } else {
+                batchBar.classList.remove('visible');
+            }
+            syncMasterCheckbox();
+        };
+
+        window.clearSelection = () => {
+            document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+            document.getElementById('master-checkbox').checked = false;
+            updateBatchUI();
+        };
+
+        window.toggleSelectAll = (source) => {
+            document.querySelectorAll('.row-check').forEach(c => c.checked = source.checked);
+            updateBatchUI();
+        };
+
+        window.batchValidate = () => {
+            const checked = document.querySelectorAll('.row-check:checked');
+            checked.forEach(cb => {
+                const id = parseInt(cb.dataset.id);
+                const item = rawData.find(r => r.id === id);
+                if (item) item.status = 'VALIDATED';
+            });
+            showToast(`Validated ${checked.length} items`);
+            clearSelection();
+            render();
+        };
+
+        window.batchDelete = () => {
+            const checked = document.querySelectorAll('.row-check:checked');
+            const idsToDelete = new Set(Array.from(checked).map(cb => parseInt(cb.dataset.id)));
+
+            rawData = rawData.filter(item => !idsToDelete.has(item.id));
+            filteredData = filteredData.filter(item => !idsToDelete.has(item.id));
+
+            showToast(`Removed ${checked.length} items`);
+            clearSelection();
+
+            if (currentPage > 1 && (currentPage - 1) * perPage >= filteredData.length) {
+                currentPage = Math.max(1, currentPage - 1);
+            }
+            updateStats();
+            render();
+        };
+
+        // Drawer Functions
+        window.openDrawer = (globalIndex) => {
+            const item = rawData[globalIndex];
+            activeEditIndex = globalIndex;
+            document.getElementById('drawer-hash').innerText = `TX_ID: ${item.hash}`;
+            document.getElementById('edit-asset').value = item.asset;
+            document.getElementById('edit-amount').value = item.amount;
+            document.getElementById('edit-type').value = item.type || 'SETTLEMENT';
+            document.getElementById('drawer-time').innerText = item.time;
+            setDrawerStatus(item.status);
+            document.getElementById('side-drawer').classList.add('open');
+        };
+
+        window.closeDrawer = () => {
+            document.getElementById('side-drawer').classList.remove('open');
+        };
+
+        window.setDrawerStatus = (status) => {
+            activeDrawerStatus = status;
+            ['VALIDATED', 'PENDING'].forEach(s => {
+                const btn = document.getElementById(`drawer-status-${s}`);
+                if (btn) {
+                    btn.className = "py-4 rounded-xl border border-white/5 text-[10px] font-black uppercase tracking-widest transition-all text-zinc-600 hover:border-emerald-400/30";
+                }
+            });
+            const activeBtn = document.getElementById(`drawer-status-${status}`);
+            if (activeBtn) {
+                activeBtn.className = "py-4 rounded-xl border border-emerald-400 bg-emerald-400/10 text-[10px] font-black uppercase tracking-widest text-emerald-400";
+            }
+        };
+
+        window.saveFromDrawer = () => {
+            const item = rawData[activeEditIndex];
+            if (!item) return;
+
+            item.asset = document.getElementById('edit-asset').value;
+            item.amount = parseInt(document.getElementById('edit-amount').value);
+            item.type = document.getElementById('edit-type').value;
+            item.status = activeDrawerStatus;
+
+            showToast('Ledger entry updated');
+            closeDrawer();
+            render();
+        };
+
+        // Pagination
+        window.changePage = (dir) => {
+            currentPage += dir;
+            render();
+        };
+
+        // Toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.innerText = msg;
+            toast.classList.add('visible');
+            setTimeout(() => toast.classList.remove('visible'), 3000);
+        }
+
+        // Close filter panel when clicking outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('filter-panel');
+            const filterBtn = e.target.closest('[onclick="toggleFilters()"]');
+            if (!panel.contains(e.target) && !filterBtn && panel.classList.contains('visible')) {
+                panel.classList.remove('visible');
+            }
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>

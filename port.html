@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bernard Owusu Ansah // Senior Software Engineer | Fintech Systems Architect</title>
+  <meta name="description" content="Senior Software Engineer specializing in Elixir, Phoenix, and distributed fintech systems. Building payment infrastructures with Event Sourcing and CQRS.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@1,900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #F4EBD0;
+      --accent: #D9381E;
+      --detail: #2A2A2A;
+      --paper: #F9F3E5;
+      --liquid: #D9381E;
+      --grid: rgba(0,0,0,0.08);
+      --border-trail: #D9381E;
+      --cosmic-1: rgba(217, 56, 30, 0.05);
+      --cosmic-2: rgba(42, 42, 42, 0.03);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--detail);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom Cursor */
+    #cursor {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      mix-blend-mode: difference;
+      box-shadow: 0 0 30px var(--accent);
+    }
+
+    #cursor-ring {
+      position: fixed;
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 40px rgba(217, 56, 30, 0.3);
+    }
+
+    /* Cosmic Border Trail Canvas */
+    #cosmicCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.7;
+      filter: blur(1px);
+    }
+
+    /* Cosmic Drawings */
+    .cosmic-drawings {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    .drawing {
+      position: absolute;
+      opacity: 0.15;
+      filter: drop-shadow(0 0 20px var(--accent));
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .drawing:hover {
+      opacity: 0.3;
+      filter: drop-shadow(0 0 40px var(--accent));
+    }
+
+    /* Celestial Bicycle */
+    #celestialBicycle {
+      position: fixed;
+      bottom: 40px;
+      left: -200px;
+      width: 220px;
+      height: 140px;
+      z-index: 9996;
+      pointer-events: none;
+      filter: drop-shadow(0 0 30px var(--accent));
+      opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+
+    /* Orrery */
+    #orrery {
+      position: fixed;
+      top: 10%;
+      right: -300px;
+      width: 400px;
+      height: 400px;
+      z-index: 9995;
+      pointer-events: none;
+      opacity: 0.2;
+      transform-origin: center;
+    }
+
+    /* Cosmic Telescope */
+    #cosmicTelescope {
+      position: fixed;
+      top: 60%;
+      left: -200px;
+      width: 180px;
+      height: 240px;
+      z-index: 9995;
+      pointer-events: none;
+      opacity: 0.2;
+      transform-origin: center;
+    }
+
+    /* Pocket Watch */
+    #pocketWatch {
+      position: fixed;
+      top: 20%;
+      left: 5%;
+      width: 100px;
+      height: 100px;
+      z-index: 9995;
+      pointer-events: none;
+      opacity: 0.1;
+      animation: float 10s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    /* Paper grain */
+    .paper-grain {
+      position: fixed;
+      inset: 0;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJmIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBudW1PY3RhdmVzPSIzIiAvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNmKSIgb3BhY2l0eT0iMC4wNCIgLz48L3N2Zz4=');
+      pointer-events: none;
+      z-index: 9994;
+      opacity: 0.08;
+      mix-blend-mode: multiply;
+    }
+
+    /* Cosmic grid */
+    .cosmic-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--cosmic-1) 1px, transparent 1px),
+        linear-gradient(90deg, var(--cosmic-2) 1px, transparent 1px);
+      background-size: 100px 100px;
+      pointer-events: none;
+      z-index: 9993;
+      opacity: 0.8;
+      transform: perspective(500px) rotateX(2deg);
+      animation: gridPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes gridPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Vignette */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.15) 100%);
+      pointer-events: none;
+      z-index: 9992;
+    }
+
+    /* Magazine cover elements */
+    .cover-strip {
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      z-index: 9001;
+      mix-blend-mode: overlay;
+      opacity: 0.1;
+      transform: rotate(-1deg);
+      animation: stripGlow 4s ease-in-out infinite;
+    }
+
+    .cover-strip-bottom {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(90deg, transparent, var(--detail), transparent);
+      z-index: 9001;
+      mix-blend-mode: overlay;
+      opacity: 0.1;
+      transform: rotate(1deg);
+      animation: stripGlow 6s ease-in-out infinite reverse;
+    }
+
+    @keyframes stripGlow {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 0.2; }
+    }
+
+    /* Marginalia */
+    .marginalia {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%) rotate(180deg);
+      writing-mode: vertical-rl;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5em;
+      opacity: 0.15;
+      z-index: 9980;
+      pointer-events: none;
+      color: var(--detail);
+      text-shadow: 0 0 10px var(--accent);
+    }
+
+    .marginalia-left {
+      left: 20px;
+      transform: translateY(-50%);
+    }
+
+    /* Page number */
+    .page-number {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      opacity: 0.3;
+      z-index: 9980;
+      mix-blend-mode: difference;
+      color: white;
+      text-shadow: 0 0 15px var(--accent);
+    }
+
+    /* Cards */
+    .folio-card {
+      background: rgba(255, 255, 255, 0.95);
+      border: 3px solid var(--detail);
+      box-shadow: 15px 15px 0 var(--detail), 0 0 50px rgba(217, 56, 30, 0.1);
+      padding: 2.5rem;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      backdrop-filter: blur(4px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .folio-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(217, 56, 30, 0.1), transparent);
+      transition: left 0.8s ease;
+    }
+
+    .folio-card:hover::before {
+      left: 100%;
+    }
+
+    .folio-card::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      right: -5px;
+      bottom: -5px;
+      background: var(--accent);
+      z-index: -1;
+      opacity: 0.1;
+      transition: all 0.4s ease;
+    }
+
+    .folio-card:hover {
+      transform: translate(-8px, -8px);
+      box-shadow: 25px 25px 0 var(--accent), 0 0 80px rgba(217, 56, 30, 0.2);
+    }
+
+    /* Bento Items */
+    .bento-item {
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid var(--detail);
+      padding: 2.5rem;
+      box-shadow: 15px 15px 0 var(--detail), 0 0 30px rgba(217, 56, 30, 0.1);
+      backdrop-filter: blur(4px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bento-item::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(217,56,30,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      transform: rotate(30deg);
+    }
+
+    .bento-item:hover::before {
+      opacity: 1;
+    }
+
+    .bento-item:hover {
+      transform: translate(-8px, -8px);
+      box-shadow: 20px 20px 0 var(--accent), 0 0 60px rgba(217, 56, 30, 0.3);
+    }
+
+    /* Film Strip */
+    .film-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) transparent;
+    }
+
+    .film-strip::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .film-strip::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
+      box-shadow: 0 0 20px var(--accent);
+    }
+
+    .film-frame {
+      background: var(--paper);
+      border: 3px solid var(--detail);
+      padding: 2.5rem;
+      box-shadow: 12px 12px 0 var(--detail), 0 0 30px rgba(217, 56, 30, 0.1);
+      transform: rotate(var(--rot, -0.8deg));
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      backdrop-filter: blur(2px);
+    }
+
+    .film-frame:nth-child(even) {
+      --rot: 1.8deg;
+    }
+
+    .film-frame:hover {
+      transform: rotate(0deg) scale(1.03);
+      box-shadow: 18px 18px 0 var(--accent), 0 0 60px rgba(217, 56, 30, 0.3);
+    }
+
+    /* Marquee */
+    .marquee {
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+      background: linear-gradient(90deg, var(--detail), var(--accent), var(--detail));
+      color: white;
+      padding: 1.8rem 0;
+      transform: rotate(-1.2deg);
+      margin: 8rem 0;
+      border-top: 3px solid var(--accent);
+      border-bottom: 3px solid var(--detail);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: marqueeGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes marqueeGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.9; }
+    }
+
+    .marquee-content {
+      display: inline-block;
+      animation: marqueeScroll 30s linear infinite;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      letter-spacing: 0.4em;
+      text-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+
+    @keyframes marqueeScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Floating animations */
+    .float-1 {
+      animation: cosmicFloat 14s ease-in-out infinite;
+    }
+
+    .float-2 {
+      animation: cosmicFloat 18s ease-in-out infinite reverse;
+    }
+
+    .float-3 {
+      animation: cosmicFloat 22s ease-in-out infinite;
+    }
+
+    @keyframes cosmicFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-30px) rotate(2deg); }
+      75% { transform: translateY(20px) rotate(-2deg); }
+    }
+
+    /* Iris opening */
+    .iris {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--detail) 0%, black 100%);
+      z-index: 10001;
+      pointer-events: none;
+      transform: scale(1);
+      transform-origin: center;
+      animation: cosmicIris 2.2s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    }
+
+    @keyframes cosmicIris {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    /* Horizontal Scroll */
+    .horizontal-scroll {
+      display: flex;
+      width: max-content;
+      gap: 5rem;
+      padding: 0 10vw;
+      will-change: transform;
+    }
+
+    .project-card {
+      width: 600px;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    /* Hieroglyph Cards */
+    .hieroglyph-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid var(--detail);
+      padding: 2.5rem;
+      box-shadow: 15px 15px 0 var(--detail), 0 0 30px rgba(217, 56, 30, 0.1);
+      backdrop-filter: blur(4px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hieroglyph-card:hover {
+      transform: translate(-8px, -8px);
+      box-shadow: 25px 25px 0 var(--accent), 0 0 80px rgba(217, 56, 30, 0.2);
+    }
+
+    .hieroglyph-symbol {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 1rem;
+      filter: drop-shadow(2px 4px 6px var(--accent));
+      opacity: 0.9;
+    }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 1024px) {
+      .archive-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .archive-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CTA buttons */
+    .cta-primary {
+      background: var(--detail);
+      color: white;
+      border: 3px solid var(--detail);
+      padding: 1.2rem 3rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 12px 12px 0 var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .cta-primary:hover {
+      transform: translate(-6px, -6px);
+      box-shadow: 18px 18px 0 var(--accent);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .cta-secondary {
+      background: transparent;
+      border: 3px solid var(--detail);
+      padding: 1.2rem 3rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 8px 8px 0 var(--detail);
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--detail);
+    }
+
+    .cta-secondary:hover {
+      background: white;
+      box-shadow: 12px 12px 0 var(--accent);
+      border-color: var(--accent);
+      transform: translate(-4px, -4px);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      margin-top: 3rem;
+    }
+
+    /* Hiero float */
+    .hiero-float {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.1;
+      pointer-events: none;
+      z-index: 9990;
+      font-family: 'Times New Roman', serif;
+      filter: drop-shadow(0 0 10px var(--accent));
+    }
+
+    /* Bento grid */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .bento-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Tech Stack Grid */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1280px) {
+      .tech-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .tech-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Experience Timeline */
+    .timeline-item {
+      position: relative;
+      padding-left: 3rem;
+      border-left: 3px solid var(--detail);
+      padding-bottom: 4rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -10px;
+      top: 0;
+      width: 20px;
+      height: 20px;
+      background: var(--accent);
+      border: 4px solid var(--bg);
+      border-radius: 50%;
+    }
+
+    .timeline-item:last-child {
+      border-left: 3px solid transparent;
+    }
+
+    /* Skill Tags */
+    .skill-tag {
+      display: inline-block;
+      background: var(--detail);
+      color: white;
+      padding: 0.5rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      margin: 0.25rem;
+      transition: all 0.3s;
+    }
+
+    .skill-tag:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* Contact Links */
+    .contact-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      border: 2px solid var(--detail);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: var(--detail);
+      background: white;
+    }
+
+    .contact-link:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      transform: translate(-4px, -4px);
+      box-shadow: 8px 8px 0 var(--detail);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(217, 56, 30, 0.1);
+      border: 1px solid var(--accent);
+      padding: 0.5rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Metrics Display */
+    .metric-large {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .metric-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Iris Opening -->
+  <div class="iris"></div>
+
+  <!-- Cosmic Cover Strips -->
+  <div class="cover-strip"></div>
+  <div class="cover-strip-bottom"></div>
+
+  <!-- Marginalia -->
+  <div class="marginalia">✦ BERNARD OWUSU ANSAH • FINTECH SYSTEMS ARCHITECT ✦</div>
+  <div class="marginalia marginalia-left">✦ ELIXIR • PHOENIX • EVENT SOURCING • CQRS • ACCRA, GHANA ✦</div>
+
+  <!-- Page Number -->
+  <div class="page-number" id="pageNumber">001</div>
+
+  <!-- Custom Cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Cosmic Border Trail Canvas -->
+  <canvas id="cosmicCanvas"></canvas>
+
+  <!-- Cosmic Drawings -->
+  <div class="cosmic-drawings">
+    <!-- Celestial Bicycle -->
+    <svg id="celestialBicycle" viewBox="0 0 120 80">
+      <circle cx="30" cy="60" r="16" fill="none" stroke="var(--detail)" stroke-width="4" stroke-dasharray="3 3"/>
+      <circle cx="30" cy="60" r="8" fill="var(--accent)" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="90" cy="60" r="16" fill="none" stroke="var(--detail)" stroke-width="4" stroke-dasharray="3 3"/>
+      <circle cx="90" cy="60" r="8" fill="var(--accent)" stroke="var(--detail)" stroke-width="2"/>
+      <line x1="30" y1="44" x2="50" y2="20" stroke="var(--detail)" stroke-width="4" stroke-linecap="round"/>
+      <line x1="90" y1="44" x2="70" y2="20" stroke="var(--detail)" stroke-width="4" stroke-linecap="round"/>
+      <polyline points="50,20 60,32 70,20" stroke="var(--detail)" stroke-width="4" fill="none"/>
+      <rect x="54" y="32" width="12" height="24" fill="var(--accent)" rx="2" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="60" cy="52" r="2" fill="white"/>
+      <line x1="30" y1="60" x2="90" y2="60" stroke="var(--detail)" stroke-width="3" stroke-dasharray="4 4"/>
+      <circle cx="60" cy="20" r="8" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="2 2"/>
+    </svg>
+
+    <!-- Orrery -->
+    <svg id="orrery" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="40" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2"/>
+      <circle cx="100" cy="100" r="70" fill="none" stroke="var(--detail)" stroke-width="1" stroke-dasharray="3 3"/>
+      <circle cx="100" cy="100" r="100" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 4"/>
+      <circle cx="100" cy="100" r="4" fill="var(--accent)"/>
+      <circle cx="140" cy="100" r="6" fill="none" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="100" cy="40" r="8" fill="none" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="170" cy="100" r="4" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="100" cy="170" r="10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    </svg>
+
+    <!-- Cosmic Telescope -->
+    <svg id="cosmicTelescope" viewBox="0 0 80 100">
+      <circle cx="40" cy="30" r="15" fill="none" stroke="var(--detail)" stroke-width="3"/>
+      <circle cx="40" cy="35" r="10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/>
+      <rect x="30" y="40" width="20" height="40" fill="none" stroke="var(--detail)" stroke-width="3"/>
+      <line x1="30" y1="60" x2="10" y2="80" stroke="var(--detail)" stroke-width="2"/>
+      <line x1="50" y1="60" x2="70" y2="80" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="40" cy="20" r="3" fill="var(--accent)" opacity="0.5"/>
+    </svg>
+
+    <!-- Pocket Watch -->
+    <svg id="pocketWatch" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="var(--detail)" stroke-width="3"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="2 2"/>
+      <line x1="50" y1="50" x2="50" y2="20" stroke="var(--detail)" stroke-width="2"/>
+      <line x1="50" y1="50" x2="75" y2="50" stroke="var(--detail)" stroke-width="2"/>
+      <circle cx="50" cy="50" r="5" fill="var(--accent)"/>
+    </svg>
+
+    <!-- Floating hieroglyphs -->
+    <div class="hiero-float" style="top: 15%; left: 8%;">𓃀𓃥𓃦</div>
+    <div class="hiero-float" style="bottom: 20%; right: 12%; transform:rotate(15deg);">𓅃𓅄𓅅</div>
+    <div class="hiero-float" style="top: 40%; right: 25%;">𓆣𓆤𓆥</div>
+    <div class="hiero-float" style="bottom: 30%; left: 20%;">𓊽𓊾𓋀</div>
+    <div class="hiero-float" style="top: 70%; left: 30%;">𓍯𓍰𓍱</div>
+  </div>
+
+  <!-- Overlays -->
+  <div class="paper-grain"></div>
+  <div class="cosmic-grid"></div>
+  <div class="vignette"></div>
+
+  <!-- Fixed HUD -->
+  <div class="fixed top-12 left-12 z-50 mix-blend-difference">
+    <div class="text-white text-xs font-mono space-y-1">
+      <div class="text-2xl font-black tracking-tighter">BOA</div>
+      <div class="text-sm tracking-[0.3em]">SYSTEMS ARCHITECT</div>
+      <div class="border-t border-white/20 pt-1 mt-1 text-xs">FINTECH • DISTRIBUTED SYSTEMS</div>
+    </div>
+  </div>
+
+  <div class="fixed top-12 right-12 z-50 mix-blend-difference text-white text-right">
+    <div class="font-mono text-xs space-y-1">
+      <div>✦ COORD <span id="coordX">000</span> / <span id="coordY">000</span></div>
+      <div>✦ TIME <span id="cosmicTime">00:00:00</span></div>
+      <div class="status-badge mt-2">
+        <span class="status-dot"></span>
+        <span>ALL SYSTEMS OPERATIONAL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="relative z-10">
+
+    <!-- Navigation -->
+    <nav class="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex gap-12 bg-white/90 backdrop-blur-xl px-12 py-4 border-3 border-black shadow-[12px_12px_0_black] rounded-full">
+      <a href="#about" class="font-black text-sm uppercase tracking-[0.3em] hover:text-[var(--accent)] transition-colors relative group">
+        About
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <a href="#stack" class="font-black text-sm uppercase tracking-[0.3em] hover:text-[var(--accent)] transition-colors relative group">
+        Stack
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <a href="#experience" class="font-black text-sm uppercase tracking-[0.3em] hover:text-[var(--accent)] transition-colors relative group">
+        Experience
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <a href="#projects" class="font-black text-sm uppercase tracking-[0.3em] hover:text-[var(--accent)] transition-colors relative group">
+        Projects
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </a>
+      <button id="themeToggle" class="font-black text-sm uppercase tracking-[0.3em] hover:text-[var(--accent)] transition-colors relative group">
+        Theme
+        <span class="absolute -bottom-1 left-0 w-0 h-px bg-[var(--accent)] transition-all duration-300 group-hover:w-full"></span>
+      </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center relative overflow-hidden pt-32">
+      <div class="absolute inset-0 pointer-events-none" id="particleField"></div>
+
+      <div class="text-center max-w-7xl mx-auto px-6 relative z-20">
+        <div class="mb-12 float-1">
+          <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-4 rounded-full border-2 border-white shadow-[8px_8px_0_black] tracking-widest">
+            ✦ SENIOR SOFTWARE ENGINEER • FINTECH SPECIALIST ✦
+          </span>
+        </div>
+
+        <h1 class="text-8xl md:text-[14rem] font-black uppercase leading-[0.75] tracking-tighter relative">
+          <span class="block relative z-10 animate-title float-2">Bernard</span>
+          <span class="block text-[var(--accent)] relative z-10 animate-title float-3" style="margin-top: -0.1em;">Owusu Ansah</span>
+          <span class="absolute -top-20 -right-20 text-[20rem] font-black opacity-5 select-none animate-pulse">∞</span>
+        </h1>
+
+        <div class="w-[400px] h-3 bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent mx-auto my-16 opacity-70"></div>
+
+        <p class="text-2xl md:text-3xl font-serif italic max-w-4xl mx-auto opacity-70 leading-relaxed float-1">
+          "Specializing in building payment infrastructures with Elixir and Ruby on Rails. Transforming monolithic architectures into distributed systems with Event Sourcing and CQRS."
+        </p>
+
+        <!-- Location & Status -->
+        <div class="mt-12 flex items-center justify-center gap-8">
+          <div class="flex items-center gap-3 font-mono text-sm opacity-60">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+            <span>ACCRA, GHANA</span>
+          </div>
+          <div class="w-px h-6 bg-black/30"></div>
+          <div class="flex items-center gap-3 font-mono text-sm opacity-60">
+            <i data-lucide="plane" class="w-4 h-4"></i>
+            <span>OPEN TO RELOCATION</span>
+          </div>
+          <div class="w-px h-6 bg-black/30"></div>
+          <div class="flex items-center gap-3 font-mono text-sm">
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span>AVAILABLE FOR HIRE</span>
+          </div>
+        </div>
+
+        <!-- Contact Buttons -->
+        <div class="btn-group mt-16">
+          <a href="mailto:bernardansah5@gmail.com" class="cta-primary">
+            <i data-lucide="mail" class="w-5 h-5"></i> Get In Touch
+          </a>
+          <a href="https://linkedin.com/in/bernardowusuansah" target="_blank" class="cta-secondary">
+            <i data-lucide="linkedin" class="w-5 h-5"></i> LinkedIn
+          </a>
+          <a href="https://github.com/bernardansah" target="_blank" class="cta-secondary">
+            <i data-lucide="github" class="w-5 h-5"></i> GitHub
+          </a>
+        </div>
+
+        <!-- Quick Contact Info -->
+        <div class="mt-16 flex flex-wrap justify-center gap-6">
+          <a href="tel:+233508996116" class="contact-link">
+            <i data-lucide="phone" class="w-4 h-4"></i>
+            <span>+233 50 899 6116</span>
+          </a>
+          <a href="mailto:bernardansah5@gmail.com" class="contact-link">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+            <span>bernardansah5@gmail.com</span>
+          </a>
+          <a href="#" class="contact-link">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+            <span>Blog</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="marquee">
+      <div class="marquee-content">
+        <span>⚡ ELIXIR • PHOENIX • OTP • LIVEVIEW • RUBY ON RAILS • EVENT SOURCING • CQRS • POSTGRESQL • RABBITMQ • REDIS • DOCKER • KUBERNETES • AWS • </span>
+        <span>⚡ ELIXIR • PHOENIX • OTP • LIVEVIEW • RUBY ON RAILS • EVENT SOURCING • CQRS • POSTGRESQL • RABBITMQ • REDIS • DOCKER • KUBERNETES • AWS • </span>
+      </div>
+    </div>
+
+    <!-- About / Professional Summary -->
+    <section id="about" class="py-32 px-6 max-w-7xl mx-auto">
+      <div class="flex items-center gap-6 mb-20">
+        <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest shadow-[4px_4px_0_var(--accent)]">00 // PROFESSIONAL SUMMARY</span>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-16 items-start">
+        <div>
+          <h2 class="text-6xl md:text-7xl font-black uppercase leading-tight mb-8">
+            Architecting<br>
+            <span class="text-[var(--accent)]">Resilient</span><br>
+            Systems
+          </h2>
+          <div class="w-32 h-2 bg-[var(--accent)] mb-8"></div>
+        </div>
+
+        <div class="space-y-6">
+          <p class="text-xl font-serif italic opacity-80 leading-relaxed">
+            Software Engineer specializing in Elixir (Phoenix) and distributed fintech systems. Designed and maintained Event-Sourced (ES) and CQRS-based architectures handling high transaction volumes with 99.99% uptime.
+          </p>
+          <p class="text-lg opacity-70 leading-relaxed">
+            Strong focus on production reliability, performance optimization, BDD-driven development, and scalable microservices. Currently leading engineering efforts at AppsNmobile Solutions, processing millions in monthly transactions.
+          </p>
+          <p class="text-lg opacity-70 leading-relaxed">
+            Promoted from Intern to Lead Engineer through demonstrated expertise in architecting high-throughput systems, optimizing database performance, and championing best practices in distributed systems design.
+          </p>
+
+          <!-- Key Metrics -->
+          <div class="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-black/10">
+            <div>
+              <div class="metric-large">50K+</div>
+              <div class="metric-label">Requests/Min</div>
+            </div>
+            <div>
+              <div class="metric-large">99.99%</div>
+              <div class="metric-label">Uptime</div>
+            </div>
+            <div>
+              <div class="metric-large">&lt;200ms</div>
+              <div class="metric-label">Latency</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Stack -->
+    <section id="stack" class="py-32 px-6 bg-white/30 relative">
+      <div class="absolute inset-0 bg-gradient-to-b from-[var(--accent)] to-transparent opacity-5" style="transform: skewY(-3deg);"></div>
+
+      <div class="max-w-7xl mx-auto relative">
+        <div class="flex items-center gap-6 mb-20">
+          <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest shadow-[4px_4px_0_var(--accent)]">01 // TECHNICAL STACK</span>
+          <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+        </div>
+
+        <div class="tech-grid">
+          <!-- Core Languages -->
+          <div class="bento-item">
+            <div class="flex items-center gap-3 mb-6">
+              <i data-lucide="code-2" class="w-6 h-6 text-[var(--accent)]"></i>
+              <span class="text-xs font-mono opacity-40 tracking-widest">CORE LANGUAGES</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Elixir</span>
+                <span class="text-xs font-mono opacity-40">PRIMARY</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Ruby</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">JavaScript</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">SQL</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">HTML/CSS</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Frameworks -->
+          <div class="bento-item">
+            <div class="flex items-center gap-3 mb-6">
+              <i data-lucide="layers" class="w-6 h-6 text-[var(--accent)]"></i>
+              <span class="text-xs font-mono opacity-40 tracking-widest">FRAMEWORKS</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Phoenix</span>
+                <span class="text-xs font-mono opacity-40">PRIMARY</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Rails</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Ecto</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">OTP</span>
+                <span class="text-xs font-mono opacity-40">ADVANCED</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">LiveView</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Architecture -->
+          <div class="bento-item">
+            <div class="flex items-center gap-3 mb-6">
+              <i data-lucide="network" class="w-6 h-6 text-[var(--accent)]"></i>
+              <span class="text-xs font-mono opacity-40 tracking-widest">ARCHITECTURE</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Event Sourcing</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">CQRS</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Microservices</span>
+                <span class="text-xs font-mono opacity-40">ADVANCED</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">DDD</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">REST APIs</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Infrastructure -->
+          <div class="bento-item">
+            <div class="flex items-center gap-3 mb-6">
+              <i data-lucide="server" class="w-6 h-6 text-[var(--accent)]"></i>
+              <span class="text-xs font-mono opacity-40 tracking-widest">INFRASTRUCTURE</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">PostgreSQL</span>
+                <span class="text-xs font-mono opacity-40">EXPERT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">RabbitMQ</span>
+                <span class="text-xs font-mono opacity-40">ADVANCED</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Redis</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Docker</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">Kubernetes</span>
+                <span class="text-xs font-mono opacity-40">FAMILIAR</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-black text-xl">AWS</span>
+                <span class="text-xs font-mono opacity-40">PROFICIENT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testing & CI/CD -->
+          <div class="bento-item md:col-span-2">
+            <div class="flex items-center gap-3 mb-6">
+              <i data-lucide="check-circle" class="w-6 h-6 text-[var(--accent)]"></i>
+              <span class="text-xs font-mono opacity-40 tracking-widest">TESTING & CI/CD</span>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <span class="skill-tag">CI/CD Pipelines</span>
+              <span class="skill-tag">TDD & BDD</span>
+              <span class="skill-tag">Gherkin / Cucumber</span>
+              <span class="skill-tag">RSpec / ExUnit</span>
+              <span class="skill-tag">System Testing</span>
+              <span class="skill-tag">OpenTelemetry</span>
+              <span class="skill-tag">Prometheus</span>
+              <span class="skill-tag">Grafana</span>
+            </div>
+          </div>
+
+          <!-- Certifications -->
+          <div class="bento-item">
+            <div class="flex items-center gap-3 mb-6">
+              <i data-lucide="award" class="w-6 h-6 text-[var(--accent)]"></i>
+              <span class="text-xs font-mono opacity-40 tracking-widest">CERTIFICATIONS</span>
+            </div>
+            <div class="space-y-4">
+              <div class="border-l-2 border-[var(--accent)] pl-4">
+                <div class="font-black">Anti-Money Laundering</div>
+                <div class="text-sm opacity-60 font-mono">E-Crime Bureau</div>
+              </div>
+              <div class="border-l-2 border-[var(--accent)] pl-4">
+                <div class="font-black">Data Protection Awareness</div>
+                <div class="text-sm opacity-60 font-mono">E-Crime Bureau</div>
+              </div>
+              <div class="border-l-2 border-[var(--accent)] pl-4">
+                <div class="font-black">Secure Coding Training</div>
+                <div class="text-sm opacity-60 font-mono">Cyberteq</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="py-32 px-6 max-w-7xl mx-auto">
+      <div class="flex items-center gap-6 mb-20">
+        <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest shadow-[4px_4px_0_var(--accent)]">02 // EXPERIENCE LOG</span>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-16">
+        <div>
+          <h2 class="text-6xl md:text-7xl font-black uppercase leading-tight">
+            Career<br>
+            <span class="text-[var(--accent)]">Trajectory</span>
+          </h2>
+          <div class="w-32 h-2 bg-[var(--accent)] my-8"></div>
+          <p class="text-xl font-serif italic opacity-70 leading-relaxed">
+            From intern to lead engineer, building production systems that process millions in transactions daily.
+          </p>
+        </div>
+
+        <div class="md:col-span-2">
+          <!-- Timeline -->
+          <div class="space-y-0">
+            <!-- Current Role -->
+            <div class="timeline-item">
+              <div class="flex flex-wrap items-center gap-4 mb-4">
+                <span class="text-sm font-mono bg-[var(--accent)] text-white px-4 py-2">2023 — PRESENT</span>
+                <span class="text-sm font-mono opacity-60 flex items-center gap-2">
+                  <i data-lucide="map-pin" class="w-3 h-3"></i> ACCRA, GHANA
+                </span>
+              </div>
+              <h3 class="text-3xl font-black mb-2">Software Engineer</h3>
+              <div class="text-xl font-serif italic text-[var(--accent)] mb-6">AppsNmobile Solutions</div>
+              <p class="text-lg opacity-70 mb-6">
+                Fintech provider processing millions in monthly transactions. Promoted from Intern to Lead Engineer.
+              </p>
+              <ul class="space-y-3">
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Architected an Elixir/Phoenix microservice processing <strong>50K+ requests/minute</strong> with <strong>&lt;200ms latency</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Integrated RabbitMQ and Oban for background jobs, ensuring <strong>100% delivery guarantee</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Decoupled critical payment logic from legacy Rails monolith into independent Elixir services</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Refactored Ecto queries and PostgreSQL schemas, improving reporting generation performance by <strong>40%</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Championed BDD adoption using Gherkin/Cucumber for reliable testing workflows</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Instrumented services with OpenTelemetry and monitored via Grafana, reducing MTTR by 50%</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Freelance -->
+            <div class="timeline-item">
+              <div class="flex flex-wrap items-center gap-4 mb-4">
+                <span class="text-sm font-mono bg-[var(--detail)] text-white px-4 py-2">2022 — PRESENT</span>
+                <span class="text-sm font-mono opacity-60 flex items-center gap-2">
+                  <i data-lucide="globe" class="w-3 h-3"></i> REMOTE
+                </span>
+              </div>
+              <h3 class="text-3xl font-black mb-2">Freelance Full Stack Developer</h3>
+              <div class="text-xl font-serif italic text-[var(--accent)] mb-6">Self-Employed</div>
+              <ul class="space-y-3">
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Designed a double-entry accounting system using Event Sourcing/CQRS for immutable audit trails</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Built a custom task management platform (Rails/Angular), reducing client admin overhead by <strong>30%</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Developed a secure, offline-first file sharing service using Phoenix Channels and WebRTC</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Delivered fully documented REST APIs with <strong>99% test coverage</strong></span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Internship -->
+            <div class="timeline-item">
+              <div class="flex flex-wrap items-center gap-4 mb-4">
+                <span class="text-sm font-mono bg-[var(--detail)] text-white px-4 py-2">2022 — 2023</span>
+                <span class="text-sm font-mono opacity-60 flex items-center gap-2">
+                  <i data-lucide="map-pin" class="w-3 h-3"></i> ACCRA, GHANA
+                </span>
+              </div>
+              <h3 class="text-3xl font-black mb-2">Software Engineer Intern</h3>
+              <div class="text-xl font-serif italic text-[var(--accent)] mb-6">AppsNmobile Solutions</div>
+              <ul class="space-y-3">
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Assisted in the maintenance of legacy Ruby on Rails applications</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-[var(--accent)] mt-1">▸</span>
+                  <span class="opacity-80">Developed unit tests and participated in daily scrum meetings</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Projects -->
+    <section id="projects" class="py-32 px-6 bg-white/30 relative">
+      <div class="absolute inset-0 bg-gradient-to-b from-[var(--accent)] to-transparent opacity-5" style="transform: skewY(3deg);"></div>
+
+      <div class="max-w-7xl mx-auto relative">
+        <div class="flex items-center gap-6 mb-20">
+          <span class="text-sm font-mono bg-[var(--detail)] text-white px-8 py-3 tracking-widest shadow-[4px_4px_0_var(--accent)]">03 // KEY PROJECTS</span>
+          <div class="h-px flex-1 bg-gradient-to-r from-transparent via-black to-transparent opacity-30"></div>
+        </div>
+
+        <div class="archive-grid">
+          <!-- Project 1: Messaging Gateway -->
+          <div class="hieroglyph-card group">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-mono opacity-40">PROJ_001</span>
+              <i data-lucide="arrow-up-right" class="w-5 h-5 opacity-40 group-hover:text-[var(--accent)] transition-colors"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-3">Messaging Gateway</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Elixir</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">ETS</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">GenStage</span>
+            </div>
+            <p class="opacity-70 mb-6">
+              Built a fault-tolerant gateway handling massive concurrent traffic using ETS for high-speed caching and rate-limiting. Implemented custom supervision trees to ensure 99.99% uptime during peak load events.
+            </p>
+            <div class="flex items-center gap-4 pt-4 border-t border-black/10">
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">50K+</div>
+                <div class="text-xs font-mono opacity-40">MSG/MIN</div>
+              </div>
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">99.99%</div>
+                <div class="text-xs font-mono opacity-40">UPTIME</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 2: Financial Transaction Platform -->
+          <div class="hieroglyph-card group">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-mono opacity-40">PROJ_002</span>
+              <i data-lucide="arrow-up-right" class="w-5 h-5 opacity-40 group-hover:text-[var(--accent)] transition-colors"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-3">Financial Transaction Platform</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Ruby on Rails</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">PostgreSQL</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Sidekiq</span>
+            </div>
+            <p class="opacity-70 mb-6">
+              Maintained backend services handling 20K+ daily financial transactions. Optimized database queries reducing reporting latency by 40% and implemented idempotent API endpoints for payment processing.
+            </p>
+            <div class="flex items-center gap-4 pt-4 border-t border-black/10">
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">20K+</div>
+                <div class="text-xs font-mono opacity-40">DAILY TXNS</div>
+              </div>
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">-40%</div>
+                <div class="text-xs font-mono opacity-40">LATENCY</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 3: Double-Entry Ledger -->
+          <div class="hieroglyph-card group">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-mono opacity-40">PROJ_003</span>
+              <i data-lucide="arrow-up-right" class="w-5 h-5 opacity-40 group-hover:text-[var(--accent)] transition-colors"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-3">Double-Entry Ledger</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Elixir</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Event Sourcing</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">CQRS</span>
+            </div>
+            <p class="opacity-70 mb-6">
+              Designed an immutable ledger system using Event Sourcing. Ensures full auditability of all financial movements with a replayable event stream, critical for regulatory compliance in Fintech.
+            </p>
+            <div class="flex items-center gap-4 pt-4 border-t border-black/10">
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">100%</div>
+                <div class="text-xs font-mono opacity-40">AUDITABLE</div>
+              </div>
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">∞</div>
+                <div class="text-xs font-mono opacity-40">REPLAYABLE</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 4: Real-Time File Share -->
+          <div class="hieroglyph-card group">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-mono opacity-40">PROJ_004</span>
+              <i data-lucide="arrow-up-right" class="w-5 h-5 opacity-40 group-hover:text-[var(--accent)] transition-colors"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-3">Real-Time File Share</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Phoenix</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">WebRTC</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">LiveView</span>
+            </div>
+            <p class="opacity-70 mb-6">
+              Developed a secure, offline-first file sharing service. Utilized Phoenix Channels for signaling and WebRTC for peer-to-peer data transfer, minimizing server bandwidth costs.
+            </p>
+            <div class="flex items-center gap-4 pt-4 border-t border-black/10">
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">P2P</div>
+                <div class="text-xs font-mono opacity-40">TRANSFER</div>
+              </div>
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">Offline</div>
+                <div class="text-xs font-mono opacity-40">FIRST</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 5: E-Ticketing Platform -->
+          <div class="hieroglyph-card group">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-mono opacity-40">PROJ_005</span>
+              <i data-lucide="arrow-up-right" class="w-5 h-5 opacity-40 group-hover:text-[var(--accent)] transition-colors"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-3">E-Ticketing Platform</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Rails</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">REST API</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Payments</span>
+            </div>
+            <p class="opacity-70 mb-6">
+              Built payment-enabled ticketing backend with REST APIs. Applied Event Sourcing & CQRS for transaction tracking. Deployed and maintained production services handling high-volume sales.
+            </p>
+            <div class="flex items-center gap-4 pt-4 border-t border-black/10">
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">REST</div>
+                <div class="text-xs font-mono opacity-40">API</div>
+              </div>
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">ES/CQRS</div>
+                <div class="text-xs font-mono opacity-40">TRACKING</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 6: Task Management Platform -->
+          <div class="hieroglyph-card group">
+            <div class="flex items-center justify-between mb-6">
+              <span class="text-xs font-mono opacity-40">PROJ_006</span>
+              <i data-lucide="arrow-up-right" class="w-5 h-5 opacity-40 group-hover:text-[var(--accent)] transition-colors"></i>
+            </div>
+            <h3 class="text-2xl font-black mb-3">Task Management Platform</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Rails</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">Angular</span>
+              <span class="text-xs bg-[var(--detail)]/10 px-2 py-1 font-mono">PostgreSQL</span>
+            </div>
+            <p class="opacity-70 mb-6">
+              Built a custom task management platform for client workflow optimization. Reduced admin overhead by 30% through automated task assignment and real-time progress tracking.
+            </p>
+            <div class="flex items-center gap-4 pt-4 border-t border-black/10">
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">-30%</div>
+                <div class="text-xs font-mono opacity-40">OVERHEAD</div>
+              </div>
+              <div>
+                <div class="text-2xl font-black text-[var(--accent)]">Real-time</div>
+                <div class="text-xs font-mono opacity-40">TRACKING</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact / Footer -->
+    <footer class="py-32 bg-[var(--detail)] text-white relative">
+      <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-50"></div>
+
+      <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="grid md:grid-cols-2 gap-16 items-center mb-20">
+          <div>
+            <h2 class="text-6xl md:text-7xl font-black uppercase leading-tight mb-6">
+              Let's Build<br>
+              <span class="text-[var(--accent)]">Together</span>
+            </h2>
+            <p class="text-xl opacity-70 font-serif italic">
+              Open to new opportunities in fintech, distributed systems, and high-throughput architectures.
+            </p>
+          </div>
+
+          <div class="space-y-6">
+            <a href="mailto:bernardansah5@gmail.com" class="flex items-center gap-4 text-2xl font-black hover:text-[var(--accent)] transition-colors">
+              <i data-lucide="mail" class="w-8 h-8"></i>
+              bernardansah5@gmail.com
+            </a>
+            <a href="tel:+233508996116" class="flex items-center gap-4 text-2xl font-black hover:text-[var(--accent)] transition-colors">
+              <i data-lucide="phone" class="w-8 h-8"></i>
+              +233 50 899 6116
+            </a>
+            <div class="flex gap-4 pt-4">
+              <a href="https://linkedin.com/in/bernardowusuansah" target="_blank" class="w-14 h-14 border-2 border-white/30 flex items-center justify-center hover:bg-[var(--accent)] hover:border-[var(--accent)] transition-all">
+                <i data-lucide="linkedin" class="w-6 h-6"></i>
+              </a>
+              <a href="https://github.com/bernardansah" target="_blank" class="w-14 h-14 border-2 border-white/30 flex items-center justify-center hover:bg-[var(--accent)] hover:border-[var(--accent)] transition-all">
+                <i data-lucide="github" class="w-6 h-6"></i>
+              </a>
+              <a href="#" class="w-14 h-14 border-2 border-white/30 flex items-center justify-center hover:bg-[var(--accent)] hover:border-[var(--accent)] transition-all">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-white/20 pt-12 flex flex-wrap justify-between items-center gap-8">
+          <div class="opacity-30 text-sm tracking-[0.5em] font-mono">
+            © 2026 BERNARD OWUSU ANSAH
+          </div>
+          <div class="status-badge border-white/20">
+            <span class="status-dot"></span>
+            <span>ALL SYSTEMS OPERATIONAL</span>
+          </div>
+          <div class="opacity-20 text-xs font-mono tracking-widest">
+            BUILT WITH ELIXIR & CREATIVITY • ACCRA, GHANA
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+
+    document.addEventListener('mousemove', (e) => {
+      gsap.to(cursor, {
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.1,
+        ease: 'power2.out'
+      });
+
+      gsap.to(ring, {
+        x: e.clientX,
+        y: e.clientY,
+        duration: 0.4,
+        ease: 'power2.out'
+      });
+
+      document.getElementById('coordX').textContent = String(e.clientX).padStart(3, '0');
+      document.getElementById('coordY').textContent = String(e.clientY).padStart(3, '0');
+    });
+
+    // Hover effect on interactive elements
+    document.querySelectorAll('a, button, .folio-card, .bento-item, .film-frame, .project-card, .hieroglyph-card, .contact-link').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        gsap.to(cursor, {
+          scale: 2,
+          duration: 0.3,
+          backgroundColor: 'var(--accent)',
+          boxShadow: '0 0 60px var(--accent)'
+        });
+        gsap.to(ring, {
+          scale: 1.3,
+          borderWidth: 3,
+          duration: 0.3,
+          borderColor: 'var(--accent)',
+          boxShadow: '0 0 70px var(--accent)'
+        });
+      });
+      el.addEventListener('mouseleave', () => {
+        gsap.to(cursor, {
+          scale: 1,
+          duration: 0.3,
+          boxShadow: '0 0 30px var(--accent)'
+        });
+        gsap.to(ring, {
+          scale: 1,
+          borderWidth: 2,
+          duration: 0.3,
+          boxShadow: '0 0 40px rgba(217, 56, 30, 0.3)'
+        });
+      });
+    });
+
+    // Cosmic Canvas
+    const canvas = document.getElementById('cosmicCanvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    let stars = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Create stars
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 2,
+        speed: 0.02 + Math.random() * 0.05
+      });
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      points.push({
+        x: e.clientX + (Math.random() - 0.5) * 20,
+        y: e.clientY + (Math.random() - 0.5) * 20,
+        age: 0
+      });
+
+      if (points.length > 45) {
+        points.shift();
+      }
+    });
+
+    function drawCosmic() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw stars
+      stars.forEach(star => {
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = 0;
+          star.x = Math.random() * canvas.width;
+        }
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + Math.random() * 0.5})`;
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw trail
+      if (points.length >= 2) {
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = 'var(--accent)';
+
+        for (let i = 0; i < points.length - 1; i++) {
+          const p1 = points[i];
+          const p2 = points[i + 1];
+          const alpha = 1 - (i / points.length) * 0.8;
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2;
+          const offsetX = (p2.y - p1.y) * 0.2;
+          const offsetY = (p1.x - p2.x) * 0.2;
+
+          ctx.quadraticCurveTo(
+            midX + offsetX,
+            midY + offsetY,
+            p2.x, p2.y
+          );
+
+          const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+          gradient.addColorStop(0, `rgba(217, 56, 30, ${alpha})`);
+          gradient.addColorStop(1, `rgba(42, 42, 42, ${alpha * 0.5})`);
+
+          ctx.strokeStyle = gradient;
+          ctx.stroke();
+        }
+
+        // Draw points
+        points.forEach((p, i) => {
+          const alpha = 1 - (i / points.length) * 0.7;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(217, 56, 30, ${alpha})`;
+          ctx.arc(p.x, p.y, 3 + (i * 0.1), 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      requestAnimationFrame(drawCosmic);
+    }
+    drawCosmic();
+
+    // Animate cosmic drawings on scroll
+    const bicycle = document.getElementById('celestialBicycle');
+    const orrery = document.getElementById('orrery');
+    const telescope = document.getElementById('cosmicTelescope');
+    const watch = document.getElementById('pocketWatch');
+
+    window.addEventListener('scroll', () => {
+      const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+
+      bicycle.style.left = -200 + (window.innerWidth + 400) * scrollPercent + 'px';
+      bicycle.style.transform = `rotate(${scrollPercent * 360}deg)`;
+
+      orrery.style.right = -300 + scrollPercent * 600 + 'px';
+      orrery.style.transform = `rotate(${scrollPercent * 720}deg)`;
+
+      telescope.style.left = -200 + scrollPercent * 400 + 'px';
+      telescope.style.transform = `rotate(${-10 + scrollPercent * 30}deg) scale(${1 + scrollPercent * 0.5})`;
+
+      watch.style.transform = `rotate(${scrollPercent * 1440}deg)`;
+
+      const pageNum = Math.floor(scrollPercent * 64) + 1;
+      document.getElementById('pageNumber').textContent = String(pageNum).padStart(3, '0');
+    });
+
+    // GSAP ScrollTrigger animations
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Animate sections on scroll
+    gsap.utils.toArray('.bento-item, .hieroglyph-card, .timeline-item').forEach((el, i) => {
+      gsap.from(el, {
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 85%',
+          toggleActions: 'play none none reverse'
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.6,
+        delay: i * 0.1,
+        ease: 'power2.out'
+      });
+    });
+
+    // Themes
+    const themes = [
+      {
+        name: 'CELESTIAL',
+        bg: '#F4EBD0',
+        accent: '#D9381E',
+        detail: '#2A2A2A'
+      },
+      {
+        name: 'MIDNIGHT',
+        bg: '#1A1A2E',
+        accent: '#E94560',
+        detail: '#0F3460'
+      },
+      {
+        name: 'FOREST',
+        bg: '#F0E6D2',
+        accent: '#2A9D8F',
+        detail: '#264653'
+      },
+      {
+        name: 'OCEAN',
+        bg: '#E8F0F2',
+        accent: '#1E3A5F',
+        detail: '#0D1B2A'
+      }
+    ];
+
+    let themeIndex = 0;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      themeIndex = (themeIndex + 1) % themes.length;
+      const theme = themes[themeIndex];
+
+      gsap.to(':root', {
+        '--bg': theme.bg,
+        '--accent': theme.accent,
+        '--detail': theme.detail,
+        duration: 0.8,
+        ease: 'power2.inOut'
+      });
+
+      document.body.style.backgroundColor = theme.bg;
+    });
+
+    // Cosmic time
+    function updateCosmicTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('cosmicTime').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateCosmicTime, 1000);
+    updateCosmicTime();
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    // Disable custom cursor on touch devices
+    if ('ontouchstart' in window) {
+      document.body.style.cursor = 'auto';
+      cursor.style.display = 'none';
+      ring.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
