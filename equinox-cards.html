@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aethelgard | Institutional Infrastructure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@1,700;1,900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#030303',
+                        cardbg: '#0a0a0a',
+                        emerald: { 400: '#34d399', 500: '#10b981' },
+                        zinc: { 800: '#27272a', 900: '#18181b', 950: '#09090b' },
+                        error: '#ff4d4d',
+                        amber: '#f59e0b'
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background: #030303; color: white; cursor: none; overflow-x: hidden; }
+
+        .bg-grid {
+            background-size: 80px 80px;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.01) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.01) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+        }
+
+        #cursor-dot { width: 4px; height: 4px; background: #34d399; border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); }
+        #cursor-ring { width: 40px; height: 40px; border: 0.5px solid rgba(52, 211, 153, 0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1); }
+
+        .elite-card {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .elite-card:hover {
+            border-color: rgba(52, 211, 153, 0.3);
+            background: #0d0d0d;
+            box-shadow: 0 10px 40px -15px rgba(0,0,0,0.5);
+        }
+
+        /* Technical SVG Drawing Styles */
+        .tech-path {
+            stroke: rgba(255,255,255,0.08);
+            stroke-width: 0.8;
+            fill: none;
+            transition: stroke 0.6s ease, stroke-width 0.6s ease;
+        }
+        .elite-card:hover .tech-path {
+            stroke: rgba(52, 211, 153, 0.4);
+            stroke-width: 1.2;
+        }
+        .tech-path-primary {
+            stroke: rgba(52, 211, 153, 0.2);
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+        }
+        .elite-card:hover .tech-path-primary {
+            stroke-dashoffset: 0;
+            stroke: #34d399;
+        }
+
+        .node-pulse { fill: #34d399; filter: blur(2px); }
+        .mask-fade-bottom { mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+
+        /* Floating HUD elements */
+        .hud-bracket { border-color: rgba(52, 211, 153, 0.2); }
+        .elite-card:hover .hud-bracket { border-color: #34d399; }
+    </style>
+</head>
+<body class="font-sans">
+
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <nav class="fixed top-0 w-full z-50 p-8 flex justify-between items-center pointer-events-none">
+        <div class="flex items-center gap-4 pointer-events-auto">
+            <div class="w-8 h-8 bg-emerald-400 rotate-45 flex items-center justify-center">
+                <div class="w-4 h-4 bg-obsidian rotate-45"></div>
+            </div>
+            <div class="font-mono text-[10px] tracking-[0.4em] uppercase font-bold">Aethelgard</div>
+        </div>
+        <div class="flex gap-10 font-mono text-[9px] uppercase tracking-[0.3em] text-zinc-500 pointer-events-auto">
+            <a href="#stack" class="hover:text-emerald-400 transition-colors">Stack</a>
+            <a href="#" class="bg-white/5 border border-white/10 px-4 py-2 rounded text-white hover:bg-emerald-400 hover:text-obsidian transition-all">Consensus Login</a>
+        </div>
+    </nav>
+
+    <div class="fixed inset-0 bg-grid z-0"></div>
+
+    <!-- Hero -->
+    <section class="relative min-h-[60vh] flex flex-col items-center justify-center px-6 text-center z-10">
+        <h1 class="text-[10vw] md:text-[6.5vw] font-serif italic leading-[0.9] mb-8">
+            Precision <br><span class="text-zinc-800">Architectures.</span>
+        </h1>
+        <div class="w-px h-24 bg-gradient-to-b from-emerald-400 to-transparent"></div>
+    </section>
+
+    <!-- ELITE STACK CARDS SECTION -->
+    <section id="stack" class="py-20 px-6 z-10 relative">
+        <div class="max-w-7xl mx-auto">
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 auto-rows-[320px]">
+
+                <!-- 1. Postgres Database Card (Master Card) -->
+                <div class="md:col-span-8 elite-card p-12 rounded-3xl flex flex-col md:flex-row justify-between items-center group cursor-pointer">
+                    <div class="max-w-md z-10">
+                        <div class="flex items-center gap-3 mb-6">
+                            <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Relational Protocol</span>
+                        </div>
+                        <h3 class="text-4xl font-serif italic mb-6">Full Postgres</h3>
+                        <p class="text-zinc-500 text-sm font-light leading-relaxed mb-10">
+                            The world's most trusted relational database, enhanced with Aethelgard's cryptographic staging and row-level security.
+                        </p>
+                        <div class="flex gap-4">
+                            <span class="px-3 py-1 border border-white/5 rounded font-mono text-[8px] text-zinc-500 uppercase">100% Portable</span>
+                            <span class="px-3 py-1 border border-white/5 rounded font-mono text-[8px] text-zinc-500 uppercase">Built-in RLS</span>
+                        </div>
+                    </div>
+
+                    <div class="relative w-80 h-80 flex items-center justify-center">
+                        <svg viewBox="0 0 240 240" class="w-full h-full transform transition-all duration-700 group-hover:scale-110" id="elephant-viz">
+                            <g class="parallax-layer" data-speed="0.05">
+                                <circle cx="120" cy="120" r="100" class="tech-path" stroke-dasharray="4 8" />
+                                <circle cx="120" cy="120" r="85" class="tech-path" stroke-opacity="0.3" />
+                            </g>
+                            <!-- Detailed Geometric Elephant -->
+                            <g class="parallax-layer" data-speed="0.1">
+                                <path class="tech-path tech-path-primary" d="M160 120 C160 60, 80 60, 80 120 C80 180, 160 180, 160 120" />
+                                <path class="tech-path tech-path-primary" d="M120 80 C140 80, 175 100, 175 135 C175 170, 140 185, 120 185" />
+                                <path class="tech-path tech-path-primary" d="M175 135 L210 135" />
+                                <circle cx="150" cy="105" r="2.5" class="node-pulse opacity-0 group-hover:opacity-100" />
+                            </g>
+                            <line x1="120" y1="20" x2="120" y2="220" class="tech-path" stroke-opacity="0.1" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 2. Authentication -->
+                <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Identity</span>
+                        </div>
+                        <h3 class="text-2xl font-serif italic mb-4">Auth_Vault</h3>
+                        <p class="text-zinc-500 text-xs font-light">Secure sign-ups and logins with automated row-level protocol security.</p>
+                    </div>
+
+                    <div class="relative flex flex-col gap-2 mt-8 mask-fade-bottom overflow-hidden">
+                        <div class="h-10 border border-white/5 rounded-lg bg-zinc-950/80 flex items-center px-4 font-mono text-[8px] text-zinc-600 transition-all group-hover:border-emerald-500/30 group-hover:text-emerald-400">
+                            admin_01@vanguard.ch
+                        </div>
+                        <div class="h-10 border border-white/5 rounded-lg bg-zinc-950/80 flex items-center px-4 font-mono text-[8px] text-zinc-600">
+                            operator_delta@blackrock.io
+                        </div>
+                        <div class="h-10 border border-white/5 rounded-lg bg-zinc-950/80 flex items-center px-4 font-mono text-[8px] text-zinc-800">
+                            node_root@aethelgard.io
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Edge Functions -->
+                <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col items-center text-center">
+                    <div class="w-full flex justify-between items-start mb-4">
+                        <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
+                        <span class="font-mono text-[8px] text-zinc-700 uppercase tracking-widest">Compute</span>
+                    </div>
+                    <h3 class="text-2xl font-serif italic mb-3">Edge Functions</h3>
+                    <p class="text-zinc-500 text-xs font-light mb-8 max-w-[200px]">Serverless logic deployed globally in milliseconds.</p>
+
+                    <div class="relative w-full flex-1 flex items-center justify-center">
+                        <svg viewBox="0 0 200 200" class="w-56 h-56" id="globe-viz">
+                            <circle cx="100" cy="100" r="85" class="tech-path" stroke-opacity="0.1" />
+                            <circle cx="100" cy="100" r="85" class="tech-path tech-path-primary" stroke-dasharray="2 12" />
+                            <!-- Orbiting Ellipses -->
+                            <ellipse cx="100" cy="100" rx="85" ry="35" class="tech-path" transform="rotate(45 100 100)" />
+                            <ellipse cx="100" cy="100" rx="85" ry="35" class="tech-path" transform="rotate(-45 100 100)" />
+                            <!-- Active Nodes -->
+                            <circle cx="100" cy="100" r="4" class="node-pulse" />
+                            <circle cx="30" cy="100" r="2" class="node-pulse opacity-20" />
+                            <circle cx="170" cy="100" r="2" class="node-pulse opacity-20" />
+                        </svg>
+                        <div class="absolute bottom-2 font-mono text-[9px] text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">
+                            Global Sync Active
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Realtime -->
+                <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
+                        <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Realtime</span>
+                    </div>
+                    <h3 class="text-2xl font-serif italic mb-4">Instant Sync</h3>
+                    <p class="text-zinc-500 text-xs font-light mb-8">Build collaborative multi-user protocol experiences.</p>
+
+                    <div class="flex-1 relative bg-zinc-950/50 rounded-2xl border border-white/5 overflow-hidden">
+                        <div class="absolute inset-0 bg-[radial-gradient(rgba(52,211,153,0.08)_1px,transparent_1px)] [background-size:24px_24px]"></div>
+                        <div id="cursor-ghost-1" class="absolute pointer-events-none text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i data-lucide="mouse-pointer-2" class="w-4 h-4 fill-emerald-400/20"></i>
+                            <div class="ml-4 mt-2 px-2 py-1 bg-emerald-400 text-obsidian font-mono text-[7px] font-bold">NODE_ALPHA</div>
+                        </div>
+                        <div id="cursor-ghost-2" class="absolute pointer-events-none text-zinc-700 opacity-40 group-hover:opacity-80 transition-opacity">
+                            <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Vector (3D Cube) -->
+                <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col h-full">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="box" class="w-4 h-4 text-emerald-400"></i>
+                        <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Matrix</span>
+                    </div>
+                    <h3 class="text-2xl font-serif italic mb-4">Vector Search</h3>
+                    <p class="text-zinc-500 text-xs font-light mb-8">Store and index high-dimensional institutional embeddings.</p>
+
+                    <div class="flex-1 relative flex items-center justify-center overflow-hidden">
+                        <svg viewBox="0 0 200 200" class="w-48 h-48" id="tesseract-viz">
+                            <g class="parallax-layer" data-speed="0.2">
+                                <rect x="60" y="60" width="80" height="80" class="tech-path" />
+                                <rect x="75" y="45" width="80" height="80" class="tech-path tech-path-primary" stroke-opacity="0.5" />
+                                <line x1="60" y1="60" x2="75" y2="45" class="tech-path" />
+                                <line x1="140" y1="60" x2="155" y2="45" class="tech-path" />
+                                <line x1="60" y1="140" x2="75" y2="125" class="tech-path" />
+                                <line x1="140" y1="140" x2="155" y2="125" class="tech-path" />
+                            </g>
+                            <circle cx="100" cy="100" r="2" fill="#34d399" class="vector-dot animate-pulse" />
+                            <circle cx="80" cy="80" r="1.5" fill="#34d399" class="vector-dot opacity-40" />
+                            <circle cx="130" cy="120" r="1.5" fill="#34d399" class="vector-dot opacity-40" />
+                        </svg>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 border-t border-white/5 bg-obsidian text-center z-10 relative">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10 px-10">
+            <div class="flex items-center gap-4">
+                <div class="w-7 h-7 bg-emerald-400 rotate-45 flex items-center justify-center shadow-[0_0_15px_#34d399]">
+                    <div class="w-4 h-4 bg-obsidian rotate-45"></div>
+                </div>
+                <span class="font-mono text-[9px] tracking-[0.4em] uppercase font-bold text-zinc-600">Aethelgard Protocol v4.5 Stable</span>
+            </div>
+            <div class="flex gap-8">
+                <i data-lucide="github" class="w-4 h-4 text-zinc-800 hover:text-white transition-colors cursor-pointer"></i>
+                <i data-lucide="twitter" class="w-4 h-4 text-zinc-800 hover:text-white transition-colors cursor-pointer"></i>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // 1. Precise Cursor Logic
+        const dot = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+        let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            dot.style.left = `${mouseX}px`;
+            dot.style.top = `${mouseY}px`;
+        });
+
+        function smoothCursor() {
+            ringX += (mouseX - ringX) * 0.15;
+            ringY += (mouseY - ringY) * 0.15;
+            ring.style.left = `${ringX}px`;
+            ring.style.top = `${ringY}px`;
+            requestAnimationFrame(smoothCursor);
+        }
+        smoothCursor();
+
+        // 2. Elite Geometric Parallax Logic
+        const eliteCards = document.querySelectorAll('.elite-card');
+
+        eliteCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+                // Animate parallax layers within SVG
+                const layers = card.querySelectorAll('.parallax-layer');
+                layers.forEach(layer => {
+                    const speed = layer.getAttribute('data-speed') || 0.1;
+                    gsap.to(layer, {
+                        x: x * 40 * speed,
+                        y: y * 40 * speed,
+                        rotationY: x * 15,
+                        rotationX: -y * 15,
+                        duration: 0.6,
+                        ease: "power2.out"
+                    });
+                });
+
+                // Simple rotate for standalone SVGs
+                const standalone = card.querySelector('svg:not([data-animate])');
+                if (standalone && !card.hasAttribute('data-animate')) {
+                    gsap.to(standalone, {
+                        x: x * 20,
+                        y: y * 20,
+                        rotationX: -y * 10,
+                        rotationY: x * 10,
+                        duration: 0.6,
+                        ease: "power2.out"
+                    });
+                }
+            });
+
+            card.addEventListener('mouseleave', () => {
+                const elements = card.querySelectorAll('.parallax-layer, svg');
+                gsap.to(elements, {
+                    x: 0, y: 0, rotationX: 0, rotationY: 0,
+                    duration: 1.2, ease: "elastic.out(1, 0.5)"
+                });
+            });
+        });
+
+        // 3. High-Frequency Logic Loops
+        gsap.to('#globe-viz', { rotation: 360, duration: 80, repeat: -1, ease: "none" });
+
+        // Ghost cursors for Realtime card
+        gsap.to("#cursor-ghost-1", {
+            x: 60, y: 20, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut"
+        });
+        gsap.to("#cursor-ghost-2", {
+            x: -40, y: -30, duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut"
+        });
+
+        // Tesseract floating data points
+        gsap.to(".vector-dot", {
+            y: "random(-8, 8)",
+            x: "random(-8, 8)",
+            duration: 2.5,
+            repeat: -1,
+            yoyo: true,
+            stagger: 0.2,
+            ease: "sine.inOut"
+        });
+
+        gsap.registerPlugin(ScrollTrigger);
+    </script>
+</body>
+</html>

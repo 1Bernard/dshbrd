@@ -1,0 +1,3647 @@
+The Definitive Elite Elixir Architect's Codex
+Complete Updated Edition: Building Production-Grade Fintech Systems on the BEAM
+Preface: How to Read This Book
+This is not a tutorial. This is a systematic education in building systems that never lose data, heal themselves, scale to millions of users, and don't bankrupt you with cloud bills.
+
+Each chapter follows the same pattern:
+
+The Concept — What we're building and why it matters
+
+The Theory — The underlying principles and trade-offs
+
+The Implementation — When and how to build it
+
+The Senior Insight — What separates junior from senior
+
+The Elite Insight — What separates senior from elite architect
+
+The Visual — Architecture diagrams and flow patterns
+
+The Timeline — When to implement this in your project
+
+You will not copy-paste code. You will understand why the code exists, how it fails, and how it recovers.
+
+Part 1: The Foundation — Project Anatomy & Git Strategy
+Chapter 0: The Elite Engineer's Project Structure
+0.1 The Concept
+Before writing a single line of Elixir, you must establish the architectural blueprint. An elite engineer's repository tells a story—not just about code, but about operations, testing, deployment philosophy, and cost optimization.
+
+0.2 The Theory: Why Structure Matters
+In junior projects, everything lives in /lib and /test. In senior projects, the repository mirrors the production environment. In elite projects, the repository also tells you:
+
+How much this system costs to run
+
+How it recovers from failure
+
+How it deploys (with zero downtime)
+
+How it scales (and when it stops scaling)
+
+The profound implication: Your folder structure is not just organization—it's documentation. A new engineer should understand your entire system architecture, deployment pipeline, and operational runbooks by looking at the directory tree.
+
+0.3 The Visual: Complete Elite Project Structure
+text
+/ledger_flow/                          # Your Fintech Project Root
+│
+├── /apps/                             # Business Logic (Hexagonal Architecture)
+│   ├── /ledger_flow                   # Main Phoenix App
+│   │   ├── /lib                       # Core domain logic
+│   │   │   ├── /aggregates            # Commanded aggregates
+│   │   │   ├── /commands              # Command definitions
+│   │   │   ├── /events                # Event definitions
+│   │   │   ├── /process_managers      # Sagas for cross-aggregate flows
+│   │   │   └── /projectors            # Read model projections
+│   │   ├── /priv                      # Migrations, static assets
+│   │   └── /rel                       # Release configuration (ELITE)
+│   └── /ledger_flow_web               # Phoenix Web Interface
+│       ├── /controllers
+│       ├── /channels                  # WebSocket handlers
+│       └── /live                      # LiveView components
+│
+├── /infra/                            # Infrastructure as Code (The Gatekeepers)
+│   ├── /nginx/
+│   │   ├── nginx.conf                 # SSL, rate limiting, static files
+│   │   └── ssl/
+│   │       ├── cert.pem
+│   │       └── key.pem
+│   ├── /haproxy/
+│   │   └── haproxy.cfg                # Load balancing, WebSocket stickiness
+│   ├── /postgres/
+│   │   ├── init.sql                   # Extension setup (pgcrypto, etc.)
+│   │   ├── docker-entrypoint.sh
+│   │   └── backup.sh                  # Automated backup strategy (ELITE)
+│   ├── /rabbitmq/
+│   │   ├── definitions.json
+│   │   ├── rabbitmq.conf
+│   │   └── cluster_config             # RabbitMQ clustering (ELITE)
+│   ├── /prometheus/
+│   │   └── prometheus.yml
+│   ├── /grafana/
+│   │   ├── dashboards/
+│   │   └── provisioning/
+│   ├── /terraform/                    # Infrastructure as Code (ELITE)
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── modules/
+│   │       ├── vpc/
+│   │       ├── ecs/
+│   │       └── rds/
+│   └── /k8s/                         # Kubernetes manifests (optional)
+│       ├── deployment.yaml
+│       └── service.yaml
+│
+├── /load_tests/                       # Performance Engineering
+│   ├── /k6/
+│   │   ├── spike_test.js
+│   │   ├── soak_test.js
+│   │   ├── smoke_test.js
+│   │   └── /scenarios/
+│   │       ├── deposit_flow.js
+│   │       └── transfer_flow.js
+│   └── /tsung/
+│       ├── websocket_stress.xml
+│       └── amqp_stress.xml
+│
+├── /test/                             # Quality Assurance
+│   ├── /features/                     # BDD (Cabbage/Gherkin)
+│   ├── /unit/
+│   ├── /integration/
+│   └── /support/
+│
+├── /scripts/                          # Automation & DevOps
+│   ├── deploy.sh
+│   ├── chaos_test.sh
+│   ├── game_day.sh                    # Complete disaster simulation (ELITE)
+│   ├── cost_report.sh                 # Cloud cost analysis (ELITE)
+│   └── health_check.sh
+│
+├── /docs/                             # Living Documentation
+│   ├── architecture.md
+│   ├── runbooks/
+│   │   ├── rabbitmq_outage.md
+│   │   ├── postgres_recovery.md
+│   │   └── az_outage.md              # Availability Zone failure (ELITE)
+│   └── adr/
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── cd_staging.yml
+│       ├── cd_production.yml
+│       └── cost_monitor.yml           # Track cloud spend (ELITE)
+│
+├── Dockerfile                         # Multi-stage build (Production)
+├── Dockerfile.dev                     # Development with hot reload
+├── docker-compose.yml                 # Production-like local stack
+├── docker-compose.override.yml        # Development overrides
+├── mix.exs
+├── mix.lock
+└── README.md
+0.4 The Elite Insight: Infrastructure as Code + Cost as Code
+Senior mindset: "If it's not in a Docker Compose file, it doesn't exist for the team."
+
+Elite mindset: "If it's not in Terraform with cost estimates, it doesn't exist for the business."
+
+hcl
+# infra/terraform/main.tf — Infrastructure as Code
+
+terraform {
+  required_version = ">= 1.0"
+  backend "s3" {
+    bucket = "ledger-flow-terraform-state"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+# Cost estimation — the elite addition
+module "cost_estimates" {
+  source = "github.com/terraform-cost-estimation/module"
+
+  resources = {
+    ecs_cluster = {
+      instance_type = "t3.medium"
+      count         = var.environment == "production" ? 3 : 1
+      spot          = var.environment != "production"
+    }
+    rds_instance = {
+      instance_class = "db.t3.small"
+      storage_gb     = 100
+      multi_az       = var.environment == "production"
+    }
+  }
+}
+
+output "estimated_monthly_cost" {
+  value = module.cost_estimates.total_monthly
+  # This appears in every PR — no surprises
+}
+0.5 When to Implement This Structure
+Day 0 — Before writing any code:
+
+Create this folder structure with mkdir -p commands
+
+Initialize Git repository
+
+Create stub files
+
+Set up .gitignore
+
+NEW: Initialize Terraform with cost estimation
+
+NEW: Create both Dockerfile and Dockerfile.dev
+
+0.6 The Implementation Timeline
+Day	Activity	Deliverable
+0	Create folder structure	Repository blueprint
+0	Initialize Git with branch protection	Branch protection rules
+0	Create stub infrastructure files	Placeholder configs
+0	Initialize Terraform	IaC foundation
+0	Set up cost estimation	PR shows estimated cloud cost
+1	Write README with onboarding	Team documentation
+Chapter 1: Git Strategy for the Elite Engineer
+1.1 The Concept
+Git is not just version control—it's your deployment pipeline's source of truth and your audit trail. In fintech, every merge to main should be traceable to a Jira ticket, a PR review, and a deployment event.
+
+1.2 The Theory: Trunk-Based Development with Release Branches
+For fintech, we use a hybrid approach with release branches for hotfixes:
+
+Branch Type	Pattern	Purpose	Protection Rules
+main	Production-ready code	Always deployable	Required reviews, status checks
+staging	Release candidate	Integration testing	Required status checks
+release/vX.Y.Z	Versioned releases	Rollback points	Immutable after tagging
+feature/*	New capabilities	Isolated development	None
+hotfix/*	Urgent fixes	Production fixes	Senior engineer approval
+1.3 The Visual: Git Workflow with Release Branches
+text
+main ─────────────────────────────────────────────────────────────────►
+   │
+   ├─── release/v1.2.0 (cut from main) ──────────────────────────────┐
+   │    │                                                            │
+   │    ├── Deploy to staging                                        │
+   │    ├── QA testing (3 days)                                      │
+   │    ├── Bug fixes (on release branch)                            │
+   │    └── Merge back to main ──────────────────────────────────────┤
+   │                                                                 │
+   └─── feature/ledger-api (BDD first) ─────────────────────────────┘
+        │
+        ├── Write .feature (RED)
+        ├── Write aggregate (GREEN)
+        └── Refactor (REFACTOR)
+
+                                   staging ◄─────────────────────────┤
+                                   (CI passes)                       │
+                                        │                            │
+                                        ▼                            │
+                                   production ◄──────────────────────┘
+                                   (manual approval)
+1.4 The Elite Insight: Signed Commits & Audit Trails
+In fintech, you need cryptographic proof of who approved what.
+
+bash
+# Require signed commits
+git config --global commit.gpgsign true
+
+# Verify signature
+git log --show-signature
+
+# GitHub branch protection requires:
+# - Signed commits
+# - Linear history (no merge commits)
+# - Status checks must pass
+# - At least 2 approving reviews for financial code
+The fintech requirement: Every production change must be traceable to a specific engineer, with cryptographic proof, for audit purposes. Regulators will ask: "Who approved this change, and when?"
+
+1.5 Git Hooks: The Local Gatekeeper (Enhanced)
+yaml
+# .lefthook.yml — Enhanced with security checks
+
+pre-commit:
+  commands:
+    format:
+      run: mix format --check-equivalent
+    credo:
+      run: mix credo --strict
+    security:
+      run: mix sobelow --config --compact  # Check for vulnerabilities
+    secrets:
+      run: git-secrets --scan               # Prevent committing secrets
+
+pre-push:
+  commands:
+    test:
+      run: mix test --cover
+    dialyzer:
+      run: mix dialyzer --quiet
+    bdd:
+      run: mix test --only feature
+    cost-estimate:
+      run: ./scripts/estimate_pr_cost.sh   # Show cloud cost impact
+
+commit-msg:
+  commands:
+    lint:
+      run: commitlint --edit $1            # Enforce conventional commits
+1.6 The Implementation Timeline
+Day	Activity	Why
+0	Set up branch protection with GPG	Security baseline
+1	Install Lefthook and configure	Catch errors early
+1	Configure commitlint	Standardized commits
+2	Set up git-secrets	Prevent credential leaks
+3	Create PR template with cost impact	Transparency
+Part 2: The Foundation — Event Sourcing & CQRS
+Chapter 2: Rethinking Data — Why State Is a Lie
+2.1 The Concept
+In traditional applications, you store state. A user's balance is $100. When they deposit, you UPDATE balance SET amount = amount + 50. The previous value is gone forever.
+
+In event sourcing, you store events. You store "User deposited $50 at 3:14 PM" and "User withdrew $20 at 3:15 PM." The balance is calculated by replaying events.
+
+The profound implication: Your database is not the source of truth. Your event log is. The database is a cache—a disposable projection of truth. This is not optional in fintech. It is regulatory.
+
+2.2 The Theory: Why This Matters in Fintech
+Scenario	Traditional Database	Event Sourcing
+Bug that miscalculates balance	Data corrupted, need backups, possible manual reconciliation	Replay events with fix, data intact, audit trail preserved
+Audit requirement	Complex logging, easy to miss, regulators suspicious	Every state change is a recorded event with metadata
+Need to understand why	Only know final state, must reconstruct from logs	Full history of decisions with context
+Transaction rollback	Complex, may leave artifacts, requires compensating transactions	Simply don't append the event—the event never existed
+Regulatory inquiry	"Show me how this balance changed over time" — days of work	Single query: SELECT * FROM events WHERE stream_id = ?
+The Invariant Rule: In event sourcing, you never delete or update. You only append. This is immutable truth. If a regulator asks "What happened to this account on March 15, 2024?" you can answer with cryptographic certainty.
+
+2.3 The Architecture Visual
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         EVENT SOURCING ARCHITECTURE                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐  │
+│   │ Command │────▶│  Aggregate  │────▶│   Events    │────▶│ Event Store │  │
+│   │  "User  │     │  (Business  │     │  (What      │     │  (Append-   │  │
+│   │ Deposits│     │   Rules)    │     │  Happened)  │     │   Only)     │  │
+│   │  $50"   │     │             │     │             │     │             │  │
+│   └─────────┘     └─────────────┘     └─────────────┘     └─────────────┘  │
+│                                                                             │
+│        ┌────────────────────────────────────────────────────────────┐       │
+│        │                    EVENT STREAM (Postgres)                 │       │
+│        │  ┌──────────────────────────────────────────────────────┐  │       │
+│        │  │ Event 1: AccountOpened {balance: 0, timestamp: ...} │  │       │
+│        │  │ Event 2: MoneyDeposited {amount: 50, trace_id: ...} │  │       │
+│        │  │ Event 3: MoneyWithdrawn {amount: 20, trace_id: ...} │  │       │
+│        │  │ Event 4: MoneyDeposited {amount: 100, trace_id: ...}│  │       │
+│        │  │ ─────────────────────────────────────────────────    │  │       │
+│        │  │ Current Balance = 130 (calculated by replaying)      │  │       │
+│        │  │ Total Events = 4 | Total Value = $170 processed      │  │       │
+│        │  └──────────────────────────────────────────────────────┘  │       │
+│        └────────────────────────────────────────────────────────────┘       │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                    READ SIDE (CQRS)                                 │   │
+│   │                                                                     │   │
+│   │   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐         │   │
+│   │   │   Events    │────▶│ Projector   │────▶│ Read Model  │         │   │
+│   │   │   (Truth)   │     │ (Handler)   │     │ (Postgres,  │         │   │
+│   │   └─────────────┘     └─────────────┘     │  Redis, etc)│         │   │
+│   │                                           └─────────────┘         │   │
+│   │                                                                     │   │
+│   │   "The read model is a cache. If it's deleted, rebuild it          │   │
+│   │    from events. No data is lost. This is how we survive            │   │
+│   │    database corruption, buggy migrations, and human error."         │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+2.4 When to Implement
+Implement event sourcing from Day 1 if:
+
+You're building a financial system
+
+You need audit trails
+
+You cannot afford data loss
+
+You need to understand why state changed
+
+Regulators will ask questions
+
+Do NOT implement event sourcing if:
+
+You're building a simple CRUD app
+
+Your data has no regulatory requirements
+
+You don't need to know history
+
+Your team has never used it before (get training first)
+
+For a fintech ledger system: Event sourcing is non-negotiable. If your CTO asks why, say: "Regulators require immutable audit trails. Event sourcing is the only architecture that provides cryptographic proof of every state change."
+
+2.5 The Elite Insight: Eventual Consistency Is a Feature, Not a Bug
+Junior developers fear eventual consistency. Senior architects embrace it. Elite engineers design for it.
+
+What it means: When a user deposits money, the read model (what they see in the UI) updates milliseconds later, not instantly.
+
+Why this is acceptable:
+
+The event store knows the truth. If the read model is wrong, it's temporary. The system is honest about uncertainty.
+
+Your UI should indicate pending states. Show a spinner. Be honest with users. This builds trust.
+
+Financial systems have delays anyway. Wire transfers take hours. ACH takes days. A 50ms delay is invisible.
+
+You can offer strong consistency when needed. For critical reads, bypass the read model and query the event store directly.
+
+The elite pattern: Use all four based on context:
+
+elixir
+def get_balance(account_id, consistency \\ :eventual) do
+  case consistency do
+    :eventual ->
+      # Fast path: read model (50ms)
+      ReadModel.get_balance(account_id)
+
+    :strong ->
+      # Slow path: event store (200ms, but guaranteed correct)
+      account = Aggregate.load(account_id)
+      account.balance
+
+    :cached_with_fallback ->
+      # Try cache, fallback to event store if stale
+      case Cache.get(account_id) do
+        {:ok, balance} -> balance
+        {:stale, _} -> Aggregate.load(account_id).balance
+        {:error, :not_found} -> Aggregate.load(account_id).balance
+      end
+  end
+end
+2.6 The Implementation Timeline
+Day	Activity	Deliverable
+1	Define aggregates, commands, events	Documented domain model
+2	Set up Commanded and event store	Working event store
+3	Implement first aggregate	Account aggregate with tests
+4	Create projections	Read model updating from events
+5	Wire up command router	API can send commands
+Chapter 3: The Aggregate — Your Consistency Guardian
+3.1 The Concept
+An aggregate is a consistency boundary. It ensures that business rules are enforced before any event is recorded.
+
+Think of it as a bouncer at a club: The bouncer (aggregate) checks ID (validates command), ensures no one already inside (consistency), and then lets people in (emits events). The bouncer never leaves the door.
+
+3.2 The Theory: Aggregate Design Principles
+Principle 1: Aggregates Are Transactional Boundaries
+
+If two operations must happen atomically (both succeed or both fail), they belong in the same aggregate.
+
+Example: In a ledger, debiting account A and crediting account B must be atomic. This is why we need a Saga (process manager) to coordinate across aggregates.
+
+Principle 2: Aggregates Should Be Small
+
+Each aggregate instance should represent a single consistency unit. For a bank, each account is its own aggregate instance. This allows parallel processing—Account #12345 and Account #67890 can be handled simultaneously.
+
+Principle 3: Aggregates Are Pure State Machines
+
+An aggregate should have no side effects. It should not:
+
+Send emails
+
+Call external APIs
+
+Write to databases
+
+Publish to message queues
+
+It only:
+
+Receives commands
+
+Validates them against current state
+
+Produces events
+
+Why? Because aggregates are replayed from events. If they had side effects, replaying would trigger them again.
+
+3.3 The Visual: Aggregate Lifecycle
+text
+                    COMMAND FLOW
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                     AGGREGATE LIFECYCLE                         │
+    ├─────────────────────────────────────────────────────────────────┤
+    │                                                                 │
+    │  ┌──────────────┐                                               │
+    │  │   Command    │                                               │
+    │  │  "Withdraw   │                                               │
+    │  │    $100"     │                                               │
+    │  └──────┬───────┘                                               │
+    │         │                                                       │
+    │         ▼                                                       │
+    │  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐    │
+    │  │   Load       │     │   Execute    │     │   Produce    │    │
+    │  │   State      │────▶│   Command    │────▶│   Events     │    │
+    │  │   (Replay)   │     │   Handler    │     │   (If Valid) │    │
+    │  └──────────────┘     └──────────────┘     └──────┬───────┘    │
+    │         ▲                                          │            │
+    │         │                                          │            │
+    │         │                                          ▼            │
+    │         │                                   ┌──────────────┐    │
+    │         │                                   │   Append     │    │
+    │         │                                   │   to Event   │    │
+    │         │                                   │   Store      │    │
+    │         │                                   └──────────────┘    │
+    │         │                                          │            │
+    │         └──────────────────────────────────────────┘            │
+    │                     State Update (Apply)                        │
+    │                                                                 │
+    │   "The aggregate is rehydrated from events, applies new        │
+    │    event, and is ready for the next command."                   │
+    └─────────────────────────────────────────────────────────────────┘
+3.4 When to Create an Aggregate
+Create a new aggregate type when:
+
+You have a distinct business concept with its own rules
+
+That concept has invariants that must be enforced
+
+Instances of that concept can be processed independently
+
+For a banking system:
+
+Account aggregate (balance can't go negative)
+
+Transfer aggregate (two-sided transaction)
+
+User aggregate (identity and permissions)
+
+Card aggregate (daily limits, fraud detection)
+
+3.5 The Elite Insight: Optimistic Concurrency with Retry Logic
+When two commands hit the same aggregate simultaneously, only one can win.
+
+How it works: Every event has a version number. When you append events, you specify the expected version. If another command already appended, your version will be wrong and the command fails.
+
+This is intentional. The elite approach:
+
+elixir
+defmodule LedgerFlow.CommandDispatcher do
+  use Retry
+
+  def dispatch(command, opts \\ []) do
+    retries = Keyword.get(opts, :retries, 3)
+    delay_ms = Keyword.get(opts, :delay_ms, 100)
+
+    retry with: exponential_backoff(delay_ms) |> take(retries) do
+      case Commanded.dispatch(command, consistency: :strong) do
+        {:ok, _} -> {:ok, :success}
+        {:error, :stale_version} -> {:retry, :concurrent_modification}
+        {:error, other} -> {:error, other}
+      end
+    after
+      {:error, :max_retries_exceeded} ->
+        Logger.error("Command failed after #{retries} retries: #{inspect(command)}")
+        {:error, :concurrent_modification_timeout}
+    end
+  end
+end
+Never use pessimistic locking. It kills performance and creates deadlocks. Optimistic concurrency with retries is the fintech standard.
+
+3.6 The Implementation Timeline
+Day	Activity	Senior Consideration
+3	Implement Account aggregate	Test all invariants (no negative balance, frozen checks)
+4	Add Transfer saga	Understand distributed transaction patterns
+5	Add User aggregate	Separate identity from account ownership
+6	Implement optimistic concurrency	Build retry logic into command dispatch
+Chapter 4: The Event Store — Your Immutable Truth
+4.1 The Concept
+The event store is the source of truth. It's an append-only log of every state change that has ever occurred in your system.
+
+Think of it like a bank statement: You don't erase transactions. You append new ones. The current balance is always a calculation from the transaction history.
+
+4.2 The Theory: Why Postgres for Event Store
+Many developers assume event sourcing requires specialized databases like EventStoreDB. For 99% of applications, Postgres is superior.
+
+Consideration	Specialized Event Store	Postgres
+Operations	New skill, new tool	Already know it
+Transactions	Limited or none	Full ACID
+Tooling	Limited	Mature ecosystem
+Cost	Additional license	Usually already paid for
+Performance	Excellent	Excellent for 99% of needs
+Backup/Recovery	Vendor-specific	Standard tools (pg_dump, WAL)
+The exception: If you need >10,000 events per second or global distribution, consider EventStoreDB or Kafka.
+
+4.3 The Visual: Event Store Schema with Snapshots
+sql
+-- Event Store Tables (Postgres)
+
+-- The immutable event log
+CREATE TABLE events (
+    event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stream_id VARCHAR(255) NOT NULL,
+    stream_version INTEGER NOT NULL,
+    event_type VARCHAR(255) NOT NULL,
+    event_data JSONB NOT NULL,
+    metadata JSONB NOT NULL,
+    inserted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE(stream_id, stream_version)
+);
+
+CREATE INDEX idx_events_stream_id ON events(stream_id);
+CREATE INDEX idx_events_inserted_at ON events(inserted_at);
+
+-- Snapshots for performance
+CREATE TABLE snapshots (
+    snapshot_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stream_id VARCHAR(255) NOT NULL,
+    snapshot_data JSONB NOT NULL,
+    version INTEGER NOT NULL,
+    inserted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE(stream_id, version)
+);
+
+-- Audit log for compliance (fintech requirement)
+CREATE TABLE audit_log (
+    audit_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID REFERENCES events(event_id),
+    actor_id VARCHAR(255) NOT NULL,
+    actor_ip INET,
+    action VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_audit_actor ON audit_log(actor_id);
+CREATE INDEX idx_audit_timestamp ON audit_log(timestamp);
+4.4 The Elite Insight: Upcasters for Zero-Downtime Evolution
+The Problem: Your business evolves. Event structures change. You add fields, rename them, remove obsolete data.
+
+The Naive Solution: Migrate all old events. This requires downtime and risks data corruption.
+
+The Elite Solution: Upcasters.
+
+An upcaster transforms old event versions to new versions at read time as events are replayed.
+
+elixir
+# Example: You renamed "amount" to "transaction_amount"
+
+defmodule Upcasters.MoneyDeposited do
+  use Commanded.Event.Upcaster
+  @version 2  # Current version of this event
+
+  def upcast(%{"amount" => amount} = event, metadata, %{version: 1}) do
+    # Transform version 1 to version 2
+    event
+    |> Map.put("transaction_amount", amount)
+    |> Map.delete("amount")
+    |> Map.put("__version__", 2)
+  end
+
+  def upcast(event, _metadata, _version), do: event
+end
+
+# Later, you add a new field with a default
+defmodule Upcasters.MoneyDeposited do
+  # Version 3 adds "currency" field
+
+  def upcast(event, _metadata, %{version: 2}) do
+    event
+    |> Map.put("currency", "USD")  # Default for old events
+    |> Map.put("__version__", 3)
+  end
+
+  def upcast(event, _metadata, _version), do: event
+end
+The Rule: Never migrate events in the database. Always use upcasters. This allows zero-downtime evolution and keeps your database schema stable.
+
+4.5 The Implementation Timeline
+Day	Activity	Why
+1	Install Commanded + Postgres	Foundation before any code
+2	Create event store tables	Run migrations
+3	Test event appending	Verify infrastructure works
+5	Implement first upcaster	Prepare for schema evolution
+10	Add snapshotting	Performance optimization
+Chapter 5: The Read Model — Your Query Cache
+5.1 The Concept
+The read model is a denormalized view of your event data, optimized for queries.
+
+Why it exists: Event stores are append-only logs. Querying them for "all accounts with balance > 1000" would require replaying every event for every account. That's slow.
+
+The solution: Projectors listen to events and update specialized query tables.
+
+5.2 The Theory: CQRS with Materialized Views
+CQRS (Command Query Responsibility Segregation) means:
+
+Commands (writes) go to aggregates → events
+
+Queries (reads) go to read models
+
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CQRS ARCHITECTURE                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   COMMAND SIDE                    QUERY SIDE                               │
+│   (Write-Optimized)               (Read-Optimized)                         │
+│                                                                             │
+│   ┌─────────────┐                 ┌─────────────────────────────┐          │
+│   │   Command   │                 │   Read Model 1              │          │
+│   │   Dispatch  │                 │   (Current balances)        │          │
+│   └──────┬──────┘                 └─────────────────────────────┘          │
+│          │                                                                 │
+│          ▼                                                                 │
+│   ┌─────────────┐                 ┌─────────────────────────────┐          │
+│   │  Aggregate  │                 │   Read Model 2              │          │
+│   │  (Invariant │                 │   (Transaction history)     │          │
+│   │   Check)    │                 └─────────────────────────────┘          │
+│   └──────┬──────┘                                                          │
+│          │                           ┌─────────────────────────────┐        │
+│          ▼                           │   Read Model 3              │        │
+│   ┌─────────────┐                    │   (Daily summaries)         │        │
+│   │   Events    │                    └─────────────────────────────┘        │
+│   └──────┬──────┘                                                          │
+│          │                                                                 │
+│          ▼                                                                 │
+│   ┌─────────────┐                 ┌─────────────────────────────┐          │
+│   │ Event Store │────(async)────▶│      Projectors              │          │
+│   │ (Postgres)  │                 │   (Update read models)      │          │
+│   └─────────────┘                 └─────────────────────────────┘          │
+│                                                                             │
+│   "Read models can be rebuilt at any time by replaying events.            │
+│    They are disposable caches. This is how we survive corruption."         │
+└─────────────────────────────────────────────────────────────────────────────┘
+5.3 The Elite Insight: Read Model Strategies by Consistency Need
+Consistency Need	Strategy	Example
+Eventual	Async projector	Balance display, transaction list
+Strong	Query event store	Audit reports, fraud checks
+Cached	Redis with TTL	Exchange rates, fee calculations
+Real-time	WebSocket push	Deposit confirmation, fraud alerts
+elixir
+defmodule LedgerFlow.BalanceReader do
+  # Three-tier strategy for balance reads
+
+  def get_balance(account_id, opts \\ []) do
+    consistency = Keyword.get(opts, :consistency, :eventual)
+
+    case consistency do
+      :eventual ->
+        # Fast path: 50ms, may be stale by milliseconds
+        ReadModel.Balance.get(account_id)
+
+      :strong ->
+        # Slow path: 200ms, guaranteed correct
+        account = AccountAggregate.load(account_id)
+        account.balance
+
+      :cached_with_validation ->
+        # Medium path: 100ms, validates with event store if stale
+        case Cache.get(account_id) do
+          {:ok, balance, version} ->
+            # Check if cache is behind
+            current_version = EventStore.get_version(account_id)
+            if version == current_version do
+              balance
+            else
+              # Rebuild from events
+              account = AccountAggregate.load(account_id)
+              Cache.put(account_id, account.balance, account.version)
+              account.balance
+            end
+          {:error, :not_found} ->
+            account = AccountAggregate.load(account_id)
+            Cache.put(account_id, account.balance, account.version)
+            account.balance
+        end
+    end
+  end
+end
+5.4 The Implementation Timeline
+Day	Activity	Read Model Type
+4	Account balances	Current state projection
+5	Transaction history	Event listing
+6	Daily summaries	Aggregate (time-based)
+7	Fraud detection alerts	Complex logic with thresholds
+8	Analytics dashboard	Multiple aggregates
+Chapter 6: Process Managers (Sagas) — Coordinating Aggregates
+6.1 The Concept
+A saga (or process manager) coordinates multiple aggregates to achieve a business goal that spans consistency boundaries.
+
+Example: Transferring money from Account A to Account B requires:
+
+Withdraw from A (if fails, stop)
+
+Deposit to B (if fails, compensate by depositing back to A)
+
+This is a saga. In fintech, sagas are how you implement distributed transactions without two-phase commit.
+
+6.2 The Theory: Saga Patterns
+There are two saga patterns:
+
+Pattern	Description	Use Case
+Choreography	Events trigger actions, no central coordinator	Simple, linear flows, low complexity
+Orchestration	Central saga tracks progress, issues commands	Complex flows with error handling, audit requirements
+For fintech, use orchestration. You need central visibility into transaction status and the ability to answer "What happened to transfer #12345?"
+
+6.3 The Visual: Saga Orchestration with Compensation
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SAGA ORCHESTRATION PATTERN                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                    TRANSFER SAGA (Process Manager)                  │   │
+│   │                                                                     │   │
+│   │  State: :pending                                                    │   │
+│   │  Started: 2024-01-15 14:32:10                                      │   │
+│   │  Transfer ID: TX-12345                                             │   │
+│   │                                                                     │   │
+│   │  ┌─────────────────────────────────────────────────────────────┐    │   │
+│   │  │                         FLOW                                │    │   │
+│   │  │                                                             │    │   │
+│   │  │   StartTransfer ──▶ WithdrawFromA ──▶ DepositToB ──▶ Done  │    │   │
+│   │  │        │                 │                 │                │    │   │
+│   │  │        │                 ▼                 ▼                │    │   │
+│   │  │        │         MoneyWithdrawn    MoneyDeposited           │    │   │
+│   │  │        │         (Event)           (Event)                  │    │   │
+│   │  │        │                                                   │    │   │
+│   │  │        ▼                                                   │    │   │
+│   │  │   TransferFailed ──▶ Compensate ──▶ Compensated            │    │   │
+│   │  │        (if error)        (Deposit back to A)               │    │   │
+│   │  │                           (or send to dead letter queue)   │    │   │
+│   │  └─────────────────────────────────────────────────────────────┘    │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐                  │
+│   │ Account A   │     │ Account B   │     │   Audit     │                  │
+│   │ Aggregate   │     │ Aggregate   │     │   Log       │                  │
+│   └─────────────┘     └─────────────┘     └─────────────┘                  │
+│                                                                             │
+│   "The saga is stateful. If the process crashes, it resumes                │
+│    from its last recorded state. If it crashes mid-compensation,           │
+│    a background process retries until consistency is restored."            │
+└─────────────────────────────────────────────────────────────────────────────┘
+6.4 The Elite Insight: Idempotency & Dead Letter Queues
+The critical property: All saga commands must be idempotent.
+
+If a saga retries a command (because of network issues), it should have the same effect as the first attempt.
+
+elixir
+defmodule LedgerFlow.Sagas.TransferSaga do
+  use Commanded.ProcessManagers.ProcessManager,
+    name: "TransferSaga",
+    router: LedgerFlow.Router
+
+  defstruct [
+    :transfer_id,
+    :from_account,
+    :to_account,
+    :amount,
+    :status,
+    :withdrawal_completed?,
+    :deposit_completed?,
+    :retry_count
+  ]
+
+  # Handle command with idempotency check
+  def execute(%__MODULE__{status: :withdrawing} = saga, %WithdrawMoney{} = cmd) do
+    if saga.withdrawal_completed? do
+      # Already did this step, skip
+      []
+    else
+      # First time, execute
+      [cmd]
+    end
+  end
+
+  # Handle compensation with idempotency
+  def compensate(%__MODULE__{status: :compensating} = saga, %DepositMoney{} = cmd) do
+    if saga.compensation_completed? do
+      []
+    else
+      [cmd]
+    end
+  end
+
+  # Dead letter queue for failed commands
+  def handle_failure(%__MODULE__{} = saga, command, error) do
+    new_retry_count = saga.retry_count + 1
+
+    if new_retry_count <= 5 do
+      # Retry with backoff
+      Process.send_after(self(), {:retry, command}, 1000 * new_retry_count)
+      {:noreply, %{saga | retry_count: new_retry_count}}
+    else
+      # Move to dead letter queue for manual intervention
+      DeadLetterQueue.push(%{
+        saga: saga,
+        command: command,
+        error: error,
+        timestamp: DateTime.utc_now()
+      })
+
+      # Alert on-call engineer
+      Alert.send("Transfer saga failed: #{saga.transfer_id}", error)
+
+      {:noreply, %{saga | status: :failed_manual_intervention_required}}
+    end
+  end
+end
+Why this matters: Without idempotency, a network hiccup could double-withdraw. Without dead letter queues, you could lose transactions. Sagas are how fintech systems maintain consistency across boundaries.
+
+6.5 The Implementation Timeline
+Day	Activity	Complexity
+6	Implement simple transfer saga	Core pattern
+7	Add timeout handling	Production ready
+8	Add idempotency keys	Prevent duplicates
+9	Add saga monitoring dashboard	Operations visibility
+10	Implement dead letter queue	Handle edge cases
+11	Add compensation testing	Chaos engineering
+Part 3: The Infrastructure Layer — Gatekeepers & Orchestration
+Chapter 7: Docker — Packaging for Immutability
+7.1 The Concept
+Docker packages your application and its environment into a single artifact that runs identically everywhere.
+
+The senior insight: The same Docker image that passes tests on your Mac should run in production. No exceptions.
+
+The elite insight: You need two Dockerfiles—one for development with hot reload, one for production with releases.
+
+7.2 The Theory: Multi-Stage Builds for Production
+A multi-stage build:
+
+Builder stage: Has compilers, dependencies, builds the release
+
+Runtime stage: Only contains the compiled release, no build tools
+
+This keeps images small (50-100 MB instead of 1-2 GB) and removes the compiler from production (security critical).
+
+7.3 The Visual: Multi-Stage Build Architecture
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MULTI-STAGE DOCKER BUILD                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   STAGE 1: BUILDER (Large, has tooling)                                    │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  hexpm/elixir:1.18.0 (Alpine + Erlang + Elixir + Git)             │   │
+│   │                                                                     │   │
+│   │  mix deps.get                                                       │   │
+│   │  mix compile                                                        │   │
+│   │  MIX_ENV=prod mix release                                           │   │
+│   │                                                                     │   │
+│   │  Result: /app/_build/prod/rel/ledger_flow                          │   │
+│   │  Size: ~1.2 GB (temporary)                                          │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    │ COPY --from=builder                    │
+│                                    ▼                                        │
+│   STAGE 2: RUNTIME (Small, minimal)                                        │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  alpine:3.20 (Just OS + runtime libraries)                         │   │
+│   │                                                                     │   │
+│   │  Contains:                                                          │   │
+│   │  - Compiled BEAM files                                              │   │
+│   │  - No source code                                                   │   │
+│   │  - No build tools                                                   │   │
+│   │  - No compiler                                                      │   │
+│   │                                                                     │   │
+│   │  Final Size: ~80 MB                                                 │   │
+│   │  Attack Surface: Minimal                                            │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   "The production image contains exactly what's needed to run.            │
+│    No compiler means no code injection attacks."                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+7.4 The Dockerfile Template (Production)
+dockerfile
+# Dockerfile — Production with Multi-Stage Build
+
+# ==================== BUILDER STAGE ====================
+FROM hexpm/elixir:1.18.0-erlang-27.0-alpine-3.20 AS builder
+
+# Install build dependencies
+RUN apk add --no-cache build-base git
+
+# Set up application
+WORKDIR /app
+COPY mix.exs mix.lock ./
+RUN mix deps.get --only prod
+
+# Copy source and build
+COPY . .
+RUN MIX_ENV=prod mix release
+
+# ==================== RUNTIME STAGE ====================
+FROM alpine:3.20 AS runtime
+
+# Install runtime dependencies only
+RUN apk add --no-cache openssl ncurses-libs
+
+# Copy release from builder
+WORKDIR /app
+COPY --from=builder /app/_build/prod/rel/ledger_flow .
+
+# Create non-root user (security)
+RUN addgroup -g 1000 -S app && \
+    adduser -u 1000 -S app -G app && \
+    chown -R app:app /app
+USER app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+
+# Expose port
+EXPOSE 4000
+
+# Start the application — NOTE: This is bin/start, NOT mix phx.server
+ENTRYPOINT ["/app/bin/ledger_flow"]
+CMD ["start"]
+7.5 The Dockerfile Template (Development)
+dockerfile
+# Dockerfile.dev — Development with Hot Reload
+
+FROM hexpm/elixir:1.18.0-erlang-27.0-alpine-3.20
+
+# Install development tools
+RUN apk add --no-cache build-base git inotify-tools
+
+WORKDIR /app
+
+# Install dependencies
+COPY mix.exs mix.lock ./
+RUN mix deps.get
+
+# Copy source (will be mounted for hot reload)
+COPY . .
+
+# Install Node.js for asset compilation (if needed)
+RUN apk add --no-cache nodejs npm
+RUN cd apps/ledger_flow_web/assets && npm install
+
+# Start in development mode with hot reload
+CMD ["mix", "phx.server"]
+7.6 The Elite Insight: Health Checks with Grace Periods
+Docker health checks ensure your container is actually ready to serve traffic.
+
+dockerfile
+# The start-period is critical
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+The start-period is critical. Your app may take 10 seconds to connect to databases. Without start-period, Docker may kill it before it's ready.
+
+Elite addition: Liveness vs. Readiness probes (like Kubernetes):
+
+dockerfile
+# For systems with long startup, separate probes:
+# - Liveness: Is the app alive? (quick check)
+# - Readiness: Is the app ready for traffic? (checks dependencies)
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+  CMD /app/bin/ledger_flow eval "LedgerFlow.Health.liveness?()" || exit 1
+
+# In your application code:
+defmodule LedgerFlow.Health do
+  def liveness? do
+    # Just check the process is running
+    Process.whereis(LedgerFlowWeb.Endpoint) != nil
+  end
+
+  def readiness? do
+    # Check all dependencies
+    case Repo.query("SELECT 1") do
+      {:ok, _} -> true
+      {:error, _} -> false
+    end and
+    case AMQP.Connection.connected?() do
+      true -> true
+      false -> false
+    end
+  end
+end
+7.7 The Implementation Timeline
+Day	Activity	Purpose
+1	Create multi-stage Dockerfile	Foundation
+1	Create Dockerfile.dev	Development experience
+2	Add health checks with start-period	Production readiness
+3	Optimize layer caching	Faster builds
+4	Add non-root user	Security
+5	Test with docker-compose	Full stack verification
+Chapter 8: Docker Compose — The Local Simulator
+8.1 The Concept
+Docker Compose orchestrates all your services locally:
+
+Postgres (event store + read models)
+
+RabbitMQ (message broker)
+
+Multiple Elixir nodes
+
+Nginx (edge proxy)
+
+HAProxy (load balancer)
+
+Prometheus + Grafana (observability)
+
+Toxiproxy (chaos engineering)
+
+The goal: Your local environment should mirror production as closely as possible. If it works in Docker Compose, it works in production.
+
+8.2 The Visual: Network Isolation with Service Discovery
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    DOCKER COMPOSE NETWORK ARCHITECTURE                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      frontend Network                               │   │
+│   │   (Exposed to host, simulates public internet)                     │   │
+│   │                                                                     │   │
+│   │   ┌─────────┐     ┌─────────┐                                      │   │
+│   │   │  Nginx  │────▶│ HAProxy │                                      │   │
+│   │   │  :80    │     │  :9000  │                                      │   │
+│   │   └─────────┘     └────┬────┘                                      │   │
+│   └─────────────────────────┼──────────────────────────────────────────┘   │
+│                             │                                              │
+│                             │ (Internal communication via Docker DNS)      │
+│                             ▼                                              │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      backend Network                                │   │
+│   │   (Internal only, no external access)                              │   │
+│   │                                                                     │   │
+│   │   ┌─────────┐  ┌─────────┐  ┌─────────┐                           │   │
+│   │   │Elixir 1 │  │Elixir 2 │  │Elixir 3 │                           │   │
+│   │   │ :4000   │  │ :4000   │  │ :4000   │                           │   │
+│   │   │Service  │  │Service  │  │Service  │                           │   │
+│   │   │Name:    │  │Name:    │  │Name:    │                           │   │
+│   │   │node1    │  │node2    │  │node3    │                           │   │
+│   │   └────┬────┘  └────┬────┘  └────┬────┘                           │   │
+│   │        │            │            │                                  │   │
+│   │        └────────────┴────────────┘                                  │   │
+│   │                     │                                               │   │
+│   │        ┌────────────┴────────────┐                                 │   │
+│   │        ▼                         ▼                                 │   │
+│   │ ┌─────────────┐           ┌─────────────┐                         │   │
+│   │ │  Postgres   │           │  RabbitMQ   │                         │   │
+│   │ │  Service    │           │  Service    │                         │   │
+│   │ │  Name:      │           │  Name:      │                         │   │
+│   │ │  postgres   │           │  rabbitmq   │                         │   │
+│   │ └─────────────┘           └─────────────┘                         │   │
+│   │                                                                     │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   "The internet never touches the database. Everything goes               │
+│    through the proxy layer. Service discovery is automatic."               │
+└─────────────────────────────────────────────────────────────────────────────┘
+8.3 The docker-compose.yml Template (Enhanced)
+yaml
+version: '3.8'
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true  # No external access - simulates VPC
+
+services:
+  # ==================== EDGE LAYER ====================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - frontend
+    depends_on:
+      - haproxy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  haproxy:
+    image: haproxy:2.8-alpine
+    ports:
+      - "1936:1936"  # Stats dashboard
+    volumes:
+      - ./infra/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      elixir_node1:
+        condition: service_healthy
+      elixir_node2:
+        condition: service_healthy
+      elixir_node3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-c"]
+      interval: 30s
+
+  # ==================== APPLICATION LAYER ====================
+  elixir_node1:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Production Dockerfile
+    environment:
+      - MIX_ENV=prod
+      - NODE_NAME=node1
+      - DATABASE_URL=postgresql://ledger:ledger@postgres:5432/ledger
+      - RABBITMQ_URL=amqp://ledger:ledger@rabbitmq:5672
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - POD_NAME=node1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  elixir_node2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MIX_ENV=prod
+      - NODE_NAME=node2
+      - DATABASE_URL=postgresql://ledger:ledger@postgres:5432/ledger
+      - RABBITMQ_URL=amqp://ledger:ledger@rabbitmq:5672
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - POD_NAME=node2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+
+  elixir_node3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MIX_ENV=prod
+      - NODE_NAME=node3
+      - DATABASE_URL=postgresql://ledger:ledger@postgres:5432/ledger
+      - RABBITMQ_URL=amqp://ledger:ledger@rabbitmq:5672
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - POD_NAME=node3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # ==================== DATA LAYER ====================
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=ledger
+      - POSTGRES_PASSWORD=ledger
+      - POSTGRES_DB=ledger
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=ledger
+      - RABBITMQ_DEFAULT_PASS=ledger
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== OBSERVABILITY LAYER ====================
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - backend
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  # ==================== CHAOS ENGINEERING ====================
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:latest
+    networks:
+      - backend
+    ports:
+      - "8474:8474"
+    command: ["--host", "0.0.0.0"]
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+8.4 The Elite Insight: Service Discovery with Docker DNS
+The critical insight that was missing: Containers find each other by service name, not IP addresses.
+
+nginx
+# nginx.conf — Using Docker service names
+upstream phoenix_backend {
+    # 'haproxy' is the service name from docker-compose.yml
+    server haproxy:9000;
+    keepalive 32;
+}
+haproxy
+# haproxy.cfg — Using Docker service names
+backend elixir_nodes
+    # These are Docker service names
+    server node1 elixir_node1:4000 maxconn 1024
+    server node2 elixir_node2:4000 maxconn 1024
+    server node3 elixir_node3:4000 maxconn 1024
+elixir
+# config/runtime.exs — Using Docker service names
+database_url = System.get_env("DATABASE_URL") || "postgresql://ledger:ledger@postgres:5432/ledger"
+# 'postgres' is the Docker service name
+Why this matters: In production (Kubernetes, ECS), you'll use similar service discovery mechanisms. Docker Compose gives you a local simulator that behaves identically.
+
+8.5 The Implementation Timeline
+Day	Activity	Services Added
+1	Basic Compose	Postgres, 1 Elixir node
+2	Add RabbitMQ	Full event flow
+3	Add multiple nodes	Load balancing testing
+4	Add Nginx + HAProxy	Full proxy layer with service discovery
+5	Add Prometheus + Grafana	Observability
+6	Add Toxiproxy	Chaos engineering
+7	Configure health checks with start_period	Production readiness
+Chapter 9: Nginx — The Edge Bodyguard
+9.1 The Concept
+Nginx sits at the edge of your network, handling:
+
+SSL termination (expensive crypto in C, not Erlang)
+
+Static file serving (CSS, JS, images)
+
+Rate limiting at the IP level
+
+Request filtering
+
+Gzip compression
+
+DDoS mitigation
+
+Why Nginx, not Phoenix: Phoenix is fast, but Nginx is written in C and mathematically superior at static file serving and SSL. Let it do what it's optimized for.
+
+9.2 The nginx.conf Template (Fintech-Grade)
+nginx
+# /infra/nginx/nginx.conf
+
+worker_processes auto;
+worker_rlimit_nofile 65535;
+
+events {
+    worker_connections 10240;
+    use epoll;
+    multi_accept on;
+}
+
+http {
+    # ==================== BASIC SETTINGS ====================
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Logging with timing
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for" '
+                    'rt=$request_time uct="$upstream_connect_time" '
+                    'uht="$upstream_header_time" urt="$upstream_response_time"';
+
+    access_log /var/log/nginx/access.log main buffer=32k flush=5s;
+    error_log /var/log/nginx/error.log warn;
+
+    # Performance
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    keepalive_requests 1000;
+    client_body_timeout 12;
+    client_header_timeout 12;
+    send_timeout 10;
+
+    # Buffer sizes
+    client_body_buffer_size 128k;
+    client_header_buffer_size 1k;
+    client_max_body_size 10m;
+    large_client_header_buffers 4 8k;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml text/javascript
+               application/json application/javascript application/xml+rss
+               application/atom+xml image/svg+xml;
+    gzip_min_length 1000;
+
+    # ==================== SECURITY HEADERS ====================
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # HSTS - 1 year
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # Content Security Policy
+    add_header Content-Security-Policy "
+        default-src 'self';
+        script-src 'self' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https:;
+        connect-src 'self' wss:;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    " always;
+
+    # ==================== RATE LIMITING ZONES ====================
+    # IP-based limits
+    limit_req_zone $binary_remote_addr zone=login:10m rate=10r/m;
+    limit_req_zone $binary_remote_addr zone=api:10m rate=100r/s;
+    limit_req_zone $binary_remote_addr zone=websocket:10m rate=30r/s;
+
+    # Token-based limits (for authenticated users)
+    limit_req_zone $http_authorization zone=user_api:10m rate=1000r/m;
+
+    # ==================== UPSTREAM CONFIGURATION ====================
+    # Service discovery via Docker DNS
+    upstream haproxy_backend {
+        server haproxy:9000 max_fails=3 fail_timeout=30s;
+        keepalive 32;
+    }
+
+    # ==================== SERVER BLOCK ====================
+    server {
+        listen 80;
+        listen 443 ssl http2;
+        server_name api.ledger.com;
+
+        # SSL configuration
+        ssl_certificate /etc/nginx/ssl/cert.pem;
+        ssl_certificate_key /etc/nginx/ssl/key.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+
+        # ==================== STATIC FILES ====================
+        location /static/ {
+            alias /app/priv/static/;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            access_log off;
+        }
+
+        # ==================== WEBSOCKET SUPPORT ====================
+        location /socket/ {
+            proxy_pass http://haproxy_backend;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            # Long timeouts for WebSockets
+            proxy_connect_timeout 7d;
+            proxy_send_timeout 7d;
+            proxy_read_timeout 7d;
+        }
+
+        # ==================== API ROUTES ====================
+        location /api/ {
+            # Rate limiting for API
+            limit_req zone=api burst=200 nodelay;
+
+            proxy_pass http://haproxy_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            # Timeouts
+            proxy_connect_timeout 30s;
+            proxy_send_timeout 30s;
+            proxy_read_timeout 30s;
+        }
+
+        # ==================== HEALTH CHECK ====================
+        location /health {
+            access_log off;
+            proxy_pass http://haproxy_backend/health;
+            proxy_set_header Host $host;
+        }
+
+        # ==================== RATE-LIMITED ROUTES ====================
+        location /api/login {
+            limit_req zone=login burst=5 nodelay;
+            proxy_pass http://haproxy_backend;
+        }
+
+        # ==================== DEFAULT ====================
+        location / {
+            proxy_pass http://haproxy_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+9.3 The Elite Insight: Rate Limiting at Multiple Layers
+The most expensive resource in your system is a BEAM process. Nginx can block malicious IPs before they ever wake up an Erlang scheduler.
+
+Elite approach: Three layers of rate limiting:
+
+Nginx (IP-based): Blocks brute force attacks before they reach your app
+
+Phoenix (user-based): Per-user quotas for authenticated users
+
+Aggregate (business rules): Business logic limits (e.g., "no more than 5 deposits per hour")
+
+nginx
+# Layer 1: IP-based limits (Nginx)
+limit_req_zone $binary_remote_addr zone=login:10m rate=10r/m;
+
+# Layer 2: Token-based limits (Nginx with auth header)
+limit_req_zone $http_authorization zone=authenticated:10m rate=1000r/m;
+elixir
+# Layer 3: Business logic limits (Phoenix plug)
+defmodule LedgerFlow.Plugs.UserRateLimit do
+  def init(opts), do: opts
+
+  def call(conn, _opts) do
+    user_id = conn.assigns.current_user.id
+
+    case RateLimiter.check_rate("user:#{user_id}:deposit", 5, 3600) do
+      :allow ->
+        conn
+      {:deny, :rate_limited} ->
+        conn
+        |> put_status(429)
+        |> json(%{error: "Rate limit exceeded. Maximum 5 deposits per hour."})
+        |> halt()
+    end
+  end
+end
+elixir
+# Layer 4: Aggregate invariants (Commanded)
+defmodule LedgerFlow.Account do
+  def execute(%Account{} = account, %DepositMoney{amount: amount}) do
+    # Business rule: No more than 5 deposits in the last hour
+    recent_deposits = account.events
+    |> Enum.filter(&match?(%MoneyDeposited{}, &1))
+    |> Enum.filter(&(&1.timestamp > DateTime.add(DateTime.utc_now(), -3600)))
+
+    if length(recent_deposits) >= 5 do
+      {:error, :deposit_rate_limit_exceeded}
+    else
+      # ... process deposit
+    end
+  end
+end
+9.4 The Implementation Timeline
+Day	Activity	Why
+8	Basic Nginx config	SSL, static files
+9	Rate limiting at IP level	DDoS protection
+10	Security headers	Compliance (OWASP)
+11	WebSocket upgrade handling	Phoenix compatibility
+12	Caching strategy	Performance
+13	HSTS configuration	Security
+Chapter 10: HAProxy — The Traffic Controller
+10.1 The Concept
+HAProxy is a TCP/HTTP load balancer that distributes traffic across your Elixir nodes. Unlike Nginx, HAProxy specializes in connection management and health checking.
+
+Why HAProxy over Nginx for load balancing: HAProxy is optimized for high-connection-count scenarios (like WebSockets) and provides better observability into connection distribution.
+
+10.2 The haproxy.cfg Template (Fintech-Grade)
+haproxy
+# /infra/haproxy/haproxy.cfg
+
+global
+    daemon
+    maxconn 65536
+    stats socket /var/run/haproxy.sock mode 600 level admin
+    user haproxy
+    group haproxy
+    nbproc 2
+    cpu-map auto:1/1-2 0-1
+
+defaults
+    mode http
+    timeout connect 5s
+    timeout client 50s
+    timeout server 50s
+    timeout queue 30s
+    timeout tunnel 1h  # Long timeout for WebSockets
+    option http-server-close
+    option forwardfor except 127.0.0.0/8
+    option redispatch
+    retries 3
+
+# ==================== STATS DASHBOARD ====================
+frontend stats
+    bind *:1936
+    mode http
+    stats enable
+    stats uri /
+    stats refresh 10s
+    stats auth admin:admin
+    stats admin if TRUE
+
+# ==================== FRONTEND (Where users connect) ====================
+frontend http_frontend
+    bind *:9000
+    mode http
+
+    # Log format with timing
+    option httplog
+    capture request header Host len 32
+    capture request header User-Agent len 64
+    capture request header X-Forwarded-For len 32
+
+    # Define backends based on path
+    use_backend websocket_backend if { path_beg /socket/ }
+    use_backend elixir_nodes if { path_beg /api/ }
+    default_backend elixir_nodes
+
+# ==================== BACKEND (Elixir nodes) ====================
+backend elixir_nodes
+    mode http
+    balance roundrobin
+
+    # Cookie-based stickiness for WebSockets
+    cookie PHX_NODE insert indirect nocache
+
+    # ACTIVE HEALTH CHECKS — HAProxy pings every 2 seconds
+    option httpchk GET /health HTTP/1.1\r\nHost:\ localhost
+    default-server check inter 2s fall 3 rise 2
+
+    # ==================== ELIXIR NODES ====================
+    # Service names from Docker Compose
+    server node1 elixir_node1:4000 cookie node1 maxconn 1024 weight 100
+    server node2 elixir_node2:4000 cookie node2 maxconn 1024 weight 100
+    server node3 elixir_node3:4000 cookie node3 maxconn 1024 weight 100
+
+# ==================== WEB SOCKET BACKEND ====================
+backend websocket_backend
+    mode http
+    balance leastconn  # Least connections is better for WebSockets
+
+    option httpchk GET /health
+    default-server check inter 2s fall 3 rise 2
+
+    server node1 elixir_node1:4000 maxconn 10240
+    server node2 elixir_node2:4000 maxconn 10240
+    server node3 elixir_node3:4000 maxconn 10240
+10.3 The Elite Insight: Active vs Passive Health Checks
+Type	How It Works	Use Case
+Active	HAProxy pings /health every N seconds	Primary health detection
+Passive	HAProxy observes actual traffic failures	Catch intermittent issues
+Elite configuration: Use both with different thresholds.
+
+haproxy
+# Active: aggressive detection (2 seconds)
+server node1 elixir_node1:4000 check inter 2s fall 3 rise 2
+
+# Passive: conservative (traffic-based)
+server node1 elixir_node1:4000 check inter 2s fall 3 rise 2 observe layer7
+Why: Active checks catch hard failures quickly. Passive checks catch subtle issues like memory leaks that cause increasing latency before total failure.
+
+10.4 The HAProxy Stats Dashboard
+A senior engineer doesn't just "hope" the load balancer is working. HAProxy provides a hidden dashboard on port 1936.
+
+Access it at: http://localhost:1936 (credentials: admin/admin)
+
+What to watch:
+
+Session rate: How many connections per second
+
+Queue: Are requests waiting? (If >0, you need more nodes)
+
+Server status: Green = healthy, Red = down
+
+Response time: P99 latency through the proxy
+
+Connection count: Are WebSockets distributing evenly?
+
+10.5 The Implementation Timeline
+Day	Activity	Why
+8	Basic HAProxy config	Round-robin load balancing
+9	WebSocket stickiness with cookies	LiveView support
+10	Health check endpoints with start_period	Auto-recovery
+11	Stats dashboard with authentication	Observability
+12	Active/passive health checks	Production readiness
+13	Connection limits per node	Prevent overload
+Part 4: Observability — Seeing Inside Your System
+Chapter 11: OpenTelemetry — The Distributed Trace
+11.1 The Concept
+OpenTelemetry provides distributed tracing. Every request gets a unique Trace ID that follows it through your system:
+
+HTTP request → Nginx → HAProxy → Phoenix controller → Commanded command → Event store → RabbitMQ → Projector → Database
+
+If something fails, you can search for the Trace ID and see exactly what happened, across all services.
+
+11.2 The Visual: Distributed Trace with Async Processing
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    DISTRIBUTED TRACE                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Trace ID: 7a8b3c9d-1e2f-4a3b-8c9d-0e1f2a3b4c5d                          │
+│   User ID: user_12345                                                       │
+│   Command ID: cmd_67890                                                     │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  HTTP Request (50ms total)                                         │   │
+│   │  ├─ Nginx (2ms)                                                    │   │
+│   │  ├─ HAProxy (1ms)                                                  │   │
+│   │  ├─ Phoenix Controller (5ms)                                       │   │
+│   │  ├─ Commanded Aggregate (3ms)                                      │   │
+│   │  ├─ Event Store Write (10ms)                                       │   │
+│   │  ├─ RabbitMQ Publish (2ms)                                         │   │
+│   │  └─ Response to User (27ms)                                        │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   5 minutes later (async processing)                                        │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  RabbitMQ Consumer (Trace ID continues)                             │   │
+│   │  ├─ Projector Handler (15ms)                                        │   │
+│   │  ├─ Database Write (5ms)                                            │   │
+│   │  └─ Email Service Call (100ms)                                      │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   "The Trace ID links the async processing back to the original          │
+│    HTTP request that caused it. When a user asks 'Why didn't I get       │
+│    my confirmation email?', you can find the entire chain."              │
+└─────────────────────────────────────────────────────────────────────────────┘
+11.3 The OpenTelemetry Setup
+Add to mix.exs:
+
+elixir
+defp deps do
+  [
+    # OpenTelemetry core
+    {:opentelemetry, "~> 1.4"},
+    {:opentelemetry_api, "~> 1.4"},
+    {:opentelemetry_phoenix, "~> 1.1"},
+    {:opentelemetry_ecto, "~> 1.2"},
+    {:opentelemetry_exporter, "~> 1.5"},
+    {:opentelemetry_oban, "~> 0.2"},  # For async jobs
+
+    # RabbitMQ instrumentation
+    {:opentelemetry_amqp, "~> 0.2"},
+
+    # Export to Jaeger/Tempo
+    {:opentelemetry_zipkin, "~> 1.0"},
+  ]
+end
+In application.ex:
+
+elixir
+def start(_type, _args) do
+  # Configure OpenTelemetry exporter
+  :opentelemetry_exporter.setup([
+    protocol: :grpc,
+    endpoints: ["http://localhost:4317"],
+    compression: :gzip
+  ])
+
+  # Set up tracer provider
+  :opentelemetry.setup([
+    id_generator: :opentelemetry.otel_id_generator,
+    resource: [
+      "service.name": "ledger-flow",
+      "service.version": Mix.Project.config()[:version],
+      "deployment.environment": System.get_env("MIX_ENV", "dev")
+    ]
+  ])
+
+  # Start the application
+  children = [
+    # ... other children
+    LedgerFlowWeb.Telemetry,  # Phoenix telemetry
+    {Finch, name: LedgerFlow.Finch},
+    # ... etc
+  ]
+
+  Supervisor.start_link(children, strategy: :one_for_one)
+end
+11.4 The Elite Insight: Correlation IDs in Logs
+The Trace ID must be propagated through your system and included in every log line.
+
+elixir
+# lib/ledger_flow/logger.ex — Structured logging with trace IDs
+
+defmodule LedgerFlow.Logger do
+  require Logger
+
+  def with_trace_id(trace_id, fun) do
+    # Set trace ID in Logger metadata
+    Logger.metadata(trace_id: trace_id)
+
+    try do
+      fun.()
+    after
+      Logger.metadata(trace_id: nil)
+    end
+  end
+
+  def log_event(event, metadata) do
+    Logger.info("Event: #{inspect(event)}",
+      trace_id: metadata[:trace_id],
+      event_type: event.__struct__,
+      stream_id: metadata[:stream_id],
+      user_id: metadata[:user_id]
+    )
+  end
+end
+
+# Usage in command handler
+defmodule LedgerFlow.Commands.DepositMoneyHandler do
+  def handle(%DepositMoney{account_id: account_id, amount: amount}, metadata) do
+    Logger.with_trace_id(metadata.trace_id, fn ->
+      Logger.info("Processing deposit",
+        account_id: account_id,
+        amount: amount,
+        command_id: metadata.command_id
+      )
+
+      # ... process command
+
+      Logger.info("Deposit processed successfully",
+        account_id: account_id,
+        new_balance: new_balance,
+        event_version: event_version
+      )
+    end)
+  end
+end
+The result: You can grep logs by trace_id and see the complete story:
+
+bash
+$ grep "trace_id=7a8b3c9d" /var/log/ledger-flow.log
+
+2024-01-15 14:32:10 [info] trace_id=7a8b3c9d Processing deposit account_id=12345 amount=100
+2024-01-15 14:32:10 [info] trace_id=7a8b3c9d Loading aggregate account_id=12345 version=42
+2024-01-15 14:32:10 [info] trace_id=7a8b3c9d Validating command: balance=500, amount=100
+2024-01-15 14:32:10 [info] trace_id=7a8b3c9d Appending event: MoneyDeposited version=43
+2024-01-15 14:32:10 [info] trace_id=7a8b3c9d Deposit processed successfully new_balance=600
+2024-01-15 14:37:15 [info] trace_id=7a8b3c9d RabbitMQ consumer: processing event MoneyDeposited
+2024-01-15 14:37:15 [info] trace_id=7a8b3c9d Updating read model for account 12345
+2024-01-15 14:37:16 [info] trace_id=7a8b3c9d Sending confirmation email to user@example.com
+11.5 The Implementation Timeline
+Day	Activity	Impact
+5	Basic trace ID generation	Start tracing
+6	Propagate to Commanded	Trace commands
+7	Propagate to RabbitMQ	Trace async handlers
+8	Add structured logging with trace_id	Debuggability
+9	Set up Jaeger/Tempo	Trace visualization
+10	Add trace_id to all API responses	Customer support
+Chapter 12: The Four Golden Signals + Cost
+12.1 The Concept
+The Four Golden Signals (from Google SRE) are the only metrics you need to understand system health:
+
+Signal	What to Measure	What It Tells You
+Latency	p50, p95, p99 response times	Is the system getting slower?
+Traffic	Requests per second	Are we under load?
+Errors	HTTP 5xx, command failures	Is something broken?
+Saturation	RabbitMQ queue depth, DB connections	Are we running out of capacity?
+Elite addition: Cost as the fifth signal.
+
+Signal	What to Measure	What It Tells You
+Cost	$ per request, $ per user, $ per transaction	Are we profitable?
+12.2 The Visual: Golden Signals + Cost Dashboard
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    GOLDEN SIGNALS + COST DASHBOARD                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   LATENCY                    TRAFFIC                       COST            │
+│   ┌────────────────────┐     ┌────────────────────┐     ┌────────────────┐ │
+│   │ p50:  45ms         │     │ RPS: 342          │     │ $/req: $0.0023 │ │
+│   │ p95:  127ms        │     │ Peak: 1,247       │     │ $/user: $0.47  │ │
+│   │ p99:  342ms        │     │ Growth: +12%      │     │ Monthly: $4,234│ │
+│   │ ▲ 2% from yesterday│     │                    │     │ ▲ 5% from prev │ │
+│   └────────────────────┘     └────────────────────┘     └────────────────┘ │
+│                                                                             │
+│   ERRORS                     SATURATION                                    │
+│   ┌────────────────────┐     ┌────────────────────┐                        │
+│   │ 5xx: 0.02%         │     │ RabbitMQ: 1,234    │                        │
+│   │ 4xx: 0.15%         │     │ DB Conn: 8/20      │                        │
+│   │ Timeouts: 0        │     │ CPU: 45%           │                        │
+│   │ ▼ 0.01% from yesterday│   │ Memory: 2.1/4 GB  │                        │
+│   └────────────────────┘     └────────────────────┘                        │
+│                                                                             │
+│   "If any signal crosses a threshold, page the on-call engineer.          │
+│    If cost per user increases >10% without feature changes,                │
+│    page the engineering manager."                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+12.3 The Cost-Aware Prometheus Configuration
+yaml
+# infra/prometheus/prometheus.yml
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'elixir_nodes'
+    static_configs:
+      - targets:
+        - 'elixir_node1:4000'
+        - 'elixir_node2:4000'
+        - 'elixir_node3:4000'
+    metrics_path: '/metrics'
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:9187']
+
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+
+  - job_name: 'haproxy'
+    static_configs:
+      - targets: ['haproxy:1936']
+
+  - job_name: 'aws_billing'  # ELITE: Track cloud costs
+    metrics_path: /probe
+    params:
+      module: [aws_billing]
+    static_configs:
+      - targets:
+        - 'billing-exporter:5000'
+12.4 The Elite Insight: Percentiles Matter, Averages Lie
+Average latency can hide problems. If 99% of requests take 10ms but 1% take 10 seconds, the average is 110ms—which looks fine.
+
+Always monitor p95 and p99. They tell you what your users actually experience.
+
+elixir
+# In your Phoenix Telemetry setup
+:telemetry.attach(
+  "phoenix-endpoint-stop",
+  [:phoenix, :endpoint, :stop],
+  fn measure, metadata, _config ->
+    duration = measure.duration
+
+    # Record percentiles, not just average
+    :prometheus_histogram.observe(
+      :phoenix_request_duration_microseconds,
+      duration,
+      [metadata.route, metadata.method]
+    )
+
+    # Also track by user segment (premium vs basic)
+    user_segment = metadata.assigns[:user_segment] || "anonymous"
+    :prometheus_histogram.observe(
+      :phoenix_request_duration_by_segment,
+      duration,
+      [metadata.route, user_segment]
+    )
+  end,
+  nil
+)
+
+# Alert on p99 degradation
+# alert: HighLatency
+# expr: histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[5m])) > 500
+# for: 5m
+# annotations:
+#   summary: "High p99 latency detected"
+12.5 The Implementation Timeline
+Day	Activity	Signal
+7	Set up Prometheus	Foundation
+8	Instrument Phoenix	Latency, Traffic, Errors
+9	Monitor RabbitMQ	Saturation
+10	Monitor Postgres	Saturation
+11	Create Grafana dashboard	All signals
+12	Add cost monitoring	Cost as a signal
+13	Set up alerts on p99	Proactive detection
+Part 5: Chaos & Traffic Engineering
+Chapter 13: Load Testing with k6
+13.1 The Concept
+Load testing tells you where your system breaks. You gradually increase load until you find the breaking point, then you reinforce it.
+
+The goal: Know your limits before your users find them.
+
+13.2 The Theory: Load Test Patterns
+Pattern	Description	When to Use
+Smoke Test	1-5 users for 1 minute	Verify basics, CI/CD
+Load Test	Expected peak load for 10 minutes	Validate capacity
+Stress Test	Increasing load until break	Find breaking point
+Spike Test	0 → 10x load in 30 seconds	Test auto-scaling
+Soak Test	Sustained load for hours	Find memory leaks
+13.3 The Visual: Spike Test Pattern
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SPIKE TEST PATTERN                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Users                                                                     │
+│     ↑                                                                       │
+│  2000│                              ┌────────────────────────┐              │
+│     │                              │                        │              │
+│  1500│                              │                        │              │
+│     │                              │                        │              │
+│  1000│                              │                        │              │
+│     │                              │                        │              │
+│   500│                              │                        │              │
+│     │                              │                        │              │
+│     0└─────────────────────────────┴────────────────────────┴──▶ Time      │
+│       0    30s   60s   90s   2min   3min   4min   5min                     │
+│                                                                             │
+│   "The system should handle sudden spikes. If it crashes,                  │
+│    you need more capacity or better autoscaling."                          │
+│                                                                             │
+│   Expected behavior:                                                        │
+│   - Latency increases temporarily                                          │
+│   - No errors (5xx)                                                        │
+│   - Auto-scaling triggers within 60 seconds                                │
+│   - System recovers to baseline when spike ends                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+13.4 The k6 Script Template (Enhanced)
+javascript
+// /load_tests/k6/spike_test.js
+
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+import { Rate, Trend } from 'k6/metrics';
+
+// Custom metrics
+const errorRate = new Rate('errors');
+const depositDuration = new Trend('deposit_duration');
+const balanceDuration = new Trend('balance_duration');
+
+// Test configuration
+export const options = {
+  stages: [
+    { duration: '30s', target: 100 },   // Ramp up to 100 users
+    { duration: '30s', target: 500 },   // Ramp to 500 users
+    { duration: '1m', target: 1000 },   // Ramp to 1000 users
+    { duration: '2m', target: 1000 },   // Stay at 1000
+    { duration: '10s', target: 0 },     // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<200', 'p(99)<500'],
+    errors: ['rate<0.01'], // Error rate < 1%
+    deposit_duration: ['p(95)<300'], // Deposits can be slower
+    balance_duration: ['p(95)<100'], // Balance reads should be fast
+  },
+  ext: {
+    loadimpact: {
+      projectID: "123456",
+      name: "Spike Test - Deposit Flow"
+    }
+  }
+};
+
+export default function () {
+  // Generate unique identifiers for this VU/iteration
+  const userId = `user_${__VU}_${__ITER}`;
+  const traceId = `trace_${Date.now()}_${__VU}_${__ITER}`;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Trace-ID': traceId,
+    'X-User-ID': userId,
+  };
+
+  // ==================== DEPOSIT FLOW ====================
+  const depositStart = Date.now();
+  const depositPayload = JSON.stringify({
+    account_id: userId,
+    amount: Math.random() * 1000,
+    currency: 'USD',
+    idempotency_key: `${userId}_${__ITER}`,  // Idempotency for retries
+  });
+
+  let depositRes = http.post(
+    'http://localhost/api/deposit',
+    depositPayload,
+    { headers }
+  );
+
+  depositDuration.add(Date.now() - depositStart);
+
+  const depositSuccess = check(depositRes, {
+    'deposit status is 202': (r) => r.status === 202,
+  });
+
+  if (!depositSuccess) {
+    errorRate.add(1);
+    console.error(`Deposit failed: ${depositRes.status} ${depositRes.body}`);
+    return;  // Don't continue if deposit failed
+  }
+
+  // Wait for async processing (simulate user patience)
+  sleep(1);
+
+  // ==================== CHECK BALANCE ====================
+  const balanceStart = Date.now();
+  let balanceRes = http.get(
+    `http://localhost/api/balance/${userId}`,
+    { headers }
+  );
+
+  balanceDuration.add(Date.now() - balanceStart);
+
+  const balanceSuccess = check(balanceRes, {
+    'balance status is 200': (r) => r.status === 200,
+    'balance is positive': (r) => JSON.parse(r.body).balance >= 0,
+    'balance is numeric': (r) => typeof JSON.parse(r.body).balance === 'number',
+  });
+
+  if (!balanceSuccess) {
+    errorRate.add(1);
+    console.error(`Balance check failed: ${balanceRes.status}`);
+  }
+
+  // Simulate user think time
+  sleep(Math.random() * 2);
+}
+13.5 The Elite Insight: Find the Knee of the Curve
+Every system has a knee—the point where adding one more user causes latency to skyrocket.
+
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    THE KNEE OF THE CURVE                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Latency                                                                   │
+│     ↑                                                                       │
+│  500ms│                                    ┌──────────────────              │
+│     │                               ┌─────┘                                │
+│  400ms│                         ┌───┘                                      │
+│     │                       ┌───┘                                          │
+│  300ms│                   ┌─┘                                              │
+│     │                 ┌──┘                                                 │
+│  200ms│             ┌─┘                                                    │
+│     │         ┌────┘                                                       │
+│  100ms│     ┌─┘                                                            │
+│     │   ┌──┘                                                               │
+│    0└───┴────┴────┴────┴────┴────┴────┴────┴────┴────┴──▶ Users          │
+│       0   200  400  600  800 1000 1200 1400 1600 1800 2000                │
+│                                                                             │
+│                        ↑                                                   │
+│                    THE KNEE                                                 │
+│              (~1000 users)                                                  │
+│                                                                             │
+│   "Your capacity is 1000 concurrent users. Beyond that,                    │
+│    you need to scale horizontally. This is your scaling trigger."          │
+└─────────────────────────────────────────────────────────────────────────────┘
+How to find the knee:
+
+Run a ramping load test (increasing users every minute)
+
+Plot p95 latency vs. users
+
+Find where latency increases by >50% from baseline
+
+Set autoscaling threshold at 80% of that point
+
+13.6 The Implementation Timeline
+Day	Activity	Purpose
+11	Write k6 smoke test	Basic verification in CI
+12	Run spike test	Find breaking point
+13	Run soak test (8 hours)	Check for memory leaks
+14	Document capacity limits	Know your scaling triggers
+15	Set up automated load tests	Nightly performance regression
+Chapter 14: Tsung — The BEAM Specialist
+14.1 The Concept
+Tsung is a legendary tool in the Erlang/Elixir world. While k6 is the modern, trendy choice, Tsung is the "battle-hardened" veteran specifically built using Erlang to test high-concurrency systems.
+
+The senior insight: While k6 is highly efficient (built in Go), it still has overhead when simulating thousands of WebSockets. Tsung can simulate millions of concurrent connections from a single machine because it doesn't just test the BEAM; it lives on the BEAM.
+
+14.2 Tsung vs. k6: When to Use Which
+Feature	k6 (Modern Choice)	Tsung (BEAM Powerhouse)
+Scripting	JavaScript (Easy)	XML (Steep learning curve)
+Engine	Go (Efficient)	Erlang (Natively concurrent)
+UI/Reporting	Excellent (Grafana)	Basic HTML
+WebSocket Support	Good	Excellent (Built for it)
+Best For	CI/CD, API testing, daily runs	Heavy WebSocket, fintech stress tests
+The strategy: Use k6 for daily development and CI/CD pipelines. Use Tsung when you want to prove your application can handle "Discord-level" concurrency or when you're doing final capacity planning.
+
+14.3 The Tsung XML Configuration (Fintech-Grade)
+xml
+<!-- /load_tests/tsung/websocket_stress.xml -->
+<!DOCTYPE tsung SYSTEM "/usr/share/tsung/tsung-1.0.dtd">
+<tsung loglevel="notice" version="1.0">
+
+  <clients>
+    <!-- Multiple client IPs to bypass local port limits -->
+    <client host="localhost" use_controller_vm="true" maxusers="50000"/>
+    <client host="localhost" use_controller_vm="true" maxusers="50000" bind_to="192.168.1.2"/>
+    <client host="localhost" use_controller_vm="true" maxusers="50000" bind_to="192.168.1.3"/>
+  </clients>
+
+  <servers>
+    <server host="haproxy" port="9000" type="tcp"/>
+  </servers>
+
+  <!-- Dynamic data: CSV of 10,000 unique user IDs -->
+  <datasources>
+    <datasource name="users" type="file" path="/load_tests/tsung/users.csv"/>
+    <datasource name="accounts" type="file" path="/load_tests/tsung/accounts.csv"/>
+  </datasources>
+
+  <load>
+    <!-- Ramp-up phases -->
+    <arrivalphase phase="1" duration="30" unit="second">
+      <users interarrival="0.1" unit="second"/>
+    </arrivalphase>
+
+    <arrivalphase phase="2" duration="60" unit="second">
+      <users interarrival="0.01" unit="second"/>
+    </arrivalphase>
+
+    <arrivalphase phase="3" duration="300" unit="second">
+      <users interarrival="0.005" unit="second"/>
+    </arrivalphase>
+  </load>
+
+  <options>
+    <option type="tsung" name="websocket">
+      <websocket>
+        <protocol type="hybi00"/>
+      </websocket>
+    </option>
+  </options>
+
+  <sessions>
+    <session name="websocket_fintech_flow" probability="100" type="ts_websocket">
+
+      <!-- Get unique user and account from CSV -->
+      <setdynvars sourcetype="file" fileid="users" delimiter="," order="iter">
+        <var name="user_id" />
+      </setdynvars>
+      <setdynvars sourcetype="file" fileid="accounts" delimiter="," order="iter">
+        <var name="account_id" />
+      </setdynvars>
+
+      <!-- Generate trace ID -->
+      <setdynvars sourcetype="random_number" start="1" end="9999999">
+        <var name="trace_id" />
+      </setdynvars>
+
+      <!-- Connect to WebSocket -->
+      <request>
+        <websocket type="connect" path="/socket/websocket">
+          <header name="X-Trace-ID" value="%%_trace_id%%"/>
+          <header name="X-User-ID" value="%%_user_id%%"/>
+        </websocket>
+      </request>
+
+      <!-- Wait for connection confirmation -->
+      <thinktime value="1"/>
+
+      <!-- Join user channel -->
+      <request>
+        <websocket type="send">
+          <message>
+            {"topic":"user:%%_user_id%%","event":"phx_join","payload":{},"ref":%%_trace_id%%}
+          </message>
+        </websocket>
+      </request>
+
+      <!-- Wait for join confirmation -->
+      <thinktime value="2"/>
+
+      <!-- Loop: simulate user activity -->
+      <for from="1" to="10" var="i">
+
+        <!-- Deposit transaction -->
+        <request>
+          <websocket type="send">
+            <message>
+              {
+                "topic":"user:%%_user_id%%",
+                "event":"deposit",
+                "payload":{
+                  "account_id":"%%_account_id%%",
+                  "amount":%%_random_amount%%,
+                  "currency":"USD",
+                  "idempotency_key":"deposit_%%_user_id%%_%%_i%%"
+                },
+                "ref":%%_trace_id%%_%%_i%%
+              }
+            </message>
+          </websocket>
+        </request>
+
+        <!-- Wait for processing -->
+        <thinktime value="2"/>
+
+        <!-- Check balance -->
+        <request>
+          <websocket type="send">
+            <message>
+              {
+                "topic":"user:%%_user_id%%",
+                "event":"get_balance",
+                "payload":{"account_id":"%%_account_id%%"},
+                "ref":%%_trace_id%%_balance_%%_i%%
+              }
+            </message>
+          </websocket>
+        </request>
+
+        <!-- User think time -->
+        <thinktime value="5"/>
+
+      </for>
+
+      <!-- Disconnect -->
+      <request>
+        <websocket type="close"/>
+      </request>
+
+    </session>
+  </sessions>
+</tsung>
+14.4 The Elite Insight: Distributed Load Generation with Virtual IPs
+A senior engineer knows a single IP address can hit a port limit (65,535 ports per IP). Tsung allows you to define multiple Virtual IP addresses on your MacBook to bypass local network limits.
+
+xml
+<clients>
+  <!-- Each client uses a different source IP -->
+  <client host="localhost" use_controller_vm="true" maxusers="50000" bind_to="192.168.1.2"/>
+  <client host="localhost" use_controller_vm="true" maxusers="50000" bind_to="192.168.1.3"/>
+  <client host="localhost" use_controller_vm="true" maxusers="50000" bind_to="192.168.1.4"/>
+</clients>
+Why: This prevents your MacBook's OS from "throttling" the test before your Elixir app even breaks. It also simulates real-world traffic from many different IPs.
+
+14.5 Running Tsung Tests
+bash
+# Install Tsung (on Mac)
+brew install tsung
+
+# Generate test data (10,000 users)
+seq 1 10000 | awk '{print "user_"$1}' > /load_tests/tsung/users.csv
+seq 1 10000 | awk '{print "acc_"$1}' > /load_tests/tsung/accounts.csv
+
+# Run a test
+tsung -f /load_tests/tsung/websocket_stress.xml start
+
+# Watch real-time stats (in another terminal)
+watch -n 1 'tail -20 ~/.tsung/log/*/tsung.log'
+
+# Generate HTML report after test
+tsung_stats.pl --stats /home/user/.tsung/log/2025-01-01_12-34-56/tsung.log
+
+# Output: HTML report in /home/user/.tsung/log/2025-01-01_12-34-56/
+14.6 The Implementation Timeline
+Day	Activity	Why
+12	Install Tsung, generate test data	Foundation
+13	Write Tsung WebSocket test	Test WebSocket capacity
+14	Generate 10k user CSV with accounts	Dynamic data
+15	Run 50k connection test	Find connection limits
+16	Analyze HTML report with graphs	Document capacity
+17	Add Tsung to nightly CI	Regression testing
+Chapter 15: Fault Injection with Toxiproxy
+15.1 The Concept
+Toxiproxy simulates network failures between services. You test how your system behaves when:
+
+Postgres is slow
+
+RabbitMQ is unavailable
+
+Network latency spikes
+
+Connections drop
+
+Packet loss occurs
+
+Bandwidth is throttled
+
+The goal: Ensure your system degrades gracefully, not catastrophically.
+
+15.2 The Visual: Fault Injection Test
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    FAULT INJECTION TEST                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Time ─────────────────────────────────────────────────────────────────▶   │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ Normal Operation                    │ After Recovery                │   │
+│   │ p95: 45ms                           │ p95: 47ms                     │   │
+│   │ Errors: 0%                          │ Errors: 0.1% (during)        │   │
+│   │ Circuit: Closed                     │ Circuit: Closed               │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                    │                                      │                 │
+│                    ▼                                      │                 │
+│              ┌─────────────┐                              │                 │
+│              │ TOXIPROXY   │                              │                 │
+│              │ Inject 2s   │                              │                 │
+│              │ latency to  │                              │                 │
+│              │ Postgres    │                              │                 │
+│              └─────────────┘                              │                 │
+│                    │                                      │                 │
+│                    ▼                                      │                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ During Failure                    │ After Failure                   │   │
+│   │ p95: 2000ms (slow but works)      │ p95: 45ms (fully recovered)    │   │
+│   │ Errors: 0.5% (some timeouts)      │ Errors: 0%                     │   │
+│   │ Circuit: Open (after 5 failures)  │ Circuit: Closed (after reset)  │   │
+│   │ Queue Depth: 500 (backlog)        │ Queue Depth: 0 (processed)     │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   "The system should never crash. It may slow down, but it must           │
+│    recover when the failure is resolved. Circuit breakers prevent         │
+│    cascading failures."                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+15.3 The Toxiproxy Configuration
+yaml
+# /infra/toxiproxy/toxiproxy.yml
+
+proxies:
+  # Postgres proxy with latency injection
+  postgres_proxy:
+    listen: 0.0.0.0:5433
+    upstream: postgres:5432
+    toxicities:
+      - type: latency
+        toxicity: 0.0  # Disabled by default
+        attributes:
+          latency: 2000
+          jitter: 100
+
+  # RabbitMQ proxy with bandwidth limits
+  rabbitmq_proxy:
+    listen: 0.0.0.0:5673
+    upstream: rabbitmq:5672
+    toxicities:
+      - type: bandwidth
+        toxicity: 0.0
+        attributes:
+          rate: 100  # 100 KB/s
+
+  # Redis proxy with packet loss
+  redis_proxy:
+    listen: 0.0.0.0:6380
+    upstream: redis:6379
+    toxicities:
+      - type: slow_close
+        toxicity: 0.0
+        attributes:
+          delay: 5000  # 5 seconds to close
+15.4 The Chaos Test Script (Enhanced)
+bash
+#!/bin/bash
+# /scripts/chaos_test.sh
+
+set -e
+
+echo "🔥 CHAOS ENGINEERING TEST SUITE 🔥"
+echo "=================================="
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to check system health
+check_health() {
+    local endpoint=$1
+    local max_retries=${2:-10}
+    local retry=0
+
+    while [ $retry -lt $max_retries ]; do
+        if curl -s -f "http://localhost:4000$endpoint" > /dev/null; then
+            echo -e "${GREEN}✓ Health check passed${NC}"
+            return 0
+        fi
+        echo -e "${YELLOW}  Waiting for health check... ($((retry+1))/$max_retries)${NC}"
+        sleep 2
+        retry=$((retry+1))
+    done
+
+    echo -e "${RED}✗ Health check failed after $max_retries attempts${NC}"
+    return 1
+}
+
+# Start k6 load test in background
+echo "📊 Starting load test..."
+k6 run /load_tests/k6/spike_test.js &
+K6_PID=$!
+
+# Wait for load to stabilize
+sleep 30
+check_health "/health" || exit 1
+
+# ==================== TEST 1: Postgres Latency ====================
+echo ""
+echo "🐘 TEST 1: Injecting 2s latency to Postgres..."
+curl -s -X POST http://localhost:8474/proxies/postgres_proxy/toxicities \
+  -H "Content-Type: application/json" \
+  -d '{"type":"latency","attributes":{"latency":2000,"jitter":100}}' > /dev/null
+
+sleep 10
+
+# Check circuit breakers
+echo "  Checking circuit breakers..."
+CIRCUIT_STATUS=$(curl -s http://localhost:4000/metrics | grep circuit_postgres || echo "circuit_postgres 0")
+echo "  $CIRCUIT_STATUS"
+
+sleep 50
+
+echo "  Removing latency..."
+curl -s -X DELETE http://localhost:8474/proxies/postgres_proxy/toxicities/latency > /dev/null
+
+sleep 10
+check_health "/health"
+
+# ==================== TEST 2: Kill RabbitMQ ====================
+echo ""
+echo "🐇 TEST 2: Killing RabbitMQ..."
+docker stop ledger_flow_rabbitmq_1 2>/dev/null
+
+sleep 10
+echo "  Checking system during outage..."
+curl -s http://localhost:4000/health | jq '.'
+
+sleep 30
+
+echo "  Restarting RabbitMQ..."
+docker start ledger_flow_rabbitmq_1 2>/dev/null
+
+sleep 15
+check_health "/health"
+
+# ==================== TEST 3: Kill Elixir Node ====================
+echo ""
+echo "💀 TEST 3: Killing Elixir node 1..."
+docker stop ledger_flow_elixir_node1_1 2>/dev/null
+
+sleep 10
+
+echo "  Checking HAProxy stats..."
+HAPROXY_STATS=$(curl -s http://localhost:1936/ | grep -i "node1" | grep -i "down" || echo "Node not found")
+echo "  $HAPROXY_STATS"
+
+sleep 30
+
+echo "  Restarting Elixir node 1..."
+docker start ledger_flow_elixir_node1_1 2>/dev/null
+
+sleep 30
+check_health "/health"
+
+# ==================== TEST 4: Network Partition ====================
+echo ""
+echo "🌐 TEST 4: Creating network partition..."
+docker network disconnect backend ledger_flow_elixir_node2_1 2>/dev/null
+
+sleep 10
+
+echo "  Checking cluster status..."
+docker exec ledger_flow_elixir_node1_1 bin/ledger_flow eval "Node.list()" || echo "Cluster degraded"
+
+sleep 30
+
+echo "  Reconnecting network..."
+docker network connect backend ledger_flow_elixir_node2_1 2>/dev/null
+
+sleep 15
+check_health "/health"
+
+# ==================== TEST 5: Bandwidth Throttle ====================
+echo ""
+echo "🚀 TEST 5: Throttling RabbitMQ bandwidth..."
+curl -s -X POST http://localhost:8474/proxies/rabbitmq_proxy/toxicities \
+  -H "Content-Type: application/json" \
+  -d '{"type":"bandwidth","attributes":{"rate":10}}' > /dev/null
+
+sleep 30
+
+echo "  Checking queue depth..."
+QUEUE_DEPTH=$(curl -s http://localhost:4000/metrics | grep rabbitmq_queue_depth || echo "0")
+echo "  $QUEUE_DEPTH"
+
+sleep 30
+
+echo "  Removing bandwidth limit..."
+curl -s -X DELETE http://localhost:8474/proxies/rabbitmq_proxy/toxicities/bandwidth > /dev/null
+
+# ==================== FINAL CHECK ====================
+echo ""
+echo "=================================="
+echo "🏆 CHAOS TEST COMPLETE 🏆"
+
+# Wait for load test to finish
+wait $K6_PID
+
+echo ""
+echo "📊 FINAL RESULTS:"
+echo "================="
+echo "Check Grafana: http://localhost:3000"
+echo "Check HAProxy: http://localhost:1936"
+echo "Check logs: docker-compose logs --tail=100"
+
+# Check for any remaining circuit breakers
+echo ""
+echo "Circuit Breaker Status:"
+curl -s http://localhost:4000/metrics | grep circuit || echo "  All circuits closed"
+15.5 The Elite Insight: Circuit Breakers with Three States
+When a dependency is failing, your app should fail fast rather than waiting for timeouts.
+
+elixir
+defmodule LedgerFlow.CircuitBreaker do
+  use Fuse, name: :postgres, opts: [
+    {:timeout, 5000},      # 5 second timeout
+    {:failures, 5},        # 5 failures before opening
+    {:reset, 30_000},      # 30 seconds before retry
+    {:max_failures, 10}    # After 10 failures, stay open longer
+  ]
+
+  # Three states:
+  # - CLOSED: Normal operation, passing requests through
+  # - OPEN: Failing fast, not calling dependency
+  # - HALF-OPEN: Testing if dependency has recovered
+
+  def call_database(query) do
+    case Fuse.ask(:postgres) do
+      :ok ->
+        # Circuit is CLOSED, try the query
+        try do
+          result = Repo.query(query)
+          Fuse.ok(:postgres)  # Success, reset failure count
+          {:ok, result}
+        rescue
+          e ->
+            Fuse.failure(:postgres)  # Record failure
+            {:error, e}
+        end
+
+      :blown ->
+        # Circuit is OPEN, fail fast
+        Logger.warning("Circuit breaker open for Postgres, failing fast")
+        {:error, :circuit_open}
+
+      :half_open ->
+        # Circuit is HALF-OPEN, try a single request
+        try do
+          result = Repo.query(query)
+          Fuse.reset(:postgres)  # Success, close circuit
+          {:ok, result}
+        rescue
+          e ->
+            Fuse.failure(:postgres)  # Failure, reopen circuit
+            {:error, e}
+        end
+    end
+  end
+end
+Why: Without circuit breakers, when Postgres is slow, all your Elixir processes wait for timeouts, exhausting all resources. With circuit breakers, you fail immediately and preserve capacity for healthy requests.
+
+15.6 The Implementation Timeline
+Day	Activity	Chaos Scenario
+13	Add Toxiproxy to Compose	Foundation
+14	Test Postgres latency with circuit breakers	Graceful degradation
+15	Kill RabbitMQ with message buffering	Queue resilience
+16	Kill Postgres with circuit open	Fail fast
+17	Kill Elixir node with HAProxy failover	High availability
+18	Network partition with libcluster	Distributed consistency
+19	Bandwidth throttle with queue monitoring	Saturation handling
+Part 6: The CI/CD & Cloud Deployment Strategy
+Chapter 16: GitHub Actions — The AWS Bridge with OIDC
+16.1 The Concept
+GitHub Actions is your CI/CD pipeline. Every push to GitHub triggers automated tests. Every merge to main triggers a deployment to AWS.
+
+The senior insight: Use OIDC (OpenID Connect) for AWS authentication. No long-lived access keys stored in GitHub secrets.
+
+The elite insight: Use environment-specific approvals, cost estimation in PRs, and automatic rollback on failure.
+
+16.2 The Visual: CI/CD Pipeline with Environments
+text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CI/CD PIPELINE WITH ENVIRONMENTS                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Developer pushes to feature branch                                        │
+│       │                                                                     │
+│       ▼                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      GitHub Actions (CI)                            │   │
+│   │                                                                     │   │
+│   │  1. Checkout code                                                   │   │
+│   │  2. Setup Erlang/Elixir                                             │   │
+│   │  3. mix deps.get                                                     │   │
+│   │  4. mix format --check-equivalent                                   │   │
+│   │  5. mix credo --strict                                               │   │
+│   │  6. mix test --cover                                                 │   │
+│   │  7. mix test --only feature (BDD)                                    │   │
+│   │  8. Build Docker image                                               │   │
+│   │  9. Push to Amazon ECR                                               │   │
+│   │ 10. Run security scan (Trivy)                                        │   │
+│   │ 11. Estimate cloud cost impact                                       │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│       │                                                                     │
+│       │ (Pull Request created)                                              │
+│       ▼                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      Manual Review (Senior)                         │   │
+│   │                                                                     │   │
+│   │  - Review code changes                                              │   │
+│   │  - Review cost estimate                                             │   │
+│   │  - Approve or request changes                                       │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│       │                                                                     │
+│       │ (PR merged to main)                                                 │
+│       ▼                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      Staging Deployment (Automatic)                 │   │
+│   │                                                                     │   │
+│   │  1. Deploy to staging environment                                   │   │
+│   │  2. Run smoke tests                                                 │   │
+│   │  3. Run load tests (10% traffic)                                    │   │
+│   │  4. Monitor for 15 minutes                                          │   │
+│   │  5. If passes → Promote to production                               │   │
+│   │  6. If fails → Auto-rollback                                        │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│       │                                                                     │
+│       ▼                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      Production Deployment (Manual Approval)        │   │
+│   │                                                                     │   │
+│   │  1. Senior engineer approves                                        │   │
+│   │  2. Blue/Green deployment                                           │   │
+│   │  3. Canary: 10% → 50% → 100% over 30 minutes                       │   │
+│   │  4. Monitor error rates and latency                                 │   │
+│   │  5. If error rate > 0.1% → Auto-rollback                           │   │
+│   │  6. Update Terraform state                                          │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+16.3 The GitHub Actions Workflow (Complete)
+yaml
+# .github/workflows/ci.yml
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main]
+
+env:
+  MIX_ENV: test
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: ledger_test
+
+jobs:
+  # ==================== QUALITY CHECKS ====================
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ledger_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.0'
+          otp-version: '27.0'
+
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Format check
+        run: mix format --check-equivalent
+
+      - name: Credo (strict)
+        run: mix credo --strict
+
+      - name: Dialyzer (cached)
+        run: mix dialyzer --quiet
+
+      - name: Unit tests with coverage
+        run: mix test --cover
+
+      - name: BDD tests
+        run: mix test --only feature
+
+      - name: Security audit (Sobelow)
+        run: mix sobelow --config --compact
+
+      - name: Run k6 smoke test
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d
+          sleep 15
+          k6 run /load_tests/k6/smoke_test.js
+
+  # ==================== COST ESTIMATION ====================
+  cost-estimate:
+    needs: quality
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Estimate cloud cost impact
+        run: |
+          ./scripts/estimate_pr_cost.sh > cost_estimate.txt
+          echo "## Cost Estimate" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat cost_estimate.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment PR with cost estimate
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const cost = fs.readFileSync('cost_estimate.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `💰 **Cost Impact Estimate**\n\`\`\`\n${cost}\n\`\`\``
+            });
+
+  # ==================== BUILD & PUSH ====================
+  build-and-push:
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/ledger-flow:latest
+            ${{ steps.login-ecr.outputs.registry }}/ledger-flow:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/ledger-flow:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ==================== STAGING DEPLOYMENT ====================
+  deploy-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Update ECS service
+        run: |
+          # Get current task definition
+          aws ecs describe-task-definition \
+            --task-definition ledger-flow-staging \
+            --query 'taskDefinition' > current_td.json
+
+          # Create new task definition with new image
+          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/ledger-flow:${{ github.sha }}" \
+            '.containerDefinitions[0].image = $IMAGE' current_td.json > new_td.json
+
+          # Register new task definition
+          aws ecs register-task-definition \
+            --cli-input-json file://new_td.json
+
+          # Update service
+          aws ecs update-service \
+            --cluster ledger-flow-staging \
+            --service ledger-flow \
+            --task-definition ledger-flow-staging \
+            --force-new-deployment
+
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster ledger-flow-staging \
+            --services ledger-flow
+
+      - name: Run smoke tests against staging
+        run: |
+          STAGING_URL=$(aws elbv2 describe-load-balancers \
+            --names ledger-flow-staging \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+
+          k6 run -e BASE_URL="http://$STAGING_URL" /load_tests/k6/smoke_test.js
+
+  # ==================== PRODUCTION DEPLOYMENT (Blue/Green) ====================
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.ledger.com
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Blue/Green deployment
+        run: |
+          # Determine current active environment (BLUE or GREEN)
+          CURRENT=$(aws elbv2 describe-listeners \
+            --listener-arn ${{ secrets.LISTENER_ARN }} \
+            --query 'Listeners[0].DefaultActions[0].TargetGroupArn' \
+            --output text | grep -o 'blue\|green')
+
+          # Set NEW environment to the opposite
+          if [ "$CURRENT" = "blue" ]; then
+            NEW="green"
+          else
+            NEW="blue"
+          fi
+
+          echo "Current: $CURRENT, Deploying to: $NEW"
+
+          # Update the new environment's task definition
+          aws ecs update-service \
+            --cluster ledger-flow-prod \
+            --service ledger-flow-$NEW \
+            --task-definition ledger-flow-prod \
+            --force-new-deployment
+
+          # Wait for new environment to be healthy
+          aws ecs wait services-stable \
+            --cluster ledger-flow-prod \
+            --services ledger-flow-$NEW
+
+          # Run canary test against new environment (10% traffic)
+          # First, update listener to send 10% to new, 90% to old
+          aws elbv2 modify-rule \
+            --rule-arn ${{ secrets.CANARY_RULE_ARN }} \
+            --actions \
+              Type=forward,TargetGroupArn=${{ secrets.TG_$NEW }},Weight=10 \
+              Type=forward,TargetGroupArn=${{ secrets.TG_$CURRENT }},Weight=90
+
+          # Monitor for 15 minutes
+          echo "Monitoring canary for 15 minutes..."
+          sleep 900
+
+          # Check error rates
+          ERROR_RATE=$(aws cloudwatch get-metric-statistics \
+            --namespace AWS/ApplicationELB \
+            --metric-name HTTPCode_Target_5XX_Count \
+            --dimensions Name=TargetGroup,Value=${{ secrets.TG_$NEW }} \
+            --start-time $(date -u -d '15 minutes ago' '+%Y-%m-%dT%H:%M:%SZ') \
+            --end-time $(date -u '+%Y-%m-%dT%H:%M:%SZ') \
+            --period 60 \
+            --statistics Sum \
+            --query 'Datapoints[0].Sum' \
+            --output text || echo "0")
+
+          if [ "$ERROR_RATE" -gt 10 ]; then
+            echo "Error rate too high, rolling back..."
+            aws elbv2 modify-rule \
+              --rule-arn ${{ secrets.CANARY_RULE_ARN }} \
+              --actions Type=forward,TargetGroupArn=${{ secrets.TG_$CURRENT }},Weight=100
+            exit 1
+          fi
+
+          # Switch all traffic to new environment
+          aws elbv2 modify-listener \
+            --listener-arn ${{ secrets.LISTENER_ARN }} \
+            --default-actions Type=forward,TargetGroupArn=${{ secrets.TG_$NEW }}
+
+          # Drain old environment
+          sleep 30
+          aws ecs update-service \
+            --cluster ledger-flow-prod \
+            --service ledger-flow-$CURRENT \
+            --desired-count 0
+16.4 The Elite Insight: OIDC Authentication
+Never store AWS keys in GitHub secrets. Use OIDC (OpenID Connect) for temporary, short-lived credentials.
+
+json
+// AWS IAM Role trust policy for OIDC
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:your-org/ledger-flow:*"
+        }
+      }
+    }
+  ]
+}
+Why this matters: No long-lived secrets. If a developer's laptop is compromised, attackers can't steal AWS keys because they don't exist. The tokens expire in 60 minutes and are scoped to specific repositories.
+
+16.5 The Implementation Timeline
+Day	Activity	Why
+14	Set up GitHub Actions CI with matrix	Automated testing
+15	Configure OIDC with AWS IAM	Secure authentication
+16	Add ECR push with multi-platform builds	Image registry
+17	Add staging deployment with smoke tests	Pre-production validation
+18	Add production with blue/green deployment	Zero-downtime
+19	Add canary deployment with monitoring	Risk mitigation
+20	Add auto-rollback on error thresholds	Self-healing deployments
+21	Add cost estimation in PRs	Cost awareness
+Part 7: The Elite Final Test — Game Day
+Chapter 17: The Game Day Exercise
+17.1 The Concept
+A Game Day is a planned disaster simulation. You deliberately break your system while observing how it responds.
+
+The goal: Build confidence that your system self-heals and that your team knows how to respond.
+
+17.2 The Elite Final Test Scenarios
+Scenario	How to Simulate	Expected Behavior
+RabbitMQ Outage	docker stop rabbitmq	Commands buffer or fail gracefully, system recovers when RabbitMQ restarts
+Postgres Latency Spike	Toxiproxy latency injection	Circuit breakers trip, system returns 503 quickly
+Elixir Node Failure	docker stop node1	HAProxy detects failure, traffic shifts, WebSocket connections failover
+Network Partition	docker network disconnect	libcluster detects partition, Horde ensures single instance of processes
+Database Failover	Force RDS failover	Application reconnects automatically, no manual intervention
+AZ Outage	Stop instances in one AZ	ASG launches in other AZ, load balancer shifts traffic
+Clock Skew	Set incorrect time on node	Distributed system handles skew without corruption
+Memory Leak	Run soak test for 24 hours	Memory stabilizes, no OOM kills
+17.3 The Complete Game Day Script
+bash
+#!/bin/bash
+# /scripts/game_day.sh — Complete Disaster Simulation
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Configuration
+LOAD_TEST_DURATION=300  # 5 minutes
+LOAD_TEST_USERS=500
+ENVIRONMENT=${ENVIRONMENT:-"staging"}
+ALERT_WEBHOOK=${ALERT_WEBHOOK:-""}
+
+echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║                    GAME DAY STARTING                         ║${NC}"
+echo -e "${BLUE}║                    $(date)                                    ║${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
+
+# Function to send alert
+send_alert() {
+    local message=$1
+    echo -e "${YELLOW}[ALERT] $message${NC}"
+
+    if [ -n "$ALERT_WEBHOOK" ]; then
+        curl -s -X POST "$ALERT_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"text\":\"[GAME DAY] $message\"}"
+    fi
+}
+
+# Function to record metric
+record_metric() {
+    local name=$1
+    local value=$2
+
+    echo "$name: $value" >> /tmp/game_day_metrics.log
+}
+
+# Function to check system health
+check_health() {
+    local service=$1
+    local max_retries=${2:-10}
+    local retry=0
+
+    while [ $retry -lt $max_retries ]; do
+        if curl -s -f "http://localhost:4000/health" > /dev/null; then
+            return 0
+        fi
+        sleep 2
+        retry=$((retry+1))
+    done
+    return 1
+}
+
+# Function to get metric
+get_metric() {
+    local metric=$1
+    curl -s "http://localhost:9090/api/v1/query?query=$metric" | jq -r '.data.result[0].value[1] // 0'
+}
+
+# ==================== PREPARATION ====================
+echo -e "\n${BLUE}📊 Phase 0: Preparation${NC}"
+echo "================================"
+
+# Record baseline metrics
+echo "Recording baseline metrics..."
+BASELINE_LATENCY=$(get_metric "histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[5m]))")
+BASELINE_ERRORS=$(get_metric "rate(phoenix_http_errors_total[5m])")
+BASELINE_RABBITMQ=$(get_metric "rabbitmq_queue_depth")
+record_metric "baseline_latency" "$BASELINE_LATENCY"
+record_metric "baseline_errors" "$BASELINE_ERRORS"
+record_metric "baseline_rabbitmq" "$BASELINE_RABBITMQ"
+
+# Start load test
+echo "Starting load test with $LOAD_TEST_USERS users..."
+k6 run --vus $LOAD_TEST_USERS --duration ${LOAD_TEST_DURATION}s /load_tests/k6/spike_test.js &
+K6_PID=$!
+
+# Wait for load to stabilize
+echo "Waiting for load to stabilize (30 seconds)..."
+sleep 30
+check_health "system" || {
+    echo -e "${RED}✗ System not healthy before tests!${NC}"
+    exit 1
+}
+
+# ==================== TEST 1: RabbitMQ Outage ====================
+echo -e "\n${BLUE}🐇 Phase 1: RabbitMQ Outage${NC}"
+echo "================================"
+
+send_alert "TEST 1: Killing RabbitMQ"
+
+# Record pre-test metrics
+PRE_RABBITMQ_QUEUE=$(get_metric "rabbitmq_queue_depth")
+echo "Pre-RabbitMQ queue depth: $PRE_RABBITMQ_QUEUE"
+
+# Kill RabbitMQ
+docker stop ledger_flow_rabbitmq_1 2>/dev/null || true
+echo "RabbitMQ killed at $(date)"
+
+# Monitor for 30 seconds
+sleep 30
+
+# Check system health during outage
+if check_health "system" 5; then
+    echo -e "${GREEN}✓ System remains healthy during RabbitMQ outage${NC}"
+    record_metric "rabbitmq_outage_system_healthy" "true"
+else
+    echo -e "${RED}✗ System unhealthy during RabbitMQ outage!${NC}"
+    record_metric "rabbitmq_outage_system_healthy" "false"
+fi
+
+# Check if commands are being buffered or failing gracefully
+POST_RABBITMQ_QUEUE=$(get_metric "rabbitmq_queue_depth")
+echo "Post-RabbitMQ queue depth: $POST_RABBITMQ_QUEUE"
+
+# Restart RabbitMQ
+echo "Restarting RabbitMQ..."
+docker start ledger_flow_rabbitmq_1 2>/dev/null || true
+
+# Wait for recovery
+sleep 30
+
+# Verify recovery
+if check_health "system" 10; then
+    echo -e "${GREEN}✓ System recovered after RabbitMQ restart${NC}"
+    record_metric "rabbitmq_outage_recovered" "true"
+else
+    echo -e "${RED}✗ System did not recover after RabbitMQ restart!${NC}"
+    record_metric "rabbitmq_outage_recovered" "false"
+fi
+
+# ==================== TEST 2: Postgres Latency ====================
+echo -e "\n${BLUE}🐘 Phase 2: Postgres Latency Spike${NC}"
+echo "================================"
+
+send_alert "TEST 2: Injecting 2s Postgres latency"
+
+# Inject latency
+curl -s -X POST http://localhost:8474/proxies/postgres_proxy/toxicities \
+    -H "Content-Type: application/json" \
+    -d '{"type":"latency","attributes":{"latency":2000,"jitter":100}}' > /dev/null
+
+echo "Postgres latency injected at $(date)"
+
+# Wait for circuit breakers to trip
+sleep 15
+
+# Check circuit breaker status
+CIRCUIT_STATUS=$(curl -s http://localhost:4000/metrics | grep circuit_postgres || echo "circuit_postgres 0")
+echo "Circuit breaker status: $CIRCUIT_STATUS"
+
+if echo "$CIRCUIT_STATUS" | grep -q "circuit_postgres 1"; then
+    echo -e "${GREEN}✓ Circuit breaker tripped as expected${NC}"
+    record_metric "postgres_latency_circuit_open" "true"
+else
+    echo -e "${RED}✗ Circuit breaker did not trip!${NC}"
+    record_metric "postgres_latency_circuit_open" "false"
+fi
+
+# Check system response time
+LATENCY_DURING=$(get_metric "histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[1m]))")
+echo "P99 latency during injection: ${LATENCY_DURING}ms"
+
+# Remove latency
+sleep 30
+curl -s -X DELETE http://localhost:8474/proxies/postgres_proxy/toxicities/latency > /dev/null
+
+# Wait for recovery
+sleep 30
+
+# Check circuit breaker reset
+CIRCUIT_AFTER=$(curl -s http://localhost:4000/metrics | grep circuit_postgres || echo "circuit_postgres 0")
+if echo "$CIRCUIT_AFTER" | grep -q "circuit_postgres 0"; then
+    echo -e "${GREEN}✓ Circuit breaker reset after recovery${NC}"
+    record_metric "postgres_latency_circuit_closed" "true"
+fi
+
+# ==================== TEST 3: Elixir Node Failure ====================
+echo -e "\n${BLUE}💀 Phase 3: Elixir Node Failure${NC}"
+echo "================================"
+
+send_alert "TEST 3: Killing Elixir node 1"
+
+# Get initial connection distribution
+CONNECTIONS_BEFORE=$(curl -s http://localhost:1936/ | grep -c "node[0-9]")
+echo "Active nodes before: $CONNECTIONS_BEFORE"
+
+# Kill node
+docker stop ledger_flow_elixir_node1_1 2>/dev/null || true
+echo "Elixir node killed at $(date)"
+
+# Wait for HAProxy to detect failure
+sleep 10
+
+# Check HAProxy status
+HAPROXY_STATUS=$(curl -s http://localhost:1936/ | grep -i "node1" || echo "Node1 down")
+echo "HAProxy status: $HAPROXY_STATUS"
+
+# Verify traffic shifted
+CONNECTIONS_AFTER=$(curl -s http://localhost:1936/ | grep -c "node[0-9]")
+echo "Active nodes after: $CONNECTIONS_AFTER"
+
+# Check if system is still serving traffic
+if check_health "system" 5; then
+    echo -e "${GREEN}✓ System continues serving traffic with one node down${NC}"
+    record_metric "node_failure_system_healthy" "true"
+else
+    echo -e "${RED}✗ System failed with one node down!${NC}"
+    record_metric "node_failure_system_healthy" "false"
+fi
+
+# Restart node
+sleep 30
+docker start ledger_flow_elixir_node1_1 2>/dev/null || true
+sleep 15
+
+# Verify node rejoins cluster
+NODES_ACTIVE=$(docker exec ledger_flow_elixir_node1_1 bin/ledger_flow eval "Node.list()" | wc -l)
+if [ "$NODES_ACTIVE" -ge 2 ]; then
+    echo -e "${GREEN}✓ Node rejoined cluster${NC}"
+    record_metric "node_failure_rejoined" "true"
+fi
+
+# ==================== TEST 4: Network Partition ====================
+echo -e "\n${BLUE}🌐 Phase 4: Network Partition${NC}"
+echo "================================"
+
+send_alert "TEST 4: Creating network partition"
+
+# Create partition
+docker network disconnect backend ledger_flow_elixir_node2_1 2>/dev/null || true
+echo "Network partition created at $(date)"
+
+# Wait for libcluster to detect
+sleep 10
+
+# Check cluster view
+CLUSTER_STATUS=$(docker exec ledger_flow_elixir_node1_1 bin/ledger_flow eval "Node.list()" || echo "[]")
+echo "Cluster view from node1: $CLUSTER_STATUS"
+
+# Verify no split-brain (critical)
+# Check if any processes are duplicated across partitions
+DUPLICATE_PROCESSES=$(docker exec ledger_flow_elixir_node1_1 bin/ledger_flow eval \
+    "Horde.Cluster.members(LedgerFlow.ProcessRegistry) |> length()" || echo "0")
+echo "Unique processes: $DUPLICATE_PROCESSES"
+
+# Reconnect
+sleep 30
+docker network connect backend ledger_flow_elixir_node2_1 2>/dev/null || true
+sleep 15
+
+# Verify cluster reconnected
+CLUSTER_AFTER=$(docker exec ledger_flow_elixir_node1_1 bin/ledger_flow eval "Node.list()" | wc -l)
+if [ "$CLUSTER_AFTER" -ge 2 ]; then
+    echo -e "${GREEN}✓ Cluster reconnected after partition${NC}"
+    record_metric "network_partition_recovered" "true"
+fi
+
+# ==================== TEST 5: Traffic Spike ====================
+echo -e "\n${BLUE}⚡ Phase 5: Traffic Spike${NC}"
+echo "================================"
+
+send_alert "TEST 5: 10x traffic spike"
+
+# Record pre-spike metrics
+PRE_SPIKE_LATENCY=$(get_metric "histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[1m]))")
+echo "Pre-spike P99 latency: ${PRE_SPIKE_LATENCY}ms"
+
+# Run spike test in parallel
+k6 run --vus 2000 --duration 60s /load_tests/k6/spike_test.js &
+SPIKE_PID=$!
+
+# Monitor during spike
+sleep 30
+SPIKE_LATENCY=$(get_metric "histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[30s]))")
+echo "During spike P99 latency: ${SPIKE_LATENCY}ms"
+
+# Wait for spike to complete
+wait $SPIKE_PID
+
+# Wait for recovery
+sleep 30
+POST_SPIKE_LATENCY=$(get_metric "histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[1m]))")
+echo "Post-spike P99 latency: ${POST_SPIKE_LATENCY}ms"
+
+if (( $(echo "$POST_SPIKE_LATENCY < 500" | bc -l) )); then
+    echo -e "${GREEN}✓ System recovered after spike${NC}"
+    record_metric "spike_recovered" "true"
+fi
+
+# ==================== FINAL VERIFICATION ====================
+echo -e "\n${BLUE}🏆 Phase 6: Final Verification${NC}"
+echo "================================"
+
+# Stop load test
+kill $K6_PID 2>/dev/null || true
+
+# Final health check
+sleep 30
+if check_health "system" 20; then
+    echo -e "${GREEN}✓ System fully healthy after all tests${NC}"
+    record_metric "final_health" "true"
+else
+    echo -e "${RED}✗ System unhealthy after tests!${NC}"
+    record_metric "final_health" "false"
+fi
+
+# Compare metrics
+FINAL_LATENCY=$(get_metric "histogram_quantile(0.99, rate(phoenix_request_duration_microseconds_bucket[5m]))")
+FINAL_ERRORS=$(get_metric "rate(phoenix_http_errors_total[5m])")
+
+echo ""
+echo -e "${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║                    GAME DAY RESULTS                          ║${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+echo "Metric                    Baseline    Final       Change"
+echo "------------------------- ----------- ----------- ----------"
+echo "P99 Latency (ms)          $BASELINE_LATENCY     $FINAL_LATENCY     $(echo "scale=2; $FINAL_LATENCY - $BASELINE_LATENCY" | bc)"
+echo "Error Rate (%)            $BASELINE_ERRORS      $FINAL_ERRORS       $(echo "scale=2; $FINAL_ERRORS - $BASELINE_ERRORS" | bc)"
+echo ""
+
+if [ "$FINAL_LATENCY" -lt 500 ] && [ "$FINAL_ERRORS" -lt 0.01 ]; then
+    echo -e "${GREEN}✅ GAME DAY PASSED — System meets reliability targets${NC}"
+    send_alert "✅ GAME DAY PASSED — System meets reliability targets"
+    exit 0
+else
+    echo -e "${RED}❌ GAME DAY FAILED — System does not meet reliability targets${NC}"
+    echo -e "${RED}   P99 Latency > 500ms or Error Rate > 1%${NC}"
+    send_alert "❌ GAME DAY FAILED — System does not meet reliability targets"
+    exit 1
+fi
+17.4 The Verification Checklist
+Test	Pass Criteria	Why It Matters
+RabbitMQ Outage	System continues, commands buffer	Message queue is optional, not critical
+Postgres Latency	Circuit breakers trip, fast failures	Database is protected from cascading failure
+Postgres Recovery	Circuit resets, operations resume	Self-healing after dependency recovery
+Kill 1 Elixir Node	HAProxy removes it, traffic shifts	Horizontal scaling works
+Kill 2 Elixir Nodes	System degraded but operational	N-1 redundancy
+Network Partition	No split-brain, processes not duplicated	Distributed safety
+10x Traffic Spike	Auto-scaling or graceful rejection	Capacity planning
+Database Failover	Reconnects automatically	High availability
+17.5 The Post-Mortem Template
+markdown
+# Incident Post-Mortem: [DATE]
+
+## Summary
+- **Incident ID**: INC-$(date +%Y%m%d-%H%M%S)
+- **Duration**: $(date -d "30 minutes ago" +%H:%M) - $(date +%H:%M) ($(echo "30") minutes)
+- **Impact**: [description of business impact]
+- **Root Cause**: [one sentence summary]
+
+## Timeline
+| Time | Event |
+|------|-------|
+| $(date -d "30 minutes ago" +%H:%M) | First alert: [alert name] |
+| $(date -d "25 minutes ago" +%H:%M) | Investigation begins |
+| $(date -d "15 minutes ago" +%H:%M) | Root cause identified |
+| $(date -d "5 minutes ago" +%H:%M) | Fix applied |
+| $(date +%H:%M) | System recovered |
+
+## Five Whys
+1. Why did [failure] happen?
+2. Why was that condition allowed?
+3. Why wasn't it caught earlier?
+4. Why didn't monitoring detect it?
+5. Why didn't the runbook cover it?
+
+## Metrics During Incident
+| Metric | Before | During | After |
+|--------|--------|--------|-------|
+| P99 Latency | [value] | [value] | [value] |
+| Error Rate | [value] | [value] | [value] |
+| CPU | [value] | [value] | [value] |
+| Memory | [value] | [value] | [value] |
+
+## Action Items
+| # | Action | Owner | Priority | Due Date |
+|---|--------|-------|----------|----------|
+| 1 | [action] | [name] | High | [date] |
+| 2 | [action] | [name] | Medium | [date] |
+
+## Lessons Learned
+- [lesson 1]
+- [lesson 2]
+
+## Good
+- [what went well]
+- [what went well]
+
+## Bad
+- [what went poorly]
+- [what went poorly]
+17.6 The Implementation Timeline
+Day	Activity	Chaos Scenario
+26	Run RabbitMQ kill test	Message durability
+27	Run Postgres latency test with circuit breakers	Fast failure
+28	Run node failure test with HAProxy failover	High availability
+29	Run network partition test with libcluster	Split-brain avoidance
+30	Run traffic spike test	Auto-scaling verification
+31	Run database failover test (RDS)	DR verification
+32	Run AZ outage simulation	Regional resilience
+33	Document runbooks	Operations readiness
+34	Create post-mortem template	Process improvement
+35	Schedule quarterly Game Day	Continuous validation
+Closing: The Elite Engineer's Mindset
+The Final Insight
+You've built:
+
+A system that never loses data — Event sourcing with immutable event log
+
+A system that self-heals — Health checks, circuit breakers, automatic failover
+
+A system that survives chaos — Load testing, fault injection, Game Day simulations
+
+A system you can see inside — Distributed tracing, structured logging, Golden Signals
+
+A system that scales — Layered architecture with Nginx + HAProxy
+
+A system that is secure — OWASP headers, OIDC, non-root containers
+
+A system that is cost-aware — Cost estimation, spot instances, reserved capacity
+
+A system that deploys safely — Blue/green, canary, auto-rollback
+
+The Elite Engineer's Creed
+I do not hope my system works. I prove it works.
+
+I do not trust my dependencies. I test them in chaos.
+
+I do not assume my code is correct. I replay events to verify.
+
+I do not wait for production outages. I simulate them on Day 30.
+
+I do not guess my capacity. I load test until it breaks.
+
+I do not store secrets. I use OIDC.
+
+I do not run mix phx.server in production. I build releases.
+
+I do not ask "Is it working?" I look at the Golden Signals.
+
+I do not ask "Why is the bill so high?" I measure cost per request.
+
+I do not deploy and pray. I deploy with canary and auto-rollback.
+
+The Last Question
+When a regulator asks: "Show me every change to account 12345," can you?
+
+When an engineer asks: "Why did this deposit fail last Tuesday at 3:14 PM?" can you tell them?
+
+When a customer asks: "Where is my money?" can you prove it?
+
+If you answered yes to all three, you've built an elite fintech system.
+
+Now go build something that matters.
+
+Appendix: Complete Implementation Timeline (35 Days)
+Phase 0: Project Setup (Day 0-1)
+Day	Activity	Key Deliverables
+0	Create folder structure	Repository blueprint
+0	Initialize Git with GPG signing	Signed commits
+0	Create Dockerfile (multi-stage) and Dockerfile.dev	Buildable images
+0	Create docker-compose.yml with service discovery	Local orchestration
+1	Add .gitignore, mix.exs, release config	Project foundation
+1	Set up Git hooks (Lefthook) with security checks	Pre-commit validation
+Phase 1: Core Business Logic (Day 2-7)
+Day	Activity	Key Deliverables
+2	Install Commanded with Postgres adapter	Event store foundation
+3	Define aggregates (Account, Transfer, User)	Domain model
+4	Implement commands and events with validation	Business rules
+5	Add snapshots with versioning	Performance optimization
+6	Implement saga (transfer) with compensation	Cross-aggregate coordination
+7	Add idempotency keys and dead letter queue	Duplicate prevention
+Phase 2: Read Models & Projections (Day 8-10)
+Day	Activity	Key Deliverables
+8	Create projectors with upcasters	Event handlers with evolution
+9	Build read models (Postgres) with indexes	Queryable data
+10	Add eventual consistency handling with fallback	UI feedback patterns
+Phase 3: Infrastructure Gatekeepers (Day 11-14)
+Day	Activity	Key Deliverables
+11	Add Nginx with SSL and security headers	Edge proxy
+12	Add HAProxy with active/passive health checks	Load balancer
+13	Configure WebSocket stickiness with cookies	LiveView support
+14	Test multi-node cluster with Docker DNS	Horizontal scaling
+Phase 4: Observability (Day 15-18)
+Day	Activity	Key Deliverables
+15	Add OpenTelemetry with trace propagation	Distributed traces
+16	Set up Prometheus with Golden Signals	Metrics collection
+17	Create Grafana dashboards with cost metrics	Visibility
+18	Add structured logging with trace_id	Debuggability
+Phase 5: Chaos & Traffic Engineering (Day 19-22)
+Day	Activity	Key Deliverables
+19	Write k6 load tests with thresholds	Performance baseline
+20	Run spike and soak tests, find the knee	Capacity limits
+21	Add Toxiproxy with circuit breakers	Fault injection
+22	Run chaos tests with all scenarios	Resilience validation
+Phase 6: CI/CD & Cloud (Day 23-25)
+Day	Activity	Key Deliverables
+23	Set up GitHub Actions with OIDC	Automated CI
+24	Configure ECR with multi-platform builds	Image registry
+25	Add blue/green and canary deployment	Zero-downtime releases
+Phase 7: Game Day (Day 26-35)
+Day	Activity	Chaos Scenario
+26	Run RabbitMQ kill test with buffering	Message durability
+27	Run Postgres latency test with circuit breakers	Fast failure
+28	Run node failure test with HAProxy	High availability
+29	Run network partition test with libcluster	Split-brain avoidance
+30	Run traffic spike test with auto-scaling	Capacity planning
+31	Run database failover test	DR verification
+32	Run AZ outage simulation	Regional resilience
+33	Run soak test (24 hours)	Memory leak detection
+34	Document runbooks and post-mortem template	Operations readiness
+35	Schedule quarterly Game Day	Continuous validation
+The Definitive Elite Elixir Architect's Codex — Complete Updated Edition
+Built with ❤️ on the BEAM
+

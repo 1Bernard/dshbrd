@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aethelgard | Institutional Infrastructure — Protocol · Branching · Recovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#010101',
+                        cardbg: '#0a0a0a',
+                        emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
+                        zinc: { 800: '#27272a', 900: '#18181b', 950: '#09090b' },
+                        amber: '#f59e0b',
+                        cyan: '#06b6d4'
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background: #010101; color: white; cursor: none; overflow-x: hidden; }
+        @media (max-width: 1024px) { body { cursor: auto; } #cursor-dot, #cursor-ring { display: none; } }
+
+        .bg-grid {
+            background-size: 80px 80px;
+            background-image:
+                linear-gradient(to right, rgba(52, 211, 153, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(52, 211, 153, 0.02) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+        }
+
+        #cursor-dot { width: 4px; height: 4px; background: #34d399; border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); }
+        #cursor-ring { width: 40px; height: 40px; border: 0.5px solid rgba(52, 211, 153, 0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1); }
+
+        /* Protocol Tree Styles - LEFT SIDE BRANCHES */
+        #protocol-tree-container {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 380px;
+            pointer-events: none;
+            z-index: 45;
+            overflow: visible;
+        }
+        .tree-branch {
+            stroke: #34d399;
+            stroke-width: 1;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            opacity: 0.5;
+        }
+        .tree-node {
+            fill: #010101;
+            stroke: #34d399;
+            stroke-width: 1.2;
+            opacity: 0;
+        }
+        .notification-tag {
+            position: absolute;
+            background: rgba(1, 1, 1, 0.92);
+            border-left: 2px solid #34d399;
+            padding: 5px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            white-space: nowrap;
+            border-radius: 0 8px 8px 0;
+            z-index: 45;
+        }
+        @media (max-width: 1280px) { #protocol-tree-container { width: 300px; opacity: 0.8; } }
+        @media (max-width: 1024px) { #protocol-tree-container { display: none; } }
+
+        /* Card & UI Styles */
+        .elite-card {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .elite-card:hover {
+            border-color: rgba(52, 211, 153, 0.3);
+            background: #0d0d0d;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+        }
+
+        .tech-path {
+            stroke: rgba(255,255,255,0.08);
+            stroke-width: 0.8;
+            fill: none;
+            transition: all 0.6s ease;
+        }
+        .elite-card:hover .tech-path {
+            stroke: rgba(52, 211, 153, 0.4);
+            stroke-width: 1.2;
+        }
+        .tech-path-primary {
+            stroke: rgba(52, 211, 153, 0.2);
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+        }
+        .elite-card:hover .tech-path-primary {
+            stroke-dashoffset: 0;
+            stroke: #34d399;
+        }
+
+        .node-pulse { fill: #34d399; filter: blur(2px); animation: pulseGlow 2s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        .mask-fade-bottom { mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+
+        /* Branching Section Styles */
+        .blueprint-card { border: 0.5px solid rgba(255, 255, 255, 0.05); background: rgba(5, 5, 5, 0.6); backdrop-filter: blur(30px); border-radius: 1.5rem; }
+        .branch-path { stroke-dasharray: 4 4; opacity: 0.3; transition: opacity 0.8s ease; }
+        .branch-path.active { opacity: 0.8; stroke-dasharray: none; stroke: #34d399; stroke-width: 1.8; filter: drop-shadow(0 0 4px #34d399); }
+        .v-grid-line { stroke: rgba(52, 211, 153, 0.08); stroke-width: 0.5; }
+        .marker-circle { fill: #010101; stroke: rgba(52, 211, 153, 0.4); stroke-width: 1; transition: all 0.3s ease; cursor: pointer; }
+        .marker-circle:hover { stroke: #34d399; filter: drop-shadow(0 0 8px #34d399); transform: scale(1.1); }
+        .photon { width: 3px; height: 3px; background: #34d399; border-radius: 50%; position: absolute; box-shadow: 0 0 10px #34d399; filter: blur(0.5px); z-index: 30; pointer-events: none; }
+        .scan-beam { position: absolute; top: 0; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, #f59e0b, transparent); box-shadow: 0 0 20px #f59e0b; opacity: 0; pointer-events: none; }
+        .data-stream { stroke-dasharray: 5 5; animation: dashMove 20s linear infinite; }
+        @keyframes dashMove { to { stroke-dashoffset: -100; } }
+
+        /* Recovery Arc Styles */
+        .timeline-node { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .timeline-node:hover { transform: translateY(-4px); }
+        .recovery-glow { animation: recoveryPulse 2s ease-in-out infinite; }
+        @keyframes recoveryPulse { 0%, 100% { filter: drop-shadow(0 0 2px #34d399); } 50% { filter: drop-shadow(0 0 12px #34d399); } }
+
+        /* Marquee Animation - EXACT original */
+        @keyframes marquee-ltr { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        @keyframes marquee-rtl { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+        .marquee-track { display: flex; width: max-content; gap: 1.5rem; padding: 1rem 0; }
+        .marquee-ltr { animation: marquee-ltr 60s linear infinite; }
+        .marquee-rtl { animation: marquee-rtl 60s linear infinite; }
+        .marquee-container:hover .marquee-track { animation-play-state: paused; }
+
+        .review-card {
+            width: 350px;
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        .review-card:hover { border-color: rgba(52, 211, 153, 0.2); transform: translateY(-4px); }
+
+        .mask-fade-edges {
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+
+        /* Globe rotation */
+        .rotate-globe { animation: rotateGlobe 80s linear infinite; }
+        @keyframes rotateGlobe { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .vector-dot { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="font-sans">
+
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+    <div class="fixed inset-0 bg-grid z-0 pointer-events-none"></div>
+
+    <!-- LEFT SIDE: GEOMETRIC PROTOCOL TREE -->
+    <div id="protocol-tree-container">
+        <svg id="tree-svg" viewBox="0 0 380 1000" preserveAspectRatio="xMinYMid meet"></svg>
+        <div id="tree-notification-area"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center pointer-events-none">
+        <div class="flex items-center gap-3 pointer-events-auto ml-[50px] md:ml-0">
+            <div class="w-7 h-7 bg-emerald-400 rotate-45 flex items-center justify-center">
+                <div class="w-3.5 h-3.5 bg-obsidian rotate-45"></div>
+            </div>
+            <div class="font-mono text-[9px] tracking-[0.4em] uppercase font-bold text-white/80">Aethelgard</div>
+        </div>
+        <div class="hidden md:flex gap-8 font-mono text-[8px] uppercase tracking-[0.3em] text-zinc-500 pointer-events-auto">
+            <a href="#precision" class="hover:text-emerald-400 transition">Stack</a>
+            <a href="#branching" class="hover:text-emerald-400 transition">Branching</a>
+            <a href="#recovery" class="hover:text-emerald-400 transition">Recovery</a>
+            <a href="#community" class="hover:text-emerald-400 transition">Network</a>
+            <a href="#" class="bg-white/5 border border-white/10 px-4 py-1.5 rounded text-white hover:bg-emerald-400 hover:text-obsidian transition-all">Login</a>
+        </div>
+    </nav>
+
+    <main class="relative z-10 pl-0 md:pl-20 lg:pl-24">
+
+        <!-- SECTION: Precision Architectures (Fully Restored Bento Cards) -->
+        <section id="precision" class="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-20">
+            <div class="max-w-4xl mx-auto text-center mb-16">
+                <h1 class="text-[10vw] md:text-[7vw] font-serif italic leading-[0.9] mb-6">
+                    Precision <br><span class="text-emerald-400">Architectures.</span>
+                </h1>
+                <p class="text-zinc-500 font-light text-lg md:text-xl max-w-2xl mx-auto">
+                    The world's most trusted relational architectures, enhanced with cryptographic staging and sovereign-grade security.
+                </p>
+            </div>
+
+            <div class="max-w-7xl mx-auto w-full">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 auto-rows-[320px]">
+                    <!-- 1. Postgres Database Card -->
+                    <div class="md:col-span-8 elite-card p-12 rounded-3xl flex flex-col md:flex-row justify-between items-center group cursor-pointer">
+                        <div class="max-w-md z-10">
+                            <div class="flex items-center gap-3 mb-6">
+                                <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
+                                <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Relational Protocol</span>
+                            </div>
+                            <h3 class="text-4xl font-serif italic mb-6">Full Postgres</h3>
+                            <p class="text-zinc-500 text-sm font-light leading-relaxed mb-10">The world's most trusted relational database, enhanced with Aethelgard's cryptographic staging and row-level security.</p>
+                            <div class="flex gap-4">
+                                <span class="px-3 py-1 border border-white/5 rounded font-mono text-[8px] text-zinc-500 uppercase">100% Portable</span>
+                                <span class="px-3 py-1 border border-white/5 rounded font-mono text-[8px] text-zinc-500 uppercase">Built-in RLS</span>
+                            </div>
+                        </div>
+                        <div class="relative w-80 h-80 flex items-center justify-center">
+                            <svg viewBox="0 0 240 240" class="w-full h-full transform transition-all duration-700 group-hover:scale-110">
+                                <g class="parallax-layer" data-speed="0.05">
+                                    <circle cx="120" cy="120" r="100" class="tech-path" stroke-dasharray="4 8" />
+                                    <circle cx="120" cy="120" r="85" class="tech-path" stroke-opacity="0.3" />
+                                </g>
+                                <g class="parallax-layer" data-speed="0.1">
+                                    <path class="tech-path tech-path-primary" d="M160 120 C160 60, 80 60, 80 120 C80 180, 160 180, 160 120" />
+                                    <path class="tech-path tech-path-primary" d="M120 80 C140 80, 175 100, 175 135 C175 170, 140 185, 120 185" />
+                                    <path class="tech-path tech-path-primary" d="M175 135 L210 135" />
+                                    <circle cx="150" cy="105" r="2.5" class="node-pulse" />
+                                </g>
+                                <line x1="120" y1="20" x2="120" y2="220" class="tech-path" stroke-opacity="0.1" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 2. Auth Vault Card -->
+                    <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                                <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Identity</span>
+                            </div>
+                            <h3 class="text-2xl font-serif italic mb-4">Auth_Vault</h3>
+                            <p class="text-zinc-500 text-xs font-light">Secure sign-ups and logins with automated row-level protocol security.</p>
+                        </div>
+                        <div class="relative flex flex-col gap-2 mt-8 mask-fade-bottom overflow-hidden">
+                            <div class="h-10 border border-white/5 rounded-lg bg-zinc-950/80 flex items-center px-4 font-mono text-[8px] text-zinc-600 transition-all group-hover:border-emerald-500/30 group-hover:text-emerald-400">admin_01@vanguard.ch</div>
+                            <div class="h-10 border border-white/5 rounded-lg bg-zinc-950/80 flex items-center px-4 font-mono text-[8px] text-zinc-600">operator_delta@blackrock.io</div>
+                            <div class="h-10 border border-white/5 rounded-lg bg-zinc-950/80 flex items-center px-4 font-mono text-[8px] text-zinc-800">node_root@aethelgard.io</div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Edge Functions Card -->
+                    <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col items-center text-center">
+                        <div class="w-full flex justify-between items-start mb-4">
+                            <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-mono text-[8px] text-zinc-700 uppercase tracking-widest">Compute</span>
+                        </div>
+                        <h3 class="text-2xl font-serif italic mb-3">Edge Functions</h3>
+                        <p class="text-zinc-500 text-xs font-light mb-8 max-w-[200px]">Serverless logic deployed globally in milliseconds.</p>
+                        <div class="relative w-full flex-1 flex items-center justify-center">
+                            <svg viewBox="0 0 200 200" class="w-56 h-56 rotate-globe" id="globe-viz">
+                                <circle cx="100" cy="100" r="85" class="tech-path" stroke-opacity="0.1" />
+                                <circle cx="100" cy="100" r="85" class="tech-path tech-path-primary" stroke-dasharray="2 12" />
+                                <ellipse cx="100" cy="100" rx="85" ry="35" class="tech-path" transform="rotate(45 100 100)" />
+                                <ellipse cx="100" cy="100" rx="85" ry="35" class="tech-path" transform="rotate(-45 100 100)" />
+                                <circle cx="100" cy="100" r="4" class="node-pulse" />
+                                <circle cx="30" cy="100" r="2" class="node-pulse opacity-20" />
+                                <circle cx="170" cy="100" r="2" class="node-pulse opacity-20" />
+                            </svg>
+                            <div class="absolute bottom-2 font-mono text-[9px] text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">Global Sync Active</div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Realtime Sync Card -->
+                    <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Realtime</span>
+                        </div>
+                        <h3 class="text-2xl font-serif italic mb-4">Instant Sync</h3>
+                        <p class="text-zinc-500 text-xs font-light mb-8">Build collaborative multi-user protocol experiences.</p>
+                        <div class="flex-1 relative bg-zinc-950/50 rounded-2xl border border-white/5 overflow-hidden h-28">
+                            <div class="absolute inset-0 bg-[radial-gradient(rgba(52,211,153,0.08)_1px,transparent_1px)] [background-size:24px_24px]"></div>
+                            <div id="cursor-ghost-1" class="absolute pointer-events-none text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="mouse-pointer-2" class="w-4 h-4 fill-emerald-400/20"></i>
+                                <div class="ml-4 mt-2 px-2 py-1 bg-emerald-400 text-obsidian font-mono text-[7px] font-bold">NODE_ALPHA</div>
+                            </div>
+                            <div id="cursor-ghost-2" class="absolute pointer-events-none text-zinc-700 opacity-40 group-hover:opacity-80 transition-opacity">
+                                <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Vector Search Card -->
+                    <div class="md:col-span-4 elite-card p-10 rounded-3xl group flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i data-lucide="box" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-mono text-[9px] text-zinc-600 tracking-[0.4em] uppercase">Matrix</span>
+                        </div>
+                        <h3 class="text-2xl font-serif italic mb-4">Vector Search</h3>
+                        <p class="text-zinc-500 text-xs font-light mb-8">Store and index high-dimensional institutional embeddings.</p>
+                        <div class="flex-1 relative flex items-center justify-center overflow-hidden">
+                            <svg viewBox="0 0 200 200" class="w-48 h-48">
+                                <g class="parallax-layer" data-speed="0.2">
+                                    <rect x="60" y="60" width="80" height="80" class="tech-path" />
+                                    <rect x="75" y="45" width="80" height="80" class="tech-path tech-path-primary" stroke-opacity="0.5" />
+                                    <line x1="60" y1="60" x2="75" y2="45" class="tech-path" />
+                                    <line x1="140" y1="60" x2="155" y2="45" class="tech-path" />
+                                    <line x1="60" y1="140" x2="75" y2="125" class="tech-path" />
+                                    <line x1="140" y1="140" x2="155" y2="125" class="tech-path" />
+                                </g>
+                                <circle cx="100" cy="100" r="2" fill="#34d399" class="vector-dot" />
+                                <circle cx="80" cy="80" r="1.5" fill="#34d399" class="vector-dot opacity-40" />
+                                <circle cx="130" cy="120" r="1.5" fill="#34d399" class="vector-dot opacity-40" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="w-px h-24 bg-gradient-to-b from-emerald-400 to-transparent mt-20"></div>
+        </section>
+
+        <!-- SECTION 1: Instant Branching Ecosystem -->
+        <section id="branching" class="py-40 px-6 relative z-10">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col items-center mb-24 text-center">
+                    <div class="inline-block mb-4 px-4 py-1 bg-emerald-400/10 rounded-full border border-emerald-400/20">
+                        <span class="font-mono text-[9px] text-emerald-400">BRANCHING PROTOCOL v2.0</span>
+                    </div>
+                    <h2 class="text-5xl md:text-7xl font-serif italic mb-6">Instant <span class="text-emerald-400">Branching Ecosystem</span></h2>
+                    <p class="max-w-2xl text-zinc-500 font-light text-xl">Develop and test with efficient copies of any institutional database. Real-time visualization of branch propagation.</p>
+                </div>
+
+                <div class="blueprint-card rounded-xl p-1 relative overflow-hidden h-[650px] group">
+                    <div class="bg-obsidian rounded-xl h-full relative overflow-hidden">
+                        <svg width="100%" height="100%" viewBox="0 0 1000 550" class="absolute inset-0">
+                            <g id="branch-grid"></g>
+                            <line x1="0" y1="320" x2="1000" y2="320" stroke="rgba(52, 211, 153, 0.3)" stroke-width="1.5" class="data-stream" />
+                            <path id="path-main" class="branch-path" d="M250 320 L250 180 L450 180" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" />
+                            <path id="path-test" class="branch-path" d="M420 320 L420 440 L650 440" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" />
+                            <path id="path-dev" class="branch-path active" d="M650 320 L650 180 L850 180" fill="none" stroke="#34d399" stroke-width="2" />
+                            <path id="path-staging" class="branch-path" d="M100 320 L100 480 L300 480" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1" />
+                            <path id="path-hotfix" class="branch-path" d="M500 320 L500 520 L720 520" fill="none" stroke="rgba(245,158,11,0.5)" stroke-width="1" />
+                            <g transform="translate(250, 250)" class="marker-group cursor-pointer" data-info="Production Mainnet • 99.99% uptime">
+                                <circle cx="0" cy="0" r="14" class="marker-circle" />
+                                <rect x="-3" y="-2" width="6" height="4" fill="white" />
+                            </g>
+                            <g transform="translate(420, 380)" class="marker-group cursor-pointer" data-info="Test Environment • 47 active tests">
+                                <circle cx="0" cy="0" r="14" class="marker-circle" />
+                                <circle cx="0" cy="0" r="4" fill="#34d399" />
+                            </g>
+                            <g transform="translate(650, 250)" class="marker-group cursor-pointer" data-info="Development Active • 12 commits">
+                                <circle cx="0" cy="0" r="14" class="marker-circle" />
+                                <path d="M0 -4 L3 -1 L0 4 L-3 -1 Z" fill="white" />
+                            </g>
+                            <g transform="translate(300, 480)" class="marker-group cursor-pointer" data-info="Staging Ready">
+                                <circle cx="0" cy="0" r="12" class="marker-circle" />
+                                <rect x="-3" y="-2" width="6" height="4" fill="#34d399" />
+                            </g>
+                        </svg>
+                        <div id="branch-photon-layer" class="absolute inset-0 pointer-events-none"></div>
+                        <div class="absolute left-[8%] top-[61%] bg-white/10 backdrop-blur px-5 py-2 rounded-full flex items-center gap-3 border border-white/10 hover:border-emerald-400 transition-all cursor-pointer">
+                            <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-white">production</span>
+                        </div>
+                        <div class="absolute left-[68%] top-[33.5%] bg-emerald-400/20 border border-emerald-400/40 px-4 py-1.5 rounded-full font-mono text-[9px] font-bold text-emerald-400 animate-pulse">dev-branch ⚡ active</div>
+                        <div class="absolute left-[45%] top-[85%] bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full font-mono text-[8px] text-amber-400">hotfix in progress</div>
+                        <div class="absolute bottom-4 right-4 text-[8px] font-mono text-zinc-600 bg-black/50 px-3 py-1 rounded-full">Branch Activity: 247 commits • 12 PRs • 98% coverage</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Cryptographic Recovery Arc -->
+        <section id="recovery" class="py-40 px-6 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-amber-400/5 to-transparent pointer-events-none"></div>
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col items-center mb-24 text-center">
+                    <div class="inline-block mb-4 px-4 py-1 bg-amber-400/10 rounded-full border border-amber-400/20">
+                        <span class="font-mono text-[9px] text-amber-400">MPC-SECURED ROLLBACK</span>
+                    </div>
+                    <h2 class="text-5xl md:text-7xl font-serif italic mb-6">Cryptographic <span class="text-amber-400">Recovery Arc</span></h2>
+                    <p class="max-w-2xl text-zinc-500 font-light text-xl">Revert to verified states with zero data loss. MPC-secured rollback protocol with sub-second restoration.</p>
+                </div>
+
+                <div class="max-w-6xl mx-auto blueprint-card rounded-3xl p-8 relative overflow-hidden">
+                    <div class="scan-beam" id="recovery-beam"></div>
+                    <div class="relative py-12">
+                        <div class="absolute left-0 right-0 top-1/2 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent"></div>
+                        <div class="relative flex justify-between">
+                            <div class="timeline-node text-center group cursor-pointer"><div class="w-3 h-3 bg-zinc-700 rounded-full mx-auto mb-3 group-hover:bg-amber-400 transition-all group-hover:scale-150"></div><div class="font-mono text-[9px] text-zinc-500">12:00</div><div class="text-[10px] font-mono text-zinc-600">main</div></div>
+                            <div class="timeline-node text-center group cursor-pointer"><div class="w-3 h-3 bg-zinc-700 rounded-full mx-auto mb-3 group-hover:bg-amber-400 transition-all group-hover:scale-150"></div><div class="font-mono text-[9px] text-zinc-500">12:24</div><div class="text-[10px] font-mono text-zinc-600">schema-v1</div></div>
+                            <div class="timeline-node text-center group cursor-pointer relative" id="checkpoint-node"><div class="w-5 h-5 bg-amber-400 rounded-full mx-auto mb-3 shadow-[0_0_20px_#f59e0b] recovery-glow animate-pulse"></div><div class="font-mono text-[9px] text-amber-400 font-bold">13:45</div><div class="text-[10px] font-mono text-white">CHECKPOINT</div><div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-amber-400/20 backdrop-blur px-3 py-1 rounded-full text-[8px] font-mono text-amber-400 whitespace-nowrap">✓ Verified State</div></div>
+                            <div class="timeline-node text-center group cursor-pointer"><div class="w-3 h-3 bg-zinc-700 rounded-full mx-auto mb-3 group-hover:bg-amber-400 transition-all group-hover:scale-150"></div><div class="font-mono text-[9px] text-zinc-500">14:15</div><div class="text-[10px] font-mono text-zinc-600">alerts</div></div>
+                            <div class="timeline-node text-center group cursor-pointer" id="error-node"><div class="w-5 h-5 bg-amber-500 rounded-full mx-auto mb-3 shadow-[0_0_20px_#f59e0b] animate-pulse"></div><div class="font-mono text-[9px] text-amber-500">17:18</div><div class="text-[10px] font-mono text-amber-500">ANOMALY</div><div class="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-amber-500/20 backdrop-blur px-3 py-1 rounded-full text-[8px] font-mono text-amber-500 whitespace-nowrap">⚠️ Detection</div></div>
+                        </div>
+                        <div class="mt-20 relative">
+                            <svg class="w-full h-32" viewBox="0 0 800 100">
+                                <path id="recovery-arc-path" d="M 700 20 C 700 20, 550 20, 500 40 C 450 60, 350 60, 300 40 C 250 20, 100 20, 100 20" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="1000" stroke-dashoffset="1000" />
+                                <circle id="recovery-dot" cx="100" cy="20" r="3" fill="#f59e0b"><animate attributeName="opacity" values="0;1;0" dur="0.8s" repeatCount="indefinite" /></circle>
+                            </svg>
+                            <div id="recovery-pill" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-400/20 backdrop-blur border border-amber-400 text-amber-400 px-8 py-3 rounded-full font-mono text-[11px] uppercase font-bold opacity-0 shadow-[0_0_30px_rgba(245,158,11,0.3)] cursor-pointer hover:scale-105 transition-all whitespace-nowrap">⟳ RESTORE TO CHECKPOINT (13:45)</div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mt-12 pt-8 border-t border-white/10">
+                            <div class="text-center"><div class="text-[9px] font-mono text-zinc-500">RPO (Recovery Point)</div><div class="text-lg font-bold text-amber-400">0s</div><div class="text-[8px] text-zinc-600">No data loss</div></div>
+                            <div class="text-center"><div class="text-[9px] font-mono text-zinc-500">RTO (Recovery Time)</div><div class="text-lg font-bold text-amber-400">0.14s</div><div class="text-[8px] text-zinc-600">Sub-second restoration</div></div>
+                            <div class="text-center"><div class="text-[9px] font-mono text-zinc-500">Verification</div><div class="text-lg font-bold text-emerald-400">MPC</div><div class="text-[8px] text-zinc-600">3/5 threshold</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Join the Network - FULLY RESTORED ORIGINAL -->
+        <section id="community" class="py-32 relative z-10">
+            <div class="max-w-7xl mx-auto text-center mb-16 px-6">
+                <h2 class="text-5xl md:text-7xl font-serif italic mb-6">Join the <span class="text-emerald-400">Network.</span></h2>
+                <p class="text-zinc-500 font-light max-w-2xl mx-auto text-lg mb-8">Discover what institutions and developers have to say about the Aethelgard Protocol experience.</p>
+                <button class="bg-zinc-900 border border-white/10 px-6 py-3 rounded-md font-mono text-xs uppercase tracking-widest flex items-center gap-3 mx-auto hover:bg-zinc-800 transition-colors">
+                    <i data-lucide="users" class="w-4 h-4"></i> Join us on Discord
+                </button>
+            </div>
+
+            <div class="marquee-container mask-fade-edges relative">
+                <div class="marquee-track marquee-ltr">
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-emerald-400/20 flex items-center justify-center text-emerald-400 text-xs font-bold">NB</div><div><div class="text-[10px] font-bold">@nerdburn</div><div class="text-[8px] text-zinc-600 uppercase font-mono tracking-tighter">Verified Node</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">It's fun, feels lightweight, and really quick to spin up user auth and a few ledgers. Almost too easy! Highly recommend.</p></div>
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-blue-400/20 flex items-center justify-center text-blue-400 text-xs font-bold">AL</div><div><div class="text-[10px] font-bold">@adeelibr</div><div class="text-[8px] text-zinc-600 uppercase font-mono tracking-tighter">Hedge Fund Mgr</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">Aethelgard shout out, their MPC is awesome. It's helping me create better security policies for our global capital movement.</p></div>
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white text-xs font-bold">OP</div><div><div class="text-[10px] font-bold">@orlandopedro</div><div class="text-[8px] text-zinc-600 uppercase font-mono tracking-tighter">DevOps lead</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">Love the custom protocol domains and the edge logic makes the auth so much better for our sovereign wealth clients.</p></div>
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-emerald-400/20 flex items-center justify-center text-emerald-400 text-xs font-bold">NB</div><div><div class="text-[10px] font-bold">@nerdburn</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">It's fun, feels lightweight, and really quick to spin up user auth and a few ledgers. Almost too easy!</p></div>
+                </div>
+                <div class="marquee-track marquee-rtl mt-4">
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-purple-400/20 flex items-center justify-center text-purple-400 text-xs font-bold">PK</div><div><div class="text-[10px] font-bold">@patrickc</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">Very impressed by growth. For new startups, they seem to have gone from "promising" to "standard" in remarkably short order.</p></div>
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-400 text-xs font-bold">TB</div><div><div class="text-[10px] font-bold">@TyronBache</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">Really impressed with the protocol assistant. Helped me troubleshoot complex CORS configuration issues instantly.</p></div>
+                    <div class="review-card"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white text-xs font-bold">SD</div><div><div class="text-[10px] font-bold">@sdusteric</div></div></div><p class="text-zinc-400 text-sm font-light leading-relaxed">Loving the MCP integration. Cloud Code would not only plan what data we should save but also figure out a migration script.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="py-16 border-t border-white/5 bg-obsidian text-center relative">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 px-10">
+                <div class="flex items-center gap-4"><div class="w-6 h-6 bg-emerald-400 rotate-45"></div><span class="font-mono text-[8px] tracking-[0.4em] uppercase text-zinc-500">Aethelgard Protocol v4.5 Stable</span></div>
+                <div class="flex gap-6 text-[8px] font-mono text-zinc-600 uppercase tracking-widest"><span>SOC2 Type II</span><span>ISO 27001</span><span>FIPS 140-3</span></div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Cursor
+        const dot = document.getElementById('cursor-dot'), ring = document.getElementById('cursor-ring');
+        let mX = 0, mY = 0, rX = 0, rY = 0;
+        document.addEventListener('mousemove', (e) => { mX = e.clientX; mY = e.clientY; dot.style.left = `${mX}px`; dot.style.top = `${mY}px`; });
+        function animCursor() { rX += (mX - rX) * 0.15; rY += (mY - rY) * 0.15; ring.style.left = `${rX}px`; ring.style.top = `${rY}px`; requestAnimationFrame(animCursor); } animCursor();
+
+        // Tree branches (left side) - FIXED: Animate in on scroll down, reverse on scroll up
+        const treeSvg = document.getElementById('tree-svg');
+        const notifArea = document.getElementById('tree-notification-area');
+        const logs = ["Root consensus", "MPC handshake", "Alpha branch", "Vault sync", "State proof", "Recovery arc", "Edge routing"];
+        const occupied = [];
+
+        // Store all created branches and nodes for potential cleanup
+        const branchElements = [];
+        const nodeElements = [];
+        const tagElements = [];
+
+        function createBranch(x, y, len, ang, depth, off) {
+            if(depth <= 0 || y > 960) return;
+            const rad = ang * Math.PI / 180;
+            const x2 = x + Math.cos(rad) * len;
+            const y2 = y + Math.sin(rad) * len;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", `M${x} ${y} L${x2} ${y2}`);
+            path.classList.add("tree-branch");
+            treeSvg.appendChild(path);
+            branchElements.push(path);
+
+            const node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            node.setAttribute("cx", x2);
+            node.setAttribute("cy", y2);
+            node.setAttribute("r", 1.8);
+            node.classList.add("tree-node");
+            treeSvg.appendChild(node);
+            nodeElements.push(node);
+
+            // Use toggleActions: play on enter, reverse on leave, restart on enter back
+            // This makes branches draw when scrolling down and erase when scrolling up
+            gsap.to(path, {
+                strokeDashoffset: 0,
+                duration: 1.2,
+                scrollTrigger: {
+                    trigger: "body",
+                    start: `${off}% top`,
+                    end: `${off + 15}% top`,
+                    scrub: 1.2,
+                    toggleActions: "play reverse play reverse"
+                }
+            });
+
+            gsap.to(node, {
+                opacity: 0.85,
+                duration: 0.8,
+                scrollTrigger: {
+                    trigger: "body",
+                    start: `${off}% top`,
+                    end: `${off + 12}% top`,
+                    scrub: 1,
+                    toggleActions: "play reverse play reverse"
+                }
+            });
+
+            // Add notification tags with scroll-triggered fade in/out
+            if(depth <= 3 && Math.random() > 0.65 && y2 > 80 && y2 < 880 && !occupied.some(z => Math.abs(z - y2) < 45)) {
+                occupied.push(y2);
+                const tag = document.createElement('div');
+                tag.className = 'notification-tag';
+                tag.innerText = logs[Math.floor(Math.random() * logs.length)];
+                tag.style.top = `${y2 - 8}px`;
+                tag.style.left = `${x2 + 14}px`;
+                notifArea.appendChild(tag);
+                tagElements.push(tag);
+
+                gsap.fromTo(tag, { opacity: 0, x: -12 }, {
+                    opacity: 1,
+                    x: 0,
+                    duration: 0.5,
+                    scrollTrigger: {
+                        trigger: "body",
+                        start: `${off + 2}% top`,
+                        end: `${off + 14}% top`,
+                        scrub: 0.8,
+                        toggleActions: "play reverse play reverse"
+                    }
+                });
+            }
+
+            createBranch(x2, y2, len * 0.76, ang - 22, depth - 1, off + 6);
+            createBranch(x2, y2, len * 0.76, ang + 24, depth - 1, off + 6);
+        }
+
+        // Generate multiple root trees with staggered scroll triggers
+        createBranch(28, 160, 60, 20, 5, 2);
+        createBranch(28, 340, 68, 4, 5, 8);
+        createBranch(28, 520, 72, -10, 5, 16);
+        createBranch(28, 700, 68, -22, 5, 28);
+        createBranch(28, 860, 58, -32, 4, 42);
+
+        // Branch grid lines
+        const branchGrid = document.getElementById('branch-grid');
+        if(branchGrid) {
+            for(let i = 0; i <= 20; i++) {
+                const x = i * 50;
+                const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                l.setAttribute("x1", x);
+                l.setAttribute("y1", 0);
+                l.setAttribute("x2", x);
+                l.setAttribute("y2", 550);
+                l.setAttribute("class", "v-grid-line");
+                branchGrid.appendChild(l);
+            }
+        }
+
+        // Branch Photon System (these continue regardless of scroll)
+        const photonLayer = document.getElementById('branch-photon-layer');
+        function spawnPhoton(pathId, dur, color = '#34d399') {
+            const path = document.getElementById(pathId);
+            if(!path) return;
+            const p = document.createElement('div');
+            p.className = 'photon';
+            p.style.background = color;
+            p.style.boxShadow = `0 0 10px ${color}`;
+            photonLayer.appendChild(p);
+            const len = path.getTotalLength();
+            gsap.to(p, {
+                duration: dur,
+                ease: "power1.inOut",
+                onUpdate: function() {
+                    const pt = path.getPointAtLength(this.progress() * len);
+                    gsap.set(p, { x: pt.x, y: pt.y });
+                },
+                onComplete: () => p.remove()
+            });
+        }
+        setInterval(() => spawnPhoton('path-dev', 1.6, '#34d399'), 400);
+        setInterval(() => spawnPhoton('path-main', 2.2, '#34d399'), 800);
+        setInterval(() => spawnPhoton('path-test', 2.0, '#f59e0b'), 1000);
+        setInterval(() => spawnPhoton('path-hotfix', 2.5, '#f59e0b'), 1500);
+
+        // Recovery Arc Animation
+        const recoveryArc = document.getElementById('recovery-arc-path');
+        const recoveryPill = document.getElementById('recovery-pill');
+        const recoveryBeam = document.getElementById('recovery-beam');
+        gsap.timeline({
+            scrollTrigger: {
+                trigger: "#recovery",
+                start: "top 70%",
+                toggleActions: "play none none reset"
+            },
+            repeat: -1,
+            repeatDelay: 4
+        })
+            .to(recoveryBeam, { opacity: 1, left: "100%", duration: 2.2, ease: "none" })
+            .to(recoveryArc, { strokeDashoffset: 0, duration: 1.8, ease: "power2.inOut" }, "-=0.5")
+            .to(recoveryPill, { opacity: 1, y: -10, duration: 0.6, scale: 1.05 }, "-=0.5")
+            .to(recoveryPill, { opacity: 0, duration: 1, delay: 1.5 });
+
+        recoveryPill?.addEventListener('click', () => {
+            gsap.to(recoveryPill, { scale: 0.9, duration: 0.1, yoyo: true, repeat: 1 });
+            const note = document.createElement('div');
+            note.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-400/20 backdrop-blur border border-emerald-400 text-emerald-400 px-6 py-3 rounded-full font-mono text-sm z-50';
+            note.textContent = '✓ Restored to checkpoint 13:45 (0.14s)';
+            document.body.appendChild(note);
+            setTimeout(() => note.remove(), 2000);
+        });
+
+        // Parallax for cards
+        document.querySelectorAll('.elite-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                gsap.to(card.querySelectorAll('.parallax-layer, svg'), {
+                    x: x * 20,
+                    y: y * 20,
+                    rotationY: x * 10,
+                    rotationX: -y * 10,
+                    duration: 0.5
+                });
+            });
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card.querySelectorAll('.parallax-layer, svg'), {
+                    x: 0, y: 0, rotationY: 0, rotationX: 0, duration: 0.8
+                });
+            });
+        });
+
+        // Ghost cursors for Realtime card
+        gsap.to("#cursor-ghost-1", { x: 60, y: 20, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to("#cursor-ghost-2", { x: -40, y: -30, duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+        // Vector dots floating animation
+        gsap.to(".vector-dot", {
+            y: "random(-8, 8)",
+            x: "random(-8, 8)",
+            duration: 2.5,
+            repeat: -1,
+            yoyo: true,
+            stagger: 0.2,
+            ease: "sine.inOut"
+        });
+
+        // Globe rotation
+        gsap.to("#globe-viz", { rotation: 360, duration: 80, repeat: -1, ease: "none" });
+
+        // Marker tooltips
+        document.querySelectorAll('.marker-group').forEach(m => {
+            m.addEventListener('mouseenter', (e) => {
+                const info = m.getAttribute('data-info');
+                if(info) {
+                    const tip = document.createElement('div');
+                    tip.className = 'fixed bg-emerald-400/20 text-emerald-400 text-[9px] font-mono px-2 py-1 rounded-full z-50 border border-emerald-400/30';
+                    tip.innerText = info;
+                    tip.style.left = (e.clientX + 12) + 'px';
+                    tip.style.top = (e.clientY - 25) + 'px';
+                    document.body.appendChild(tip);
+                    m.tip = tip;
+                }
+            });
+            m.addEventListener('mouseleave', () => { if(m.tip) m.tip.remove(); });
+        });
+
+        ScrollTrigger.refresh();
+    </script>
+</body>
+</html>
